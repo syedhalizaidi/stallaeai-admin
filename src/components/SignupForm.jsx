@@ -43,9 +43,7 @@ const SignupForm = ({ onTabChange }) => {
       if (result.success) {
         setSubmitMessage('Account created successfully! You can now login.');
         reset();
-        setTimeout(() => {
-          onTabChange('login');
-        }, 2000);
+        onTabChange('login');
       } else {
         setSubmitMessage(result.error);
       }

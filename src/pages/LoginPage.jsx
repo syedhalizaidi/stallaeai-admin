@@ -52,7 +52,7 @@ const LoginPage = () => {
           </div>
 
           {activeTab === 'signup' ? (
-            <SignupForm />
+            <SignupForm onTabChange={handleTabChange} />
           ) : (
             <LoginForm />
           )}
