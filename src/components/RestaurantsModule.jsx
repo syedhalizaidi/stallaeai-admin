@@ -80,7 +80,7 @@ const RestaurantsModule = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">Restaurant List</h3>
-            <p className="text-sm text-gray-600">View and manage all your restaurant locations</p>
+            <p className="text-sm text-gray-600">View and manage all your restaurants</p>
           </div>
 
           <div className="overflow-x-auto">
