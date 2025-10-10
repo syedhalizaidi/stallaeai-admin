@@ -27,7 +27,11 @@ export const authService = {
         message: 'Login successful!'
       };
     } catch (error) {
-      return error.response.data;
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Login failed. Please try again.',
+        details: error.response?.data
+      };
     }
   }
 };

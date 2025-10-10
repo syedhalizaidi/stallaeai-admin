@@ -3,7 +3,7 @@ import api from './api';
 export const restaurantService = {
     getRestaurants: async () => {
         try {
-            const response = await api.get('/restaurant/list-restaurants');
+            const response = await api.get('/restaurant/user-restaurant');
             return {
                 success: true,
                 data: response.data.data,

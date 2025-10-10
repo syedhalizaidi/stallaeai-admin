@@ -1,9 +1,17 @@
 import api from './api';
 
 export const userService = {
-    getUsers: async () => {
+    getUsers: async (restaurantId = null) => {
+        // Use provided restaurantId or fall back to localStorage
+        const idToUse = restaurantId || localStorage.getItem('restaurantId');
+        
         try {
-            const response = await api.get('/user/list-users');
+            const params = {};
+            if (idToUse && idToUse !== 'null') {
+                params.restaurant_id = idToUse;
+            }
+            
+            const response = await api.get(`/user/list-users`, { params });
             return {
                 success: true,
                 data: response.data.data,

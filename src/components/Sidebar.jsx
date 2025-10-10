@@ -1,9 +1,6 @@
 import { 
-  Shield, 
   LayoutDashboard, 
-  Store, 
-  Users, 
-  Settings
+  Store
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../assets/stellae-logo.png';
@@ -23,19 +20,7 @@ const Sidebar = () => {
       id: 'restaurants',
       label: 'Restaurants',
       icon: Store,
-      path: '/dashboard/restaurants'
-    },
-    {
-      id: 'users',
-      label: 'Users',
-      icon: Users,
-      path: '/dashboard/users'
-    },
-    {
-      id: 'settings',
-      label: 'Settings',
-      icon: Settings,
-      path: '/dashboard/settings'
+      path: '/restaurants'
     }
   ];
 
