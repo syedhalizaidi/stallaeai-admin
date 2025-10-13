@@ -16,5 +16,22 @@ export const restaurantService = {
                 details: error.response?.data
             };
         }
+    },
+
+    deleteRestaurant: async (restaurantId) => {
+        try {
+            const response = await api.delete(`/restaurant/delete-restaurant/${restaurantId}`);
+            return {
+                success: true,
+                data: response.data.data,
+                message: 'Restaurant deleted successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || 'Failed to delete restaurant.',
+                details: error.response?.data
+            };
+        }
     }
 }

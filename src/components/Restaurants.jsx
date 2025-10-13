@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Store, MapPin, Phone, Star, Plus, Loader2, ChevronRight } from 'lucide-react';
+import { Store, MapPin, Phone, Star, Plus, Loader2, ChevronRight, SquarePen, Trash2 } from 'lucide-react';
 import { restaurantService } from '../services/restaurantService';
 import Users from './Users';
 
@@ -29,6 +29,25 @@ const RestaurantsModule = () => {
     setSelectedRestaurant(null);
   };
 
+  const handleAddRestaurant = () => {
+    console.log('Add Restaurant clicked');
+  };
+
+  const handleDeleteRestaurant = async (restaurantId) => {
+    try {
+      setLoading(true);
+      const result = await restaurantService.deleteRestaurant(restaurantId);
+      if (result.success) {
+        fetchRestaurants();
+      } else {
+        setError(result.error);
+        setLoading(false);
+      }
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchRestaurants();
@@ -59,10 +78,15 @@ const RestaurantsModule = () => {
         </div>
 
         <div className="flex space-x-4">
-          <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors">
-            <Plus className="h-5 w-5 mr-2" />
-            {selectedRestaurant ? 'Add User' : 'Add Restaurant'}
-          </button>
+          {!selectedRestaurant && (
+            <button
+              onClick={handleAddRestaurant}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Add Restaurant
+            </button>
+          )}
         </div>
       </div>
 
@@ -105,7 +129,7 @@ const RestaurantsModule = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No Restaurants Found</h3>
               <p className="text-gray-600 mb-4">You haven't added any restaurants yet. Get started by adding your first restaurant.</p>
-              <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors mx-auto">
+              <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors mx-auto cursor-pointer">
                 <Plus className="h-5 w-5 mr-2" />
                 Add Your First Restaurant
               </button>
@@ -191,15 +215,17 @@ const RestaurantsModule = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          className="text-purple-600 hover:text-purple-900 cursor-pointer"
+                      <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
+                        <SquarePen
+                          className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation();
                           }}
-                        >
-                          Edit
-                        </button>
+                        />
+                        <Trash2
+                          className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
+                          onClick={() => handleDeleteRestaurant(restaurant.id)}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -209,6 +235,7 @@ const RestaurantsModule = () => {
           </div>
         )
       )}
+
     </div>
   );
 };
