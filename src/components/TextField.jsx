@@ -7,12 +7,16 @@ const TextField = forwardRef(({
   icon: Icon,
   error,
   className = '',
+  name, // explicitly destructure name
   ...props
 }, ref) => {
   return (
     <div>
       {label && (
-        <label htmlFor={props.name} className="block text-left text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor={name}
+          className="block text-left text-sm font-medium text-gray-700 mb-2"
+        >
           {label}
         </label>
       )}
@@ -23,7 +27,8 @@ const TextField = forwardRef(({
           </div>
         )}
         <input
-          id={props.name}
+          id={name}
+          name={name}
           ref={ref}
           type={type}
           className={`block w-full ${Icon ? 'pl-10' : 'pl-3'} pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
