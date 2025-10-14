@@ -53,6 +53,7 @@ const LoginForm = () => {
         <TextField
           label="Email"
           type="email"
+          name="email"
           placeholder="admin@example.com"
           icon={Mail}
           error={errors.email?.message}
@@ -69,6 +70,7 @@ const LoginForm = () => {
         <TextField
           label="Password"
           type="password"
+          name="password"
           placeholder="••••••••"
           icon={Lock}
           error={errors.password?.message}

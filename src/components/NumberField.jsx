@@ -1,13 +1,13 @@
 import { forwardRef } from 'react';
 
-const TextField = forwardRef(({
+const NumberField = forwardRef(({
   label,
-  type = 'text',
+  type = 'number',
   placeholder,
   icon: Icon,
   error,
   className = '',
-  name, 
+  name,
   ...props
 }, ref) => {
   return (
@@ -45,6 +45,6 @@ const TextField = forwardRef(({
   );
 });
 
-TextField.displayName = 'TextField';
+NumberField.displayName = 'NumberField';
 
-export default TextField;
+export default NumberField;

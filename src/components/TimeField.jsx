@@ -1,13 +1,13 @@
 import { forwardRef } from 'react';
 
-const TextField = forwardRef(({
+const TimeField = forwardRef(({
   label,
-  type = 'text',
+  type = 'time',
   placeholder,
   icon: Icon,
   error,
   className = '',
-  name, 
+  name,
   ...props
 }, ref) => {
   return (
@@ -45,6 +45,6 @@ const TextField = forwardRef(({
   );
 });
 
-TextField.displayName = 'TextField';
+TimeField.displayName = 'TimeField';
 
-export default TextField;
+export default TimeField;

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Store, MapPin, Phone, Star, Plus, Loader2, ChevronRight, SquarePen, Trash2 } from 'lucide-react';
 import { restaurantService } from '../services/restaurantService';
 import Users from './Users';
 
 const RestaurantsModule = () => {
+  const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,7 +32,7 @@ const RestaurantsModule = () => {
   };
 
   const handleAddRestaurant = () => {
-    console.log('Add Restaurant clicked');
+    navigate('/setup?step=basic-info');
   };
 
   const handleDeleteRestaurant = async (restaurantId) => {
@@ -129,7 +131,10 @@ const RestaurantsModule = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No Restaurants Found</h3>
               <p className="text-gray-600 mb-4">You haven't added any restaurants yet. Get started by adding your first restaurant.</p>
-              <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors mx-auto cursor-pointer">
+              <button 
+                onClick={handleAddRestaurant}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors mx-auto cursor-pointer"
+              >
                 <Plus className="h-5 w-5 mr-2" />
                 Add Your First Restaurant
               </button>
