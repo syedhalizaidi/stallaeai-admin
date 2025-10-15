@@ -160,5 +160,34 @@ export const restaurantService = {
                     "Failed to delete Menu Item",
             };
         }
+    },
+
+    uploadRestaurantImages: async (formData) => {
+        try {
+            const response = await api.post(
+                `/upload/restaurant-images`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            return {
+                success: true,
+                data: response.data,
+                message: "Restaurant images uploaded successfully!",
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error,
+                message:
+                    error.response?.data?.message ||
+                    error.response?.data?.detail ||
+                    "Failed to upload Images",
+            };
+        }
     }
 }

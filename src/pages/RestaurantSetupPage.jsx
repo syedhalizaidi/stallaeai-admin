@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Home, MapPin, Menu as MenuIcon, Camera } from 'lucide-react';
 import BasicInfo from '../components/RestaurantSetup/BasicInfo';
 import Location from '../components/RestaurantSetup/Location';
 import Menu from '../components/RestaurantSetup/Menu';
+import Images from '../components/RestaurantSetup/Images';
 import Sidebar from '../components/Sidebar';
 
 const RestaurantSetupPage = () => {
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [currentStep, setCurrentStep] = useState('basic-info');
 
@@ -59,7 +61,12 @@ const RestaurantSetupPage = () => {
                     />
                 );
             case 'images':
-                return <div>Images Step - Coming Soon</div>;
+                return (
+                    <Images
+                        onPrevious={() => handleStepChange('menu')}
+                        onNext={() => navigate('/restaurants')}
+                    />
+                );
             default:
                 return (
                     <BasicInfo
