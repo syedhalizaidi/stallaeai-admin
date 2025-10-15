@@ -9,6 +9,7 @@ const Users = ({ restaurantId, restaurantName }) => {
     const [error, setError] = useState(null);
     const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const userRole = localStorage.getItem('userRole');
 
     const fetchUsers = async () => {
         const result = await userService.getUsers(restaurantId);
@@ -143,9 +144,11 @@ const Users = ({ restaurantId, restaurantName }) => {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Role
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
-                                    </th>
+                                    {userRole === '"Admin"' || userRole === '"Proprietor"' && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
@@ -182,16 +185,21 @@ const Users = ({ restaurantId, restaurantName }) => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
-                                            <SquarePen
-                                                className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
-                                                onClick={() => handleEditUser(user)}
-                                            />
-                                            <Trash2
-                                                className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
-                                                onClick={() => handleDeleteUser(user.id)}
-                                            />
-                                        </td>
+                                        {userRole === '"Admin"' || userRole === '"Proprietor"' && (
+                                            <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
+                                                <SquarePen
+                                                    className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
+                                                    onClick={() => handleEditUser(user)}
+                                                />
+                                                <Trash2
+                                                    className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
+                                                    onClick={() => {
+                                                        e.stopPropagation();
+                                                        handleDeleteUser(user.id)
+                                                    }}
+                                                />
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>

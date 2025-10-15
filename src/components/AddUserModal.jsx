@@ -6,6 +6,7 @@ import TextField from './TextField';
 import SelectField from './SelectField';
 
 const roleOptions = [
+    { value: 'Proprietor', label: 'Proprietor' },
     { value: 'Manager', label: 'Manager' },
     { value: 'Staff', label: 'Staff' },
     { value: 'Customer', label: 'Customer' },
@@ -79,7 +80,7 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
             if (result.success) {
                 setSubmitMessage(result.message);
                 reset();
-                
+
                 // Call the callback to refresh users list
                 if (onUserAdded) {
                     onUserAdded();
@@ -169,8 +170,12 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                             {...register('password', {
                                 required: 'Password is required',
                                 minLength: {
-                                    value: 6,
-                                    message: 'Password must be at least 6 characters'
+                                    value: 8,
+                                    message: "Password must be at least 8 characters"
+                                },
+                                pattern: {
+                                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+                                    message: "Password must contain at least one uppercase letter, one lowercase letter, and one number"
                                 }
                             })}
                         />
@@ -178,14 +183,14 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                     <TextField
                         label="Phone Number"
                         type="tel"
-                        placeholder="Enter phone number"
+                        placeholder="e.g. +923001234567"
                         icon={Phone}
                         error={errors.phone_number?.message}
                         {...register('phone_number', {
                             required: 'Phone number is required',
                             pattern: {
-                                value: /^[0-9]{10}$/,
-                                message: 'Invalid phone number'
+                                value: /^[\+]?[1-9][\d]{0,15}$/,
+                                message: "Please enter a valid phone number"
                             }
                         })}
                     />

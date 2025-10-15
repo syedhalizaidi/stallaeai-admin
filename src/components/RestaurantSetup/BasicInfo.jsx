@@ -130,7 +130,7 @@ const BasicInfo = ({ onNext }) => {
               label="Restaurant Phone *"
               name="phone"
               type="tel"
-              placeholder="+1 (555) 123-4567"
+              placeholder="e.g. +923001234567"
               icon={Phone}
               error={errors.phone?.message}
               {...register('phone', {

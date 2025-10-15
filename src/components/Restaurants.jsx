@@ -10,6 +10,7 @@ const RestaurantsModule = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const userRole = localStorage.getItem('userRole');
 
   const fetchRestaurants = async () => {
     const result = await restaurantService.getRestaurants();
@@ -36,6 +37,7 @@ const RestaurantsModule = () => {
   };
 
   const handleDeleteRestaurant = async (restaurantId) => {
+    
     try {
       setLoading(true);
       const result = await restaurantService.deleteRestaurant(restaurantId);
@@ -131,7 +133,7 @@ const RestaurantsModule = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No Restaurants Found</h3>
               <p className="text-gray-600 mb-4">You haven't added any restaurants yet. Get started by adding your first restaurant.</p>
-              <button 
+              <button
                 onClick={handleAddRestaurant}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors mx-auto cursor-pointer"
               >
@@ -163,9 +165,11 @@ const RestaurantsModule = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Rating
                     </th>
+                    {userRole === '"Admin"' || userRole === '"Proprietor"' && (
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -177,12 +181,12 @@ const RestaurantsModule = () => {
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center mr-3">
+                          <div className="h-10 w-10 rounded-full flex items-center justify-center mr-3">
                             {restaurant?.logo ? (
                               <img
                                 src={restaurant.logo}
                                 alt={restaurant.name || 'Restaurant'}
-                                className="h-8 w-8 rounded-full object-cover"
+                                className="h-full w-full rounded-full object-cover"
                                 onError={(e) => {
                                   e.target.style.display = 'none';
                                   e.target.nextSibling.style.display = 'flex';
@@ -220,6 +224,7 @@ const RestaurantsModule = () => {
                           </div>
                         </div>
                       </td>
+                      {userRole === '"Admin"' || userRole === '"Proprietor"' && (
                       <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
                         <SquarePen
                           className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
@@ -229,9 +234,13 @@ const RestaurantsModule = () => {
                         />
                         <Trash2
                           className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
-                          onClick={() => handleDeleteRestaurant(restaurant.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteRestaurant(restaurant.id);
+                          }}
                         />
                       </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

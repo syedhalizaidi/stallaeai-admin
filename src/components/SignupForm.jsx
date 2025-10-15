@@ -100,14 +100,14 @@ const SignupForm = ({ onTabChange }) => {
         <TextField
           label="Phone Number"
           type="tel"
-          placeholder="1234567890"
+          placeholder="e.g. +923001234567"
           icon={Phone}
           error={errors.phoneNumber?.message}
-          {...register('phoneNumber', {
-            required: 'Phone number is required',
+          {...register("phoneNumber", {
+            required: "Phone number is required",
             pattern: {
-              value: /^[0-9]{10}$/,
-              message: 'Invalid phone number'
+              value: /^[\+]?[1-9][\d]{0,15}$/,
+              message: "Please enter a valid phone number"
             }
           })}
         />
@@ -119,11 +119,15 @@ const SignupForm = ({ onTabChange }) => {
           icon={Lock}
           error={errors.password?.message}
           autoComplete="new-password"
-          {...register('password', {
-            required: 'Password is required',
+          {...register("password", {
+            required: "Password is required",
             minLength: {
-              value: 6,
-              message: 'Password must be at least 6 characters'
+              value: 8,
+              message: "Password must be at least 8 characters"
+            },
+            pattern: {
+              value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+              message: "Password must contain at least one uppercase letter, one lowercase letter, and one number"
             }
           })}
         />
