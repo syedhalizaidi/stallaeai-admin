@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { X, Building2, Loader2 } from 'lucide-react';
 import SelectField from '../SelectField';
 import { businessService } from '../../services/businessService';
 
 const AddBusinessModal = ({ isOpen, onClose }) => {
-    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
     const [loadingCategories, setLoadingCategories] = useState(false);
 
@@ -43,6 +44,9 @@ const AddBusinessModal = ({ isOpen, onClose }) => {
     };
 
     const onSubmit = async (data) => {
+        navigate(`/setup?step=basic-info&category=${encodeURIComponent(data.category)}`);
+        reset();
+        onClose();
     };
 
     const handleClose = () => {
@@ -58,8 +62,8 @@ const AddBusinessModal = ({ isOpen, onClose }) => {
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.55)' }}>
+     return (
+         <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.55)' }}>
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -69,7 +73,7 @@ const AddBusinessModal = ({ isOpen, onClose }) => {
                         </div>
                         <div>
                             <h2 className="text-xl font-semibold text-gray-900">Add Business</h2>
-                            <p className="text-sm text-gray-600">Create a new business profile</p>
+                            <p className="text-sm text-gray-600">Select your business type</p>
                         </div>
                     </div>
                     <button
@@ -83,9 +87,8 @@ const AddBusinessModal = ({ isOpen, onClose }) => {
                 {/* Form */}
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                     <SelectField
-                        label="Business Category *"
+                        label="Business Category"
                         name="category"
-                        value={watch('category')}
                         options={categories}
                         placeholder={loadingCategories ? "Loading categories..." : "Select business category"}
                         error={errors.category?.message}
@@ -110,7 +113,7 @@ const AddBusinessModal = ({ isOpen, onClose }) => {
                             type="submit"
                             className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white cursor-pointer`}
                         >
-                            Submit
+                            Continue
                         </button>
                     </div>
                 </form>

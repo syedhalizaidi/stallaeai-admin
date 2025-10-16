@@ -53,7 +53,8 @@ const BasicInfo = ({ onNext }) => {
         closing_time: data.closingTime,
         cuisine_type: data.cuisineType,
         delivery_minimum: data.minDeliveryTime.toString(),
-        delivery_maximum: data.maxDeliveryTime.toString()
+        delivery_maximum: data.maxDeliveryTime.toString(),
+        business_type: 'restaurant'
       });
 
       if (result.success) {

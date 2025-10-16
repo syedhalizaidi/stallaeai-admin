@@ -100,7 +100,7 @@ const SignupForm = ({ onTabChange }) => {
         <TextField
           label="Phone Number"
           type="tel"
-          placeholder="1234567890"
+          placeholder="12345678"
           icon={Phone}
           error={errors.phoneNumber?.message}
           {...register("phoneNumber", {

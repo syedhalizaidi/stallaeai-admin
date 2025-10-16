@@ -3,10 +3,10 @@ import api from './api';
 export const restaurantService = {
     getRestaurants: async () => {
         try {
-            const response = await api.get('/restaurant/user-restaurant');
+            const response = await api.get('/business');
             return {
                 success: true,
-                data: response.data.data,
+                data: response.data,
                 message: 'Restaurants fetched successfully!'
             };
         } catch (error) {
@@ -20,7 +20,7 @@ export const restaurantService = {
 
     deleteRestaurant: async (restaurantId) => {
         try {
-            const response = await api.delete(`/restaurant/delete-restaurant/${restaurantId}`);
+            const response = await api.delete(`/business/${restaurantId}`);
             return {
                 success: true,
                 data: response.data.data,
@@ -37,7 +37,7 @@ export const restaurantService = {
 
     registerRestaurant: async (restaurantData) => {
         try {
-            const response = await api.post('/restaurant/register-restaurant', restaurantData);
+            const response = await api.post('/business', restaurantData);
             return {
                 success: true,
                 data: response.data,
@@ -56,7 +56,7 @@ export const restaurantService = {
 
     createRestaurantLocation: async (restaurantId, locationData) => {
         try {
-            const response = await api.post(`/location/restaurant-location/${restaurantId}`, locationData);
+            const response = await api.put(`/business/${restaurantId}`, locationData);
             return {
                 success: true,
                 data: response.data,

@@ -9,7 +9,7 @@ const Users = ({ restaurantId, restaurantName }) => {
     const [error, setError] = useState(null);
     const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
-    const userRole = localStorage.getItem('userRole');
+    const userRole = localStorage.getItem('userRole')?.replace(/"/g, '');
 
     const fetchUsers = async () => {
         const result = await userService.getUsers(restaurantId);
@@ -144,7 +144,7 @@ const Users = ({ restaurantId, restaurantName }) => {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Role
                                     </th>
-                                    {userRole === '"Admin"' || userRole === '"Proprietor"' && (
+                                    {(userRole === 'Admin' || userRole === 'Proprietor' || userRole === 'Manager') && (
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Actions
                                         </th>
@@ -185,7 +185,7 @@ const Users = ({ restaurantId, restaurantName }) => {
                                                 </div>
                                             </div>
                                         </td>
-                                        {userRole === '"Admin"' || userRole === '"Proprietor"' && (
+                                        {(userRole === 'Admin' || userRole === 'Proprietor' || userRole === 'Manager') && (
                                             <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
                                                 <SquarePen
                                                     className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
@@ -193,7 +193,7 @@ const Users = ({ restaurantId, restaurantName }) => {
                                                 />
                                                 <Trash2
                                                     className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
-                                                    onClick={() => {
+                                                    onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleDeleteUser(user.id)
                                                     }}

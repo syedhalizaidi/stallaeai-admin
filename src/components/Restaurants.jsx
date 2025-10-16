@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, MapPin, Phone, Star, Plus, Loader2, ChevronRight, SquarePen, Trash2 } from 'lucide-react';
+import { Store, MapPin, Phone, Star, Plus, Loader2, ChevronRight, SquarePen, Trash2, BriefcaseBusiness } from 'lucide-react';
 import { restaurantService } from '../services/restaurantService';
 import Users from './Users';
+import AddBusinessModal from './SetupBusiness/AddBusinessModal';
 
 const RestaurantsModule = () => {
   const navigate = useNavigate();
@@ -10,11 +11,13 @@ const RestaurantsModule = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [isAddBusinessModalOpen, setIsAddBusinessModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const userRole = localStorage.getItem('userRole')?.replace(/"/g, '');
 
   const fetchRestaurants = async () => {
     const result = await restaurantService.getRestaurants();
-    if (result.success) {
+        if (result.success) {
       setRestaurants(result.data);
       setLoading(false);
       setError(null);
@@ -33,7 +36,12 @@ const RestaurantsModule = () => {
   };
 
   const handleAddRestaurant = () => {
-    navigate('/setup?step=basic-info');
+    setIsAddBusinessModalOpen(true);
+    // navigate('/setup?step=basic-info');
+  };
+
+  const handleCategorySelected = (category) => {
+    setSelectedCategory(category);
   };
 
   const handleDeleteRestaurant = async (restaurantId) => {
@@ -68,7 +76,7 @@ const RestaurantsModule = () => {
                   className="text-gray-500 font-medium cursor-pointer hover:text-purple-600"
                   onClick={handleBackToRestaurants}
                 >
-                  Restaurants
+                  Business
                 </span>
                 <ChevronRight className="h-4 w-4 text-gray-400" />
                 <span className="text-gray-500 font-medium">{selectedRestaurant.name}</span>
@@ -76,7 +84,7 @@ const RestaurantsModule = () => {
                 <span className="text-purple-600 font-medium">Users</span>
               </>
             ) : (
-              <span className="text-purple-600 font-medium">Restaurants</span>
+              <span className="text-purple-600 font-medium">Business</span>
             )}
           </nav>
         </div>
@@ -88,7 +96,7 @@ const RestaurantsModule = () => {
               className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
             >
               <Plus className="h-5 w-5 mr-2" />
-              Add Restaurant
+              Add Business
             </button>
           )}
         </div>
@@ -106,7 +114,7 @@ const RestaurantsModule = () => {
           <div className="flex justify-center items-center h-64">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin text-purple-600 mx-auto mb-4" />
-              <p className="text-gray-600">Loading restaurants...</p>
+              <p className="text-gray-600">Loading Businesses...</p>
             </div>
           </div>
         ) : error ? (
@@ -115,7 +123,7 @@ const RestaurantsModule = () => {
               <div className="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Store className="h-6 w-6 text-red-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Restaurants</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Businesses</h3>
               <p className="text-gray-600 mb-4">{error}</p>
               <button
                 onClick={fetchRestaurants}
@@ -125,28 +133,28 @@ const RestaurantsModule = () => {
               </button>
             </div>
           </div>
-        ) : restaurants.length === 0 ? (
+        ) : restaurants?.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <div className="text-center">
               <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Store className="h-6 w-6 text-gray-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Restaurants Found</h3>
-              <p className="text-gray-600 mb-4">You haven't added any restaurants yet. Get started by adding your first restaurant.</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Businesses Found</h3>
+              <p className="text-gray-600 mb-4">You haven't added any businesses yet. Get started by adding your first Business.</p>
               <button
                 onClick={handleAddRestaurant}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors mx-auto cursor-pointer"
               >
                 <Plus className="h-5 w-5 mr-2" />
-                Add Your First Restaurant
+                Add Your First Business
               </button>
             </div>
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Restaurant List</h3>
-              <p className="text-sm text-gray-600">View and manage all your restaurants</p>
+              <h3 className="text-lg font-semibold text-gray-900">Businesses List</h3>
+              <p className="text-sm text-gray-600">View and manage all your businesses</p>
             </div>
 
             <div className="overflow-x-auto">
@@ -163,17 +171,17 @@ const RestaurantsModule = () => {
                       Phone
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rating
+                      Business Type
                     </th>
                     {(userRole === 'Admin' || userRole === 'Proprietor' || userRole === 'Manager') && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     )}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {restaurants.map((restaurant) => (
+                  {restaurants?.map((restaurant) => (
                     <tr
                       key={restaurant.id}
                       className="hover:bg-gray-50 cursor-pointer"
@@ -204,7 +212,7 @@ const RestaurantsModule = () => {
                         <div className="flex items-center">
                           <MapPin className="h-5 w-5 text-gray-400 mr-3" />
                           <div className="text-sm text-gray-900">
-                            {restaurant?.location?.city || 'N/A'}
+                            {restaurant?.address || 'N/A'}
                           </div>
                         </div>
                       </td>
@@ -218,28 +226,28 @@ const RestaurantsModule = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <Star className="h-5 w-5 text-gray-400 mr-3" />
+                          <BriefcaseBusiness className="h-5 w-5 text-gray-400 mr-3" />
                           <div className="text-sm text-gray-900">
-                            {restaurant?.reviews || 'N/A'}
+                            {restaurant?.business_type || 'N/A'}
                           </div>
                         </div>
                       </td>
                       {(userRole === 'Admin' || userRole === 'Proprietor' || userRole === 'Manager') && (
-                      <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
-                        <SquarePen
-                          className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                        />
-                        <Trash2
-                          className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteRestaurant(restaurant.id);
-                          }}
-                        />
-                      </td>
+                        <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
+                          <SquarePen
+                            className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          />
+                          <Trash2
+                            className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteRestaurant(restaurant.id);
+                            }}
+                          />
+                        </td>
                       )}
                     </tr>
                   ))}
@@ -249,6 +257,13 @@ const RestaurantsModule = () => {
           </div>
         )
       )}
+
+      {/* Add Business Modal */}
+      <AddBusinessModal
+        isOpen={isAddBusinessModalOpen}
+        onClose={() => setIsAddBusinessModalOpen(false)}
+        onCategorySelected={handleCategorySelected}
+      />
 
     </div>
   );

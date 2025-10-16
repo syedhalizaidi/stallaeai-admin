@@ -8,10 +8,10 @@ export const userService = {
         try {
             const params = {};
             if (idToUse && idToUse !== 'null') {
-                params.restaurant_id = idToUse;
+                params.business_id = idToUse;
             }
 
-            const response = await api.get(`/user/list-users`, { params });
+            const response = await api.get(`/business/business-members`, { params });
             return {
                 success: true,
                 data: response.data.data,
@@ -31,7 +31,7 @@ export const userService = {
             const response = await api.post('/user/register', userData);
             return {
                 success: true,
-                data: response.data.data,
+                data: response.data,
                 message: 'User created successfully!'
             };
         } catch (error) {

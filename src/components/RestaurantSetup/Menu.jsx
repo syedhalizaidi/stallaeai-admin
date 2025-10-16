@@ -7,6 +7,7 @@ import TextAreaField from '../TextAreaField';
 import SelectField from '../SelectField';
 import NumberField from '../NumberField';
 import MenuItemsList from './MenuItemsList';
+import { useToast } from '../../contexts/ToastContext';
 
 const categories = [
     { value: "Appetizers", label: "Appetizers" },
@@ -20,6 +21,7 @@ const categories = [
 ];
 
 const Menu = ({ onNext, onPrevious }) => {
+    const { showError } = useToast();
     const [showAddForm, setShowAddForm] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [uploadedImage, setUploadedImage] = useState(null);
@@ -60,8 +62,11 @@ const Menu = ({ onNext, onPrevious }) => {
                 // Refresh menu items list
                 getMenuItems();
             }
+            else {
+                showError(result.message);
+            }
         } catch (error) {
-            console.error('Error creating menu item:', error);
+            showError(error.response.data.message);
         } finally {
             setIsLoading(false);
         }

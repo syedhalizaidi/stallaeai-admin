@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { Store, MapPin, Star, Building2 } from 'lucide-react';
-import AddBusinessModal from './SetupBusiness/AddBusinessModal';
 
 const DashboardModule = () => {
-  const [isAddBusinessModalOpen, setIsAddBusinessModalOpen] = useState(false);
 
   const stats = {
     totalRestaurants: 1,
@@ -20,15 +18,6 @@ const DashboardModule = () => {
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600">Welcome to your restaurant management dashboard</p>
         </div>
-         <div className="w-full sm:w-auto mt-4 sm:mt-0">
-           <button 
-             onClick={() => setIsAddBusinessModalOpen(true)}
-             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
-           >
-             <Building2 className="h-5 w-5 mr-2" />
-             Add Business
-           </button>
-         </div>
       </div>
 
       {/* Stats Cards */}
@@ -84,11 +73,6 @@ const DashboardModule = () => {
         </div>
       </div>
 
-      {/* Add Business Modal */}
-      <AddBusinessModal 
-        isOpen={isAddBusinessModalOpen}
-        onClose={() => setIsAddBusinessModalOpen(false)}
-      />
     </div>
   );
 };

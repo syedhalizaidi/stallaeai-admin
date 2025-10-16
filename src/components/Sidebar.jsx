@@ -18,7 +18,7 @@ const Sidebar = () => {
     },
     {
       id: 'restaurants',
-      label: 'Restaurants',
+      label: 'Business',
       icon: Store,
       path: '/restaurants'
     }

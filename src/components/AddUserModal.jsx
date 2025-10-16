@@ -4,6 +4,7 @@ import { userService } from '../services/userService';
 import { useForm } from 'react-hook-form';
 import TextField from './TextField';
 import SelectField from './SelectField';
+import { useToast } from '../contexts/ToastContext';
 
 const roleOptions = [
     { value: 'Proprietor', label: 'Proprietor' },
@@ -13,6 +14,7 @@ const roleOptions = [
 ];
 
 const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = null }) => {
+    const { showError } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [submitMessage, setSubmitMessage] = useState('');
     const isEditMode = !!editUser;
@@ -62,7 +64,7 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                 email: data.email,
                 phone_number: data.phone_number,
                 role: data.role,
-                restaurant_id: restaurantId
+                business_id: restaurantId
             };
 
             // Add password only for create mode
@@ -91,8 +93,11 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                     onClose();
                 }, 3000);
             }
+            else {
+                showError(result.error);
+            }
         } catch (error) {
-            console.error(`Error ${isEditMode ? 'updating' : 'creating'} user`, error);
+            showError(error.response.data.message);
         } finally {
             setIsLoading(false);
         }
