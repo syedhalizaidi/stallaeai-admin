@@ -88,10 +88,6 @@ const BasicInfo = ({ onNext }) => {
               error={errors.restaurantName?.message}
               {...register('restaurantName', {
                 required: 'Restaurant name is required',
-                minLength: {
-                  value: 2,
-                  message: 'Restaurant name must be at least 2 characters'
-                }
               })}
             />
 
@@ -118,10 +114,6 @@ const BasicInfo = ({ onNext }) => {
             error={errors.description?.message}
             {...register('description', {
               required: 'Restaurant description is required',
-              minLength: {
-                value: 10,
-                message: 'Description must be at least 10 characters'
-              }
             })}
           />
 
@@ -130,14 +122,14 @@ const BasicInfo = ({ onNext }) => {
               label="Restaurant Phone *"
               name="phone"
               type="tel"
-              placeholder="e.g. +923001234567"
+              placeholder="1234567890"
               icon={Phone}
               error={errors.phone?.message}
               {...register('phone', {
                 required: 'Phone number is required',
-                pattern: {
-                  value: /^[\+]?[1-9][\d]{0,15}$/,
-                  message: 'Please enter a valid phone number'
+                minLength: {
+                  value: 8,
+                  message: "Phone number must be at least 8 digits"
                 }
               })}
             />
@@ -225,8 +217,8 @@ const BasicInfo = ({ onNext }) => {
             type="submit"
             disabled={isLoading}
             className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center ${isLoading
-                ? 'bg-gray-400 cursor-not-allowed text-white'
-                : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+              ? 'bg-gray-400 cursor-not-allowed text-white'
+              : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
               }`}
           >
             {isLoading ? (

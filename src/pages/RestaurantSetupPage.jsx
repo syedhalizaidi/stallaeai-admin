@@ -114,18 +114,17 @@ const RestaurantSetupPage = () => {
                             {steps.map((step, index) => {
                                 const Icon = step.icon;
                                 const isActive = step.id === currentStep;
-                                const isCompleted = index < getCurrentStepIndex();
 
                                 return (
                                     <button
                                         key={step.id}
                                         onClick={() => handleStepChange(step.id)}
-                                        className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                                            ? 'bg-blue-600 text-white'
-                                            : isCompleted
-                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                                            }`}
+                                        className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
+                                            isActive
+                                                ? 'bg-blue-600 text-white shadow-lg transform scale-105'
+                                                : 'text-gray-400 bg-gray-100 cursor-not-allowed opacity-60'
+                                        }`}
+                                        disabled={!isActive}
                                     >
                                         <Icon className="h-4 w-4" />
                                         <span>{step.name}</span>

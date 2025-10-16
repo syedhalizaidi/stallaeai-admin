@@ -10,7 +10,7 @@ const RestaurantsModule = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
-  const userRole = localStorage.getItem('userRole');
+  const userRole = localStorage.getItem('userRole')?.replace(/"/g, '');
 
   const fetchRestaurants = async () => {
     const result = await restaurantService.getRestaurants();
@@ -37,7 +37,7 @@ const RestaurantsModule = () => {
   };
 
   const handleDeleteRestaurant = async (restaurantId) => {
-    
+
     try {
       setLoading(true);
       const result = await restaurantService.deleteRestaurant(restaurantId);
@@ -165,7 +165,7 @@ const RestaurantsModule = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Rating
                     </th>
-                    {userRole === '"Admin"' || userRole === '"Proprietor"' && (
+                    {(userRole === 'Admin' || userRole === 'Proprietor' || userRole === 'Manager') && (
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
@@ -224,7 +224,7 @@ const RestaurantsModule = () => {
                           </div>
                         </div>
                       </td>
-                      {userRole === '"Admin"' || userRole === '"Proprietor"' && (
+                      {(userRole === 'Admin' || userRole === 'Proprietor' || userRole === 'Manager') && (
                       <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
                         <SquarePen
                           className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"

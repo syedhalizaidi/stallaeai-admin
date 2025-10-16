@@ -100,14 +100,14 @@ const SignupForm = ({ onTabChange }) => {
         <TextField
           label="Phone Number"
           type="tel"
-          placeholder="e.g. +923001234567"
+          placeholder="1234567890"
           icon={Phone}
           error={errors.phoneNumber?.message}
           {...register("phoneNumber", {
             required: "Phone number is required",
-            pattern: {
-              value: /^[\+]?[1-9][\d]{0,15}$/,
-              message: "Please enter a valid phone number"
+            minLength: {
+              value: 8,
+              message: "Phone number must be at least 8 digits"
             }
           })}
         />
