@@ -58,7 +58,7 @@ const Location = ({ onNext, onPrevious }) => {
         is_parking_available: data.parkingAvailable,
       });
       if (result.success) {
-        onNext();
+        // onNext();
       } else {
         console.error('Registration failed:', result.error);
       }

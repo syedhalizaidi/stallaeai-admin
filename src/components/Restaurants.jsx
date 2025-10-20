@@ -4,6 +4,9 @@ import { Store, MapPin, Phone, Star, Plus, Loader2, ChevronRight, SquarePen, Tra
 import { restaurantService } from '../services/restaurantService';
 import Users from './Users';
 import AddBusinessModal from './SetupBusiness/AddBusinessModal';
+import BarberForm from './SetupBusiness/BarberForm';
+import CarDealershipForm from './SetupBusiness/CarDealershipForm';
+import DeleteBusinessModal from './DeleteBusinessModal';
 
 const RestaurantsModule = () => {
   const navigate = useNavigate();
@@ -13,9 +16,15 @@ const RestaurantsModule = () => {
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [isAddBusinessModalOpen, setIsAddBusinessModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [businessType, setBusinessType] = useState(null);
+  const [editBusinessId, setEditBusinessId] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [businessToDelete, setBusinessToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const userRole = localStorage.getItem('userRole')?.replace(/"/g, '');
 
-  const fetchRestaurants = async () => {
+  const fetchBusinesses = async () => {
     const result = await restaurantService.getRestaurants();
         if (result.success) {
       setRestaurants(result.data);
@@ -37,32 +46,84 @@ const RestaurantsModule = () => {
 
   const handleAddRestaurant = () => {
     setIsAddBusinessModalOpen(true);
-    // navigate('/setup?step=basic-info');
   };
 
   const handleCategorySelected = (category) => {
     setSelectedCategory(category);
   };
 
-  const handleDeleteRestaurant = async (restaurantId) => {
+  const handleDeleteClick = (restaurant) => {
+    setBusinessToDelete(restaurant);
+    setIsDeleteModalOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!businessToDelete) return;
+
+    setIsDeleting(true);
     try {
-      setLoading(true);
-      const result = await restaurantService.deleteRestaurant(restaurantId);
+      const result = await restaurantService.deleteRestaurant(businessToDelete.id);
       if (result.success) {
-        fetchRestaurants();
+        fetchBusinesses();
+        setIsDeleteModalOpen(false);
+        setBusinessToDelete(null);
       } else {
         setError(result.error);
-        setLoading(false);
       }
     } catch (error) {
       setError(error.message);
-      setLoading(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteModalOpen(false);
+    setBusinessToDelete(null);
+  };
+
+  const handleEditBusiness = (businessType, businessId) => {
+    setBusinessType(businessType);
+    setEditBusinessId(businessId);
+    setIsEditMode(true);
+  };
+
+  const handleCloseEdit = () => {
+    setIsEditMode(false);
+    setBusinessType(null);
+  };
+
+  const handleEditSuccess = () => {
+    setIsEditMode(false);
+    setBusinessType(null);
+    fetchBusinesses(); 
+  };
+
+  // Function to render the appropriate form based on business type
+  const renderBusinessForm = () => {
+    if (!businessType) return null;
+    console.log("businessType", businessType)
+
+    const commonProps = {
+      onNext: handleEditSuccess,
+      editId: editBusinessId,
+      isEditMode: true
+    };
+
+    switch (businessType) {
+      case 'barber':
+        return <BarberForm {...commonProps} />;
+      case 'car_dealership':
+        return <CarDealershipForm {...commonProps} />;
+      case 'restaurant':
+        return <BarberForm {...commonProps} />;
+      default:
+        return <BarberForm {...commonProps} />;
     }
   };
 
   useEffect(() => {
-    fetchRestaurants();
+    fetchBusinesses();
   }, []);
 
   return (
@@ -126,7 +187,7 @@ const RestaurantsModule = () => {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Businesses</h3>
               <p className="text-gray-600 mb-4">{error}</p>
               <button
-                onClick={fetchRestaurants}
+                onClick={fetchBusinesses}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
               >
                 Try Again
@@ -212,7 +273,7 @@ const RestaurantsModule = () => {
                         <div className="flex items-center">
                           <MapPin className="h-5 w-5 text-gray-400 mr-3" />
                           <div className="text-sm text-gray-900">
-                            {restaurant?.address || 'N/A'}
+                            {restaurant?.locations[restaurant?.locations.length - 1]?.street_address || 'N/A'}
                           </div>
                         </div>
                       </td>
@@ -238,13 +299,14 @@ const RestaurantsModule = () => {
                             className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
+                              handleEditBusiness(restaurant?.business_type, restaurant.id);
                             }}
                           />
                           <Trash2
                             className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteRestaurant(restaurant.id);
+                              handleDeleteClick(restaurant);
                             }}
                           />
                         </td>
@@ -264,6 +326,34 @@ const RestaurantsModule = () => {
         onClose={() => setIsAddBusinessModalOpen(false)}
         onCategorySelected={handleCategorySelected}
       />
+
+       {/* Edit Business Modal */}
+       {isEditMode && businessType && (
+         <div className="fixed inset-0  flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.55)' }}>
+           <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+             <div className="p-6">
+               {renderBusinessForm()}
+               <div className="mt-4 flex justify-end">
+                 <button
+                   onClick={handleCloseEdit}
+                   className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                 >
+                   Cancel
+                 </button>
+               </div>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Delete Confirmation Modal */}
+       <DeleteBusinessModal
+         isOpen={isDeleteModalOpen}
+         onClose={handleDeleteCancel}
+         onConfirm={handleDeleteConfirm}
+         businessName={businessToDelete?.name || 'this business'}
+         isLoading={isDeleting}
+       />
 
     </div>
   );

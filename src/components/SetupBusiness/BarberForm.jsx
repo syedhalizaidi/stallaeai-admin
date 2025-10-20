@@ -1,13 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Scissors, Clock, Users, Home } from 'lucide-react';
+import { Scissors, Clock, Users, Home, MapPin } from 'lucide-react';
 import TextField from '../TextField';
 import NumberField from '../NumberField';
 import TimeField from '../TimeField';
 import SelectField from '../SelectField';
+import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
 import { businessService } from '../../services/businessService';
+import { useToast } from '../../contexts/ToastContext';
 
-const BarberForm = ({ onNext }) => {
+const daysOptions = [
+  { value: 'Mon, Tue, Wed, Thu, Fri', label: 'Weekdays Only' },
+  { value: 'Mon, Tue, Wed, Thu, Fri, Sat', label: 'Monday to Saturday' },
+  { value: 'Mon, Tue, Wed, Thu, Fri, Sat, Sun', label: 'Every Day' }
+];
+
+const BarberForm = ({ onNext, isEditMode = false, editId = null }) => {
+  const { showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -15,14 +24,19 @@ const BarberForm = ({ onNext }) => {
     handleSubmit,
     formState: { errors },
     watch,
-    setValue
+    setValue,
+    reset
   } = useForm({
     defaultValues: {
       name: '',
-      address: '',
       phone_number: '',
       email: '',
       website: '',
+      street_address: '',
+      city: '',
+      state: '',
+      zip_code: '',
+      country: 'United States',
       business_type: 'barber',
       chair_count: 1,
       average_haircut_time: 30,
@@ -39,30 +53,110 @@ const BarberForm = ({ onNext }) => {
     }
   });
 
-  const daysOptions = [
-    { value: 'Mon, Tue, Wed, Thu, Fri', label: 'Weekdays Only' },
-    { value: 'Mon, Tue, Wed, Thu, Fri, Sat', label: 'Monday to Saturday' },
-    { value: 'Mon, Tue, Wed, Thu, Fri, Sat, Sun', label: 'Every Day' }
-  ];
+  const selectedCountry = watch('country');
 
+  const selectCountry = (val) => {
+    setValue('country', val, { shouldValidate: true });
+    setValue('state', '');
+  };
+
+  const selectRegion = (val) => {
+    setValue('state', val, { shouldValidate: true });
+  };
 
   const onSubmit = async (data) => {
+    const payload = {
+      name: data.name,
+      phone_number: data.phone_number,
+      email: data.email,
+      website: data.website,
+      business_type: data.business_type,
+      chair_count: data.chair_count,
+      average_haircut_time: data.average_haircut_time,
+      appointment_required: data.appointment_required,
+      accepts_walkins: data.accepts_walkins,
+      services_offered: data.services_offered,
+      base_haircut_price: data.base_haircut_price,
+      premium_service_price: data.premium_service_price,
+      opening_time: data.opening_time,
+      closing_time: data.closing_time,
+      days_open: data.days_open,
+      has_waiting_area: data.has_waiting_area,
+      offers_home_service: data.offers_home_service,
+      location: [
+        {
+          street_address: data.street_address,
+          city: data.city,
+          state: data.state,
+          zip_code: data.zip_code,
+          country: data.country,
+        }
+      ]
+    }
+
     setIsLoading(true);
+
     try {
-      const response = await businessService.addBarberBusiness(data);
+      let response;
+      if (isEditMode && editId) {
+        response = await businessService.updateBusiness(editId, payload);
+      } else {
+        response = await businessService.addBarberBusiness(payload);
+      }
+
       if (response.success) {
         onNext();
       } else {
-        console.error('Error adding barber business:', response.error);
+        showError(response.error)
+        console.error(`Error ${isEditMode ? 'updating' : 'adding'} barber business:`, response.error);
       }
     }
     catch (error) {
-      console.error('Error adding barber business:', error);
+      console.error(`Error ${isEditMode ? 'updating' : 'adding'} barber business:`, error);
     }
     finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isEditMode && editId) {
+      const fetchBusiness = async () => {
+        const response = await businessService.getBusinessById(editId);
+        if (response.success) {
+          const b = response.data || {};
+          // Support both array and object for location from API
+          const loc = Array.isArray(b.locations) ? b.locations[b.locations.length - 1] : b.locations;
+
+          reset({
+            name: b.name || '',
+            phone_number: b.phone_number || '',
+            email: b.email || '',
+            website: b.website || '',
+            business_type: b.business_type || 'barber',
+            chair_count: b.chair_count ?? 1,
+            average_haircut_time: b.average_haircut_time ?? 30,
+            appointment_required: b.appointment_required ?? false,
+            accepts_walkins: b.accepts_walkins ?? true,
+            services_offered: b.services_offered || 'Haircut',
+            base_haircut_price: b.base_haircut_price ?? 15.0,
+            premium_service_price: b.premium_service_price ?? 40.0,
+            opening_time: b.opening_time || '09:00',
+            closing_time: b.closing_time || '21:00',
+            days_open: b.days_open || 'Mon, Tue, Wed, Thu, Fri, Sat, Sun',
+            has_waiting_area: b.has_waiting_area ?? true,
+            offers_home_service: b.offers_home_service ?? false,
+            street_address: loc?.street_address || '',
+            city: loc?.city || '',
+            state: loc?.state || '',
+            zip_code: loc?.zip_code || '',
+            country: loc?.country || 'United States',
+          });
+        }
+      };
+      fetchBusiness();
+    }
+  }, [isEditMode, editId]);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -74,8 +168,12 @@ const BarberForm = ({ onNext }) => {
               <Scissors className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Barber Shop Setup</h2>
-              <p className="text-sm text-gray-600">Complete your barber shop profile</p>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {isEditMode ? 'Edit Barber Shop' : 'Barber Shop Setup'}
+              </h2>
+              <p className="text-sm text-gray-600">
+                {isEditMode ? 'Update your barber shop profile' : 'Complete your barber shop profile'}
+              </p>
             </div>
           </div>
         </div>
@@ -97,17 +195,6 @@ const BarberForm = ({ onNext }) => {
                 error={errors.name?.message}
                 {...register('name', { required: 'Barber shop name is required' })}
               />
-
-              <TextField
-                label="Address *"
-                name="address"
-                placeholder="e.g., 22 Main Street, Downtown"
-                error={errors.address?.message}
-                {...register('address', { required: 'Address is required' })}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <TextField
                 label="Phone Number"
                 name="phone_number"
@@ -120,7 +207,9 @@ const BarberForm = ({ onNext }) => {
                   }
                 })}
               />
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <TextField
                 label="Email"
                 name="email"
@@ -134,15 +223,112 @@ const BarberForm = ({ onNext }) => {
                   }
                 })}
               />
+              <TextField
+                label="Website"
+                name="website"
+                placeholder="e.g., https://fademasters.com"
+                error={errors.website?.message}
+                {...register('website')}
+              />
             </div>
+          </div>
+
+          {/* Location */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+              <MapPin className="h-5 w-5 mr-2 text-purple-600" />
+              Location
+            </h3>
 
             <TextField
-              label="Website"
-              name="website"
-              placeholder="e.g., https://fademasters.com"
-              error={errors.website?.message}
-              {...register('website')}
+              label="Street Address *"
+              name="street_address"
+              type="text"
+              placeholder="123 Main Street"
+              icon={MapPin}
+              error={errors.street_address?.message}
+              {...register('street_address', {
+                required: 'Street address is required',
+                minLength: {
+                  value: 5,
+                  message: 'Street address must be at least 5 characters'
+                }
+              })}
             />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <TextField
+                label="City *"
+                name="city"
+                type="text"
+                placeholder="Enter city"
+                error={errors.city?.message}
+                {...register('city', {
+                  required: 'City is required',
+                  minLength: {
+                    value: 2,
+                    message: 'City must be at least 2 characters'
+                  }
+                })}
+              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  State *
+                </label>
+                <RegionDropdown
+                  country={selectedCountry}
+                  value={watch('state')}
+                  onChange={(val) => selectRegion(val)}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.state ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                />
+                {errors.state && (
+                  <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>
+                )}
+                <input
+                  type="hidden"
+                  {...register('state', {
+                    required: 'State is required'
+                  })}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <TextField
+                label="ZIP Code *"
+                name="zip_code"
+                type="text"
+                placeholder="Enter ZIP code"
+                error={errors.zip_code?.message}
+                {...register('zip_code', {
+                  required: 'ZIP code is required',
+                  pattern: {
+                    value: /^[0-9]{5}(-[0-9]{4})?$/,
+                    message: 'Please enter a valid ZIP code (e.g., 12345 or 12345-6789)'
+                  }
+                })}
+              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Country *
+                </label>
+                <CountryDropdown
+                  value={selectedCountry}
+                  onChange={(val) => selectCountry(val)}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.country ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                />
+                {errors.country && (
+                  <p className="mt-1 text-sm text-red-600">{errors.country.message}</p>
+                )}
+                <input
+                  type="hidden"
+                  {...register('country', {
+                    required: 'Country is required'
+                  })}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Barber Shop Details */}
@@ -305,10 +491,10 @@ const BarberForm = ({ onNext }) => {
               {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Creating Barber Shop...
+                  {isEditMode ? 'Updating Barber Shop...' : 'Creating Barber Shop...'}
                 </>
               ) : (
-                'Create Barber Shop'
+                isEditMode ? 'Update Barber Shop' : 'Create Barber Shop'
               )}
             </button>
           </div>
