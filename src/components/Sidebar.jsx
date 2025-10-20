@@ -1,14 +1,28 @@
 import { 
   LayoutDashboard, 
-  Store
+  Store,
+  Mic
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import Logo from '../assets/stellae-logo.png';
+import { businessService } from '../services/businessService';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [businesses, setBusinesses] = useState([]);
   
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      const result = await businessService.getBusinesses();
+      if (result.success) {
+        setBusinesses(result.data || []);
+      }
+    };
+    fetchBusinesses();
+  }, []);
+
   const menuItems = [
     {
       id: 'dashboard',
@@ -21,7 +35,13 @@ const Sidebar = () => {
       label: 'Business',
       icon: Store,
       path: '/restaurants'
-    }
+    },
+    ...(businesses.length > 0 ? [{
+      id: 'voice',
+      label: 'Voice',
+      icon: Mic,
+      path: '/voice'
+    }] : [])
   ];
 
   const handleNavigation = (path) => {

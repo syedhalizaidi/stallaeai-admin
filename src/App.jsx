@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import RestaurantsPage from './pages/RestaurantsPage';
 import RestaurantSetupPage from './pages/RestaurantSetupPage';
+import VoicePage from './pages/VoicePage';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/restaurants" element={<RestaurantsPage />} />
           <Route path="/setup" element={<RestaurantSetupPage />} />
+          <Route path="/voice" element={<VoicePage />} />
         </Routes>
       </Router>
     </ToastProvider>

@@ -82,7 +82,41 @@ export const businessService = {
         catch (error) {
             return {
                 success: false,
-                error: error.response?.message ||  'Failed to fetch business.',
+                error: error.response?.message || 'Failed to fetch business.',
+            };
+        }
+    },
+
+    getBusinesses: async () => {
+        try {
+            const response = await api.get('/business');
+            return {
+                success: true,
+                data: response.data,
+                message: 'Businesses fetched successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to fetch businesses.',
+                details: error.response?.data
+            };
+        }
+    },
+
+    getVoices: async () => {
+        try {
+            const response = await api.get('/eleven_labs/elevenlabs/voices');
+            return {
+                success: true,
+                data: response.data,
+                message: 'Voices fetched successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to fetch voices.',
+                details: error.response?.data
             };
         }
     }
