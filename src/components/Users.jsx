@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Store, MapPin, Phone, Plus, Loader2, SquarePen, Trash2 } from 'lucide-react';
 import { userService } from '../services/userService';
 import AddUserModal from './AddUserModal';
+import DeleteUserModal from './DeleteUserModal';
 
 const Users = ({ restaurantId, restaurantName }) => {
     const [users, setUsers] = useState([]);
@@ -9,6 +10,9 @@ const Users = ({ restaurantId, restaurantName }) => {
     const [error, setError] = useState(null);
     const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const userRole = localStorage.getItem('userRole')?.replace(/"/g, '');
 
     const fetchUsers = async () => {
@@ -23,20 +27,34 @@ const Users = ({ restaurantId, restaurantName }) => {
         }
     };
 
-    const handleDeleteUser = async (userId) => {
+    const handleDeleteUser = (user) => {
+        setUserToDelete(user);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDeleteUser = async () => {
+        if (!userToDelete) return;
+        
         try {
-            setLoading(true);
-            const result = await userService.deleteUser(userId);
+            setIsDeleting(true);
+            const result = await userService.deleteUser(userToDelete.id);
             if (result.success) {
                 fetchUsers();
+                setIsDeleteModalOpen(false);
+                setUserToDelete(null);
             } else {
                 setError(result.error);
-                setLoading(false);
             }
         } catch (error) {
             setError(error.message);
-            setLoading(false);
+        } finally {
+            setIsDeleting(false);
         }
+    };
+
+    const handleCloseDeleteModal = () => {
+        setIsDeleteModalOpen(false);
+        setUserToDelete(null);
     };
 
     const handleAddUser = () => {
@@ -195,7 +213,7 @@ const Users = ({ restaurantId, restaurantName }) => {
                                                     className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleDeleteUser(user.id)
+                                                        handleDeleteUser(user)
                                                     }}
                                                 />
                                             </td>
@@ -215,6 +233,15 @@ const Users = ({ restaurantId, restaurantName }) => {
                 restaurantId={restaurantId}
                 onUserAdded={handleUserAdded}
                 editUser={editingUser}
+            />
+
+            {/* Delete User Modal */}
+            <DeleteUserModal
+                isOpen={isDeleteModalOpen}
+                onClose={handleCloseDeleteModal}
+                onConfirm={confirmDeleteUser}
+                userName={userToDelete?.full_name || userToDelete?.email || 'this user'}
+                isLoading={isDeleting}
             />
         </div>
     );
