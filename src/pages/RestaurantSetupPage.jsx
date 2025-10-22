@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Home, MapPin, Menu as MenuIcon, Camera, Scissors, Car } from 'lucide-react';
+import { Home, Menu as MenuIcon, Camera, Scissors, Car } from 'lucide-react';
 import BasicInfo from '../components/RestaurantSetup/BasicInfo';
-import Location from '../components/RestaurantSetup/Location';
 import Menu from '../components/RestaurantSetup/Menu';
 import Images from '../components/RestaurantSetup/Images';
 import BarberForm from '../components/SetupBusiness/BarberForm';
@@ -14,10 +13,10 @@ const RestaurantSetupPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [currentStep, setCurrentStep] = useState('basic-info');
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [editId, setEditId] = useState(null);
 
     const steps = [
         { id: 'basic-info', name: 'Basic Info', icon: Home },
-        { id: 'location', name: 'Location', icon: MapPin },
         { id: 'menu', name: 'Menu', icon: MenuIcon },
         { id: 'images', name: 'Images', icon: Camera },
     ];
@@ -25,7 +24,10 @@ const RestaurantSetupPage = () => {
     useEffect(() => {
         const step = searchParams.get('step') || 'basic-info';
         const category = searchParams.get('category');
+        const editIdParam = searchParams.get('editId');
+        
         setCurrentStep(step);
+        setEditId(editIdParam);        
         if (category) {
             setSelectedCategory(decodeURIComponent(category));
         }
@@ -70,21 +72,18 @@ const RestaurantSetupPage = () => {
             case 'basic-info':
                 return (
                     <BasicInfo
-                        onNext={() => handleStepChange('location')}
-                    />
-                );
-            case 'location':
-                return (
-                    <Location
                         onNext={() => handleStepChange('menu')}
-                        onPrevious={() => handleStepChange('basic-info')}
+                        editId={editId}
+                        isEditMode={!!editId}
                     />
                 );
             case 'menu':
                 return (
                     <Menu
                         onNext={() => handleStepChange('images')}
-                        onPrevious={() => handleStepChange('location')}
+                        onPrevious={() => handleStepChange('basic-info')}
+                        editId={editId}
+                        isEditMode={!!editId}
                     />
                 );
             case 'images':
@@ -92,12 +91,16 @@ const RestaurantSetupPage = () => {
                     <Images
                         onPrevious={() => handleStepChange('menu')}
                         onNext={() => navigate('/restaurants')}
+                        editId={editId}
+                        isEditMode={!!editId}
                     />
                 );
             default:
                 return (
                     <BasicInfo
-                        onNext={() => handleStepChange('location')}
+                        onNext={() => handleStepChange('menu')}
+                        editId={editId}
+                        isEditMode={!!editId}
                     />
                 );
         }

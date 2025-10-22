@@ -1,7 +1,8 @@
 import { 
   LayoutDashboard, 
   Store,
-  Mic
+  Mic,
+  LogOut
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -48,9 +49,14 @@ const Sidebar = () => {
     navigate(path);
   };
 
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/');
+  };
+
   return (
-    <div className="w-16 md:w-64 bg-white shadow-lg transition-all duration-300">
-      <div className="p-3 md:p-6">
+    <div className="w-16 md:w-64 bg-white shadow-lg transition-all duration-300 flex flex-col">
+      <div className="p-3 md:p-6 flex-1">
         {/* Logo/Brand */}
         <div className="flex items-center mb-6 md:mb-8">
           <div className="h-10 w-10 flex items-center justify-center">
@@ -87,6 +93,18 @@ const Sidebar = () => {
             );
           })}
         </nav>
+      </div>
+
+      {/* Logout Button */}
+      <div className="p-3 md:p-6 border-t border-gray-200">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center px-2 md:px-3 py-2 text-sm font-medium rounded-lg transition-colors text-red-600 hover:bg-red-50 cursor-pointer"
+          title="Logout"
+        >
+          <LogOut className="h-5 w-5 md:mr-3" />
+          <span className="hidden md:block">Logout</span>
+        </button>
       </div>
     </div>
   );

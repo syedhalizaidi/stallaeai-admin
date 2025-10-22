@@ -54,6 +54,41 @@ export const restaurantService = {
         }
     },
 
+    updateRestaurant: async (restaurantId, restaurantData) => {
+        try {
+            const response = await api.put(`/business/${restaurantId}`, restaurantData);
+            return {
+                success: true,
+                data: response.data,
+                message: 'Restaurant updated successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message ||
+                    error.response?.data?.detail ||
+                    'Restaurant update failed',
+            };
+        }
+    },
+
+    getRestaurantDetails: async (restaurantId) => {
+        try {
+            const response = await api.get(`/business/${restaurantId}`);
+            return {
+                success: true,
+                data: response.data,
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message ||
+                    error.response?.data?.detail ||
+                    'Restaurant details retrieval failed',
+            };
+        }
+    },
+
     createRestaurantLocation: async (restaurantId, locationData) => {
         try {
             const response = await api.put(`/business/${restaurantId}`, locationData);

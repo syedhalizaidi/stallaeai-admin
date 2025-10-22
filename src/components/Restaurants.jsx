@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, MapPin, Phone, Star, Plus, Loader2, ChevronRight, SquarePen, Trash2, BriefcaseBusiness } from 'lucide-react';
+import { Store, MapPin, Phone, Star, Plus, Loader2, ChevronRight, SquarePen, Trash2, BriefcaseBusiness, Volume2, Play, Pause } from 'lucide-react';
 import { restaurantService } from '../services/restaurantService';
 import Users from './Users';
 import AddBusinessModal from './SetupBusiness/AddBusinessModal';
@@ -22,6 +22,8 @@ const RestaurantsModule = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [businessToDelete, setBusinessToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPlayingAudio, setCurrentPlayingAudio] = useState(null);
+  const [currentPlayingVoiceId, setCurrentPlayingVoiceId] = useState(null);
   const userRole = localStorage.getItem('userRole')?.replace(/"/g, '');
 
   const fetchBusinesses = async () => {
@@ -99,16 +101,53 @@ const RestaurantsModule = () => {
     fetchBusinesses(); 
   };
 
+  const handleVoicePlayPause = (e, restaurant) => {
+    e.stopPropagation();
+    
+    if (!restaurant?.voice?.preview_url) return;
+    
+    const voiceId = restaurant.voice.id;
+    
+    // If this voice is currently playing, pause it
+    if (currentPlayingVoiceId === voiceId && currentPlayingAudio) {
+      currentPlayingAudio.pause();
+      setCurrentPlayingAudio(null);
+      setCurrentPlayingVoiceId(null);
+      return;
+    }
+    
+    // Stop any currently playing audio
+    if (currentPlayingAudio) {
+      currentPlayingAudio.pause();
+    }
+    
+    // Start playing the new voice
+    const audio = new Audio(restaurant.voice.preview_url);
+    setCurrentPlayingAudio(audio);
+    setCurrentPlayingVoiceId(voiceId);
+    
+    audio.play().catch(console.error);
+    
+    // Clean up when audio ends
+    audio.addEventListener('ended', () => {
+      setCurrentPlayingAudio(null);
+      setCurrentPlayingVoiceId(null);
+    });
+  };
+
   // Function to render the appropriate form based on business type
   const renderBusinessForm = () => {
     if (!businessType) return null;
-    console.log("businessType", businessType)
 
     const commonProps = {
       onNext: handleEditSuccess,
       editId: editBusinessId,
       isEditMode: true
     };
+
+    if (businessType === 'restaurant') {
+      navigate(`/setup?step=basic-info&editId=${editBusinessId}&businessType=${businessType}`);
+    }
 
     switch (businessType) {
       case 'barber':
@@ -226,7 +265,7 @@ const RestaurantsModule = () => {
                       Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Location
+                      Voice
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Phone
@@ -271,9 +310,28 @@ const RestaurantsModule = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <MapPin className="h-5 w-5 text-gray-400 mr-3" />
+                          <Volume2 className="h-5 w-5 text-gray-400 mr-3" />
                           <div className="text-sm text-gray-900">
-                            {restaurant?.locations[restaurant?.locations.length - 1]?.street_address || 'N/A'}
+                            {restaurant?.voice ? (
+                              <div className="flex items-center space-x-2">
+                                <span>{restaurant.voice.name}</span>
+                                {restaurant.voice.preview_url && (
+                                  <button
+                                    onClick={(e) => handleVoicePlayPause(e, restaurant)}
+                                    className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                                    title={currentPlayingVoiceId === restaurant.voice.id ? "Pause voice" : "Play voice"}
+                                  >
+                                    {currentPlayingVoiceId === restaurant.voice.id ? (
+                                      <Pause className="h-4 w-4 text-purple-600" />
+                                    ) : (
+                                      <Play className="h-4 w-4 text-purple-600" />
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">No voice assigned</span>
+                            )}
                           </div>
                         </div>
                       </td>

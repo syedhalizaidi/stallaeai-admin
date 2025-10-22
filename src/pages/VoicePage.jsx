@@ -5,8 +5,9 @@ import Sidebar from '../components/Sidebar';
 import { useToast } from '../contexts/ToastContext';
 
 const VoicePage = () => {
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [businesses, setBusinesses] = useState([]);
   const [selectedBusinessId, setSelectedBusinessId] = useState('');
@@ -14,6 +15,8 @@ const VoicePage = () => {
   const [selectedVoiceId, setSelectedVoiceId] = useState('');
   const [selectedVoicePreviewUrl, setSelectedVoicePreviewUrl] = useState('');
   const [selectedVoiceName, setSelectedVoiceName] = useState('');
+  const [hasExistingVoice, setHasExistingVoice] = useState(false);
+  const [voiceChanged, setVoiceChanged] = useState(false);
 
   useEffect(() => {
     const fetchBusinesses = async () => {
@@ -36,35 +39,66 @@ const VoicePage = () => {
       setSelectedVoiceId('');
       setSelectedVoicePreviewUrl('');
       setSelectedVoiceName('');
+      setHasExistingVoice(false);
+      setVoiceChanged(false);
       return;
     }
 
-    const fetchVoices = async () => {
+    const fetchVoicesAndCheckBusinessVoice = async () => {
       setIsLoading(true);
-      const result = await businessService.getVoices();
-      if (result.success) {
-        const list = result.data?.voices || result.data || [];
-        setVoices(Array.isArray(list) ? list : []);
-      } else {
-        setError((prev) => prev || result.error || 'Failed to fetch voices');
+      setError('');
+      
+      try {
+        const voicesResult = await businessService.getVoices();
+        if (voicesResult.success) {
+          const list = voicesResult.data?.voices || [];
+          setVoices(list ?? []);
+        } else {
+          setError(voicesResult.error || 'Failed to fetch voices');
+        }
+
+        // Check if selected business has a voice from the businesses listing
+        const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
+        if (selectedBusiness && selectedBusiness.voice) {
+          const businessVoice = selectedBusiness.voice;
+
+          const voicesList = voicesResult.success ? (voicesResult.data?.voices || []) : [];
+          const matchingVoice = voicesList.find(v => {
+            const nameMatch = v.name === businessVoice.name;
+            return nameMatch;
+          });
+          
+          if (matchingVoice) {
+            const voiceId = matchingVoice.id;
+            setSelectedVoiceId(voiceId);
+            setSelectedVoicePreviewUrl(businessVoice.preview_url || '');
+            setSelectedVoiceName(businessVoice.name || '');
+            setHasExistingVoice(true);
+            setVoiceChanged(false); 
+          } else {
+            setSelectedVoiceId('');
+            setSelectedVoicePreviewUrl('');
+            setSelectedVoiceName('');
+            setHasExistingVoice(true);
+            setVoiceChanged(false); 
+          }
+        } else {
+          setSelectedVoiceId('');
+          setSelectedVoicePreviewUrl('');
+          setSelectedVoiceName('');
+          setHasExistingVoice(false);
+          setVoiceChanged(false);
+        }
+      } catch (error) {
+        setError('Failed to fetch voice data');
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
-    fetchVoices();
+
+    fetchVoicesAndCheckBusinessVoice();
   }, [selectedBusinessId]);
 
-  useEffect(() => {
-    if (!selectedVoiceId) {
-      setSelectedVoicePreviewUrl('');
-      setSelectedVoiceName('');
-      return;
-    }
-    const match = voices.find((v) => (v.id || v.voice_id) === selectedVoiceId);
-    const preview = match?.preview_url || '';
-    const name = match?.name || '';
-    setSelectedVoicePreviewUrl(preview);
-    setSelectedVoiceName(name);
-  }, [selectedVoiceId, voices]);
 
   const businessOptions = useMemo(() => {
     return businesses?.map((b) => ({ value: b.id, label: b.name }));
@@ -74,13 +108,80 @@ const VoicePage = () => {
     return (voices || []).map((v) => ({ value: v.id || v.voice_id, label: v.name }));
   }, [voices]);
 
-  const handleSubmit = () => {
-  
-    const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
-    const businessName = selectedBusiness?.name || 'Business';
-    const voiceName = selectedVoiceName || 'Voice';
+  const handleVoiceChange = (e) => {
+    const newVoiceId = e.target.value;
+    setSelectedVoiceId(newVoiceId);
     
-    showSuccess(`Voice ${voiceName} assigned to ${businessName} successfully`, 'success');
+    const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
+    
+    setVoiceChanged(true);
+    
+    if (selectedBusiness && selectedBusiness.voice) {
+      setHasExistingVoice(true);
+    } else {
+      setHasExistingVoice(false);
+    }
+    
+    const match = voices.find((v) => (v.id || v.voice_id) === newVoiceId);
+    const preview = match?.preview_url || '';
+    const name = match?.name || '';
+    setSelectedVoicePreviewUrl(preview);
+    setSelectedVoiceName(name);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedVoiceId || !selectedBusinessId) {
+      showError('Please select both business and voice');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
+      const selectedVoice = voices.find(v => (v.id || v.voice_id) === selectedVoiceId);
+      
+      const voiceData = {
+        name: selectedVoice?.name || '',
+        category: selectedVoice?.category || '',
+        gender: selectedVoice?.gender || '',
+        preview_url: selectedVoice?.preview_url || '',
+        business_id: selectedBusinessId,
+        id: selectedVoiceId
+      };
+
+      // Use appropriate API based on whether voice already exists
+      let result;
+      if (hasExistingVoice) {
+        // Update existing voice assignment
+        result = await businessService.updateVoice(selectedBusinessId, voiceData);
+      } else {
+        // Create new voice assignment
+        result = await businessService.createVoice(voiceData);
+      }
+      
+      if (result.success) {
+        const businessName = selectedBusiness?.name || 'Business';
+        const voiceName = selectedVoice?.name || 'Voice';
+        const action = hasExistingVoice ? 'updated' : 'assigned';
+        showSuccess(`Voice ${voiceName} ${action} to ${businessName} successfully`);
+        setHasExistingVoice(true); 
+        setVoiceChanged(false);
+        
+        // Refresh business listing to get updated voice information
+        const refreshResult = await businessService.getBusinesses();
+        if (refreshResult.success) {
+          setBusinesses(refreshResult.data);
+        }
+      } else {
+        showError(result.error);
+      }
+    } catch (error) {
+      showError('Failed to assign voice');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -107,7 +208,7 @@ const VoicePage = () => {
             label="Voice"
             name="voiceId"
             value={selectedVoiceId}
-            onChange={(e) => setSelectedVoiceId(e.target.value)}
+            onChange={handleVoiceChange}
             options={voiceOptions}
             placeholder={!selectedBusinessId ? 'Select business first' : (isLoading ? 'Loading voices...' : 'Select voice')}
             disabled={isLoading || !selectedBusinessId}
@@ -120,12 +221,22 @@ const VoicePage = () => {
             <audio key={selectedVoicePreviewUrl} src={selectedVoicePreviewUrl} controls autoPlay className="w-full" />
           )}
           {selectedBusinessId && selectedVoiceId && (
-            <button
-              onClick={handleSubmit}
-              className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors font-medium"
-            >
-              Submit
-            </button>
+            // Show button only if:
+            // 1. Business has no voice and user selected a voice (voiceChanged will be true)
+            // 2. Business has voice and user changed the selection (voiceChanged will be true)
+            (voiceChanged || (!hasExistingVoice && selectedVoiceId)) && (
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className={`w-full py-2 px-4 rounded-lg focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors font-medium ${
+                  isSubmitting 
+                    ? 'bg-gray-400 cursor-not-allowed text-white' 
+                    : 'bg-purple-600 hover:bg-purple-700 text-white'
+                }`}
+              >
+                {isSubmitting ? 'Processing...' : (hasExistingVoice ? 'Update Voice' : 'Assign Voice')}
+              </button>
+            )
           )}
           {error && <div className="text-sm text-red-600">{error}</div>}
         </div>

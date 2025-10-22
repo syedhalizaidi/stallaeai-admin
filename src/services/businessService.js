@@ -119,5 +119,37 @@ export const businessService = {
                 details: error.response?.data
             };
         }
+    },
+
+    createVoice: async (voiceData) => {
+        try {
+            const response = await api.post('/voice', voiceData);
+            return {
+                success: true,
+                data: response.data,
+                message: 'Voice assigned successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to assign voice.',
+            };
+        }
+    },
+
+    updateVoice: async (businessId, voiceData) => {
+        try {
+            const response = await api.put(`/voice/${businessId}`, voiceData);
+            return {
+                success: true,
+                data: response.data,
+                message: 'Voice updated successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to update voice.',
+            };
+        }
     }
 }
