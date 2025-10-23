@@ -13,6 +13,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [businesses, setBusinesses] = useState([]);
+  const userRole = localStorage.getItem('userRole')?.replace(/"/g, '');
   
   useEffect(() => {
     const fetchBusinesses = async () => {
@@ -37,7 +38,7 @@ const Sidebar = () => {
       icon: Store,
       path: '/restaurants'
     },
-    ...(businesses.length > 0 ? [{
+    ...(businesses.length > 0 && userRole !== 'Staff' ? [{
       id: 'voice',
       label: 'Voice',
       icon: Mic,

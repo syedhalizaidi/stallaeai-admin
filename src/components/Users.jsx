@@ -34,7 +34,7 @@ const Users = ({ restaurantId, restaurantName }) => {
 
     const confirmDeleteUser = async () => {
         if (!userToDelete) return;
-        
+
         try {
             setIsDeleting(true);
             const result = await userService.deleteUser(userToDelete.id);
@@ -87,13 +87,15 @@ const Users = ({ restaurantId, restaurantName }) => {
                     <h1 className="text-2xl font-bold text-gray-900">
                         {restaurantName ? `${restaurantName} - Users` : 'Users'}
                     </h1>
-                    <button
-                        onClick={handleAddUser}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
-                    >
-                        <Plus className="h-5 w-5 mr-2" />
-                        Add User
-                    </button>
+                    {userRole !== 'Staff' && (
+                        <button
+                            onClick={handleAddUser}
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
+                        >
+                            <Plus className="h-5 w-5 mr-2" />
+                            Add User
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -127,14 +129,18 @@ const Users = ({ restaurantId, restaurantName }) => {
                             <Store className="h-6 w-6 text-gray-400" />
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">No Users Found</h3>
-                        <p className="text-gray-600 mb-4">You haven't added any users yet. Get started by adding your first user.</p>
-                        <button
-                            onClick={handleAddUser}
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors mx-auto cursor-pointer"
-                        >
-                            <Plus className="h-5 w-5 mr-2" />
-                            Add Your First User
-                        </button>
+                        {userRole !== 'Staff' && (
+                            <>
+                                <p className="text-gray-600 mb-4">You haven't added any users yet. Get started by adding your first user.</p>
+                                <button
+                                    onClick={handleAddUser}
+                                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors mx-auto cursor-pointer"
+                                >
+                                    <Plus className="h-5 w-5 mr-2" />
+                                    Add Your First User
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             ) : (

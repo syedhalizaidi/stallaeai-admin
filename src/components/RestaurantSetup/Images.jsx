@@ -15,6 +15,14 @@ const Images = ({ onNext, onPrevious }) => {
     const handleLogoUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
+            // Check file size (3MB = 3 * 1024 * 1024 bytes)
+            const maxSize = 3 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showError('Logo file size must be less than 3MB');
+                event.target.value = ''; // Clear the input
+                return;
+            }
+            
             setLogoFile(file);
             // Create preview URL
             const previewUrl = URL.createObjectURL(file);
@@ -25,6 +33,14 @@ const Images = ({ onNext, onPrevious }) => {
     const handleExteriorUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
+            // Check file size (3MB = 3 * 1024 * 1024 bytes)
+            const maxSize = 3 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showError('Exterior image file size must be less than 3MB');
+                event.target.value = ''; // Clear the input
+                return;
+            }
+            
             // Clean up previous preview if exists
             if (exteriorPreviews.length > 0) {
                 URL.revokeObjectURL(exteriorPreviews[0]);
@@ -89,7 +105,7 @@ const Images = ({ onNext, onPrevious }) => {
             const response = await restaurantService.uploadRestaurantImages(formData);
 
             if (response.success) {
-                // if (onNext) onNext();
+                if (onNext) onNext();
             }
             else {
                 showError(response.error);
@@ -106,7 +122,7 @@ const Images = ({ onNext, onPrevious }) => {
             const hasNewExterior = exteriorFiles.length > 0 && exteriorFiles[0] instanceof File;
             
             if (!hasNewLogo && !hasNewExterior) {
-                // if (onNext) onNext();
+                if (onNext) onNext();
                 return;
             }
             
@@ -131,7 +147,7 @@ const Images = ({ onNext, onPrevious }) => {
                 const response = await restaurantService.updateRestaurantImages(restaurantId, formData);
                 
                 if (response.success) {
-                    // if (onNext) onNext();
+                    if (onNext) onNext();
                 }
                 else {
                     showError(response.error);

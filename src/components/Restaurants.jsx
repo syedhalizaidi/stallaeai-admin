@@ -28,7 +28,7 @@ const RestaurantsModule = () => {
 
   const fetchBusinesses = async () => {
     const result = await restaurantService.getRestaurants();
-        if (result.success) {
+    if (result.success) {
       setRestaurants(result.data);
       setLoading(false);
       setError(null);
@@ -98,16 +98,16 @@ const RestaurantsModule = () => {
   const handleEditSuccess = () => {
     setIsEditMode(false);
     setBusinessType(null);
-    fetchBusinesses(); 
+    fetchBusinesses();
   };
 
   const handleVoicePlayPause = (e, restaurant) => {
     e.stopPropagation();
-    
+
     if (!restaurant?.voice?.preview_url) return;
-    
+
     const voiceId = restaurant.voice.id;
-    
+
     // If this voice is currently playing, pause it
     if (currentPlayingVoiceId === voiceId && currentPlayingAudio) {
       currentPlayingAudio.pause();
@@ -115,19 +115,19 @@ const RestaurantsModule = () => {
       setCurrentPlayingVoiceId(null);
       return;
     }
-    
+
     // Stop any currently playing audio
     if (currentPlayingAudio) {
       currentPlayingAudio.pause();
     }
-    
+
     // Start playing the new voice
     const audio = new Audio(restaurant.voice.preview_url);
     setCurrentPlayingAudio(audio);
     setCurrentPlayingVoiceId(voiceId);
-    
+
     audio.play().catch(console.error);
-    
+
     // Clean up when audio ends
     audio.addEventListener('ended', () => {
       setCurrentPlayingAudio(null);
@@ -189,17 +189,19 @@ const RestaurantsModule = () => {
           </nav>
         </div>
 
-        <div className="flex space-x-4">
-          {!selectedRestaurant && (
-            <button
-              onClick={handleAddRestaurant}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Add Business
-            </button>
-          )}
-        </div>
+        {userRole !== 'Staff' && (
+          <div className="flex space-x-4">
+            {!selectedRestaurant && (
+              <button
+                onClick={handleAddRestaurant}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Add Business
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Content based on selection */}
@@ -240,14 +242,18 @@ const RestaurantsModule = () => {
                 <Store className="h-6 w-6 text-gray-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No Businesses Found</h3>
-              <p className="text-gray-600 mb-4">You haven't added any businesses yet. Get started by adding your first Business.</p>
-              <button
-                onClick={handleAddRestaurant}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors mx-auto cursor-pointer"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Add Your First Business
-              </button>
+              {userRole !== 'Staff' && (
+                <>
+                  <p className="text-gray-600 mb-4">You haven't added any businesses yet. Get started by adding your first Business.</p>
+                  <button
+                    onClick={handleAddRestaurant}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors mx-auto cursor-pointer"
+                  >
+                    <Plus className="h-5 w-5 mr-2" />
+                    Add Your First Business
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ) : (
@@ -385,33 +391,33 @@ const RestaurantsModule = () => {
         onCategorySelected={handleCategorySelected}
       />
 
-       {/* Edit Business Modal */}
-       {isEditMode && businessType && (
-         <div className="fixed inset-0  flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.55)' }}>
-           <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-             <div className="p-6">
-               {renderBusinessForm()}
-               <div className="mt-4 flex justify-end">
-                 <button
-                   onClick={handleCloseEdit}
-                   className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-                 >
-                   Cancel
-                 </button>
-               </div>
-             </div>
-           </div>
-         </div>
-       )}
+      {/* Edit Business Modal */}
+      {isEditMode && businessType && (
+        <div className="fixed inset-0  flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.55)' }}>
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {renderBusinessForm()}
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={handleCloseEdit}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-       {/* Delete Confirmation Modal */}
-       <DeleteBusinessModal
-         isOpen={isDeleteModalOpen}
-         onClose={handleDeleteCancel}
-         onConfirm={handleDeleteConfirm}
-         businessName={businessToDelete?.name || 'this business'}
-         isLoading={isDeleting}
-       />
+      {/* Delete Confirmation Modal */}
+      <DeleteBusinessModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        businessName={businessToDelete?.name || 'this business'}
+        isLoading={isDeleting}
+      />
 
     </div>
   );
