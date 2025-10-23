@@ -1,8 +1,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://api.stellaeai.com',
-  timeout: 10000,
+  baseURL: 'http://192.168.3.201:8002',
+  // baseURL: 'https://api.stellaeai.com',
+  // timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },

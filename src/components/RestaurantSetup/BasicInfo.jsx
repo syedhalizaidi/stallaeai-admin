@@ -77,7 +77,7 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
           if (result.success && result.data) {
             const data = result.data;
             const location = data.locations?.[0] || {};
-            
+
             // Set form values
             setValue('restaurantName', data.name || '');
             setValue('cuisineType', data.cuisine_type || 'Mediterranean');
@@ -88,7 +88,7 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
             setValue('closingTime', data.closing_time || '');
             setValue('minDeliveryTime', data.delivery_minimum || '10');
             setValue('maxDeliveryTime', data.delivery_maximum || '30');
-            
+
             // Location data
             setValue('streetAddress', location.street_address || '');
             setValue('city', location.city || '');
@@ -151,9 +151,7 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
       }
 
       if (result.success) {
-        if (!isEditMode) {
-          localStorage.setItem('restaurant_id', result.restaurantId);
-        }
+        localStorage.setItem('restaurant_id', result.restaurantId);
         onNext();
       } else {
         showError(result.error);
@@ -369,9 +367,8 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
                   country={selectedCountry}
                   value={watch('state')}
                   onChange={(val) => selectRegion(val)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                    errors.state ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.state ? 'border-red-500' : 'border-gray-300'
+                    }`}
                 />
                 {errors.state && (
                   <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>
@@ -408,9 +405,8 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
                 <CountryDropdown
                   value={selectedCountry}
                   onChange={(val) => selectCountry(val)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                    errors.country ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.country ? 'border-red-500' : 'border-gray-300'
+                    }`}
                 />
                 {errors.country && (
                   <p className="mt-1 text-sm text-red-600">{errors.country.message}</p>

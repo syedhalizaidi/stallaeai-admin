@@ -60,6 +60,7 @@ export const restaurantService = {
             return {
                 success: true,
                 data: response.data,
+                restaurantId: response.data?.id || response.data?.data?.id,
                 message: 'Restaurant updated successfully!'
             };
         } catch (error) {
@@ -217,12 +218,50 @@ export const restaurantService = {
         } catch (error) {
             return {
                 success: false,
-                error,
-                message:
+                error:
                     error.response?.data?.message ||
                     error.response?.data?.detail ||
                     "Failed to upload Images",
             };
         }
-    }
+    },
+
+    getRestaurantImages: async (restaurantId) => {
+        try {
+            const response = await api.get(`/upload/restaurant-images/${restaurantId}`);
+            return {
+                success: true,
+                data: response.data,
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.response?.data?.detail || "Failed to get restaurant images",
+            };
+        }
+    },
+
+    updateRestaurantImages: async (restaurantId, formData) => {
+        try {
+            const response = await api.put(
+                `/upload/restaurant-images/${restaurantId}`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+            return {
+                success: true,
+                data: response.data,
+                message: "Restaurant images updated successfully!",
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.response?.data?.detail || "Failed to update restaurant images",
+            };
+        }
+    },
 }

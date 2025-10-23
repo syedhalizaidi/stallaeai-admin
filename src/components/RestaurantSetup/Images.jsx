@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Camera, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { restaurantService } from '../../services/restaurantService';
+import { useToast } from '../../contexts/ToastContext';
 
 const Images = ({ onNext, onPrevious }) => {
+    const { showError } = useToast();
     const [logoFile, setLogoFile] = useState(null);
     const [logoPreview, setLogoPreview] = useState(null);
     const [exteriorFiles, setExteriorFiles] = useState([]);
     const [exteriorPreviews, setExteriorPreviews] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUpdate, setIsUpdate] = useState(false);
 
     const handleLogoUpload = (event) => {
         const file = event.target.files[0];
@@ -61,53 +64,112 @@ const Images = ({ onNext, onPrevious }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Validation
-        if (!logoFile) {
-            return;
-        }
-        
-        if (!exteriorFiles.length) {
-            return;
-        }
+        if (!isUpdate) {
+
+        if (!logoFile || !exteriorFiles.length) return;
 
         setIsSubmitting(true);
 
         try {
             const restaurantId = localStorage.getItem('restaurant_id');
             const formData = new FormData();
-            
-            // Add restaurant ID if provided
+
             if (restaurantId) {
                 formData.append("restaurant_id", restaurantId);
             }
 
-            // Add logo file
             if (logoFile) {
                 formData.append("logo", logoFile);
             }
 
-            // Add exterior image (single file)
             if (exteriorFiles.length > 0) {
                 formData.append("exterior", exteriorFiles[0]);
             }
 
             const response = await restaurantService.uploadRestaurantImages(formData);
-            
+
             if (response.success) {
-                if (onNext) onNext();
+                // if (onNext) onNext();
+            }
+            else {
+                showError(response.error);
             }
         } catch (err) {
-            // Silent error handling
+            console.error('Error uploading restaurant images:', err);
         } finally {
             setIsSubmitting(false);
         }
+
+        } else {
+
+            const hasNewLogo = logoFile && logoFile instanceof File;
+            const hasNewExterior = exteriorFiles.length > 0 && exteriorFiles[0] instanceof File;
+            
+            if (!hasNewLogo && !hasNewExterior) {
+                // if (onNext) onNext();
+                return;
+            }
+            
+            setIsSubmitting(true);
+            
+            try {
+                const restaurantId = localStorage.getItem('restaurant_id');
+                const formData = new FormData();
+                formData.append("restaurant_id", restaurantId);
+                
+                // Only append files that are actual File objects
+                if (hasNewLogo) {
+                    console.log("has new logo", logoFile);
+                    formData.append("logo", logoFile);
+                }
+                
+                if (hasNewExterior) {
+                    console.log("has new exterior", exteriorFiles[0]);
+                    formData.append("exterior", exteriorFiles[0]);
+                }
+                
+                const response = await restaurantService.updateRestaurantImages(restaurantId, formData);
+                
+                if (response.success) {
+                    // if (onNext) onNext();
+                }
+                else {
+                    showError(response.error);
+                }
+            } catch (err) {
+                console.error('Error updating restaurant images:', err);
+            } finally {
+                setIsSubmitting(false);
+            }
+        }
     };
+
+    const getRestaurantImages = async () => {
+        const restaurantId = localStorage.getItem('restaurant_id');
+        const response = await restaurantService.getRestaurantImages(restaurantId);
+        if (response.success) {
+            if (response.data.logo) {
+                setLogoPreview(response.data.logo);
+                setIsUpdate(true);
+            }
+
+            if (response.data.exterior && response.data.exterior.length > 0) {
+                const exteriorUrls = response.data.exterior.map(item => item.url);
+                setExteriorPreviews(exteriorUrls);
+                setIsUpdate(true);
+            }
+        }
+    };
+
+    useEffect(() => {
+        getRestaurantImages();
+    }, []);
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
             <div className="max-w-2xl mx-auto">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Images</h2>
-                
+
                 <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
                     {/* Restaurant Logo Section */}
                     <div className="space-y-3">
@@ -117,14 +179,14 @@ const Images = ({ onNext, onPrevious }) => {
                                 Required
                             </span>
                         </div>
-                        
+
                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 lg:p-8 text-center hover:border-gray-400 transition-colors">
-                            {logoFile ? (
+                            {logoFile || logoPreview ? (
                                 <div className="space-y-4">
                                     <div className="mx-auto w-24 h-24 sm:w-32 sm:h-32 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                                        <img 
-                                            src={logoPreview} 
-                                            alt="Logo preview" 
+                                        <img
+                                            src={logoPreview}
+                                            alt="Logo preview"
                                             className="w-full h-full object-cover rounded-lg"
                                         />
                                     </div>
@@ -171,14 +233,14 @@ const Images = ({ onNext, onPrevious }) => {
                                 Required
                             </span>
                         </div>
-                        
+
                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 lg:p-8 text-center hover:border-gray-400 transition-colors">
-                            {exteriorFiles.length > 0 ? (
+                            {exteriorFiles.length > 0 || exteriorPreviews.length > 0 ? (
                                 <div className="space-y-4">
                                     <div className="mx-auto w-24 h-24 sm:w-32 sm:h-32 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                                        <img 
-                                            src={exteriorPreviews[0]} 
-                                            alt="Exterior preview" 
+                                        <img
+                                            src={exteriorPreviews[0]}
+                                            alt="Exterior preview"
                                             className="w-full h-full object-cover rounded-lg"
                                         />
                                     </div>
