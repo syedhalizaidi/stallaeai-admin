@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Home, Phone, Mail, Clock, Loader2, MapPin } from 'lucide-react';
-import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
+import { Home, Mail, Clock, Loader2, MapPin } from 'lucide-react';
+import { RegionDropdown } from 'react-country-region-selector';
 import TextField from '../TextField';
 import TextAreaField from '../TextAreaField';
 import SelectField from '../SelectField';
@@ -24,6 +24,8 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
   const { showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [availableCountries, setAvailableCountries] = useState([]);
+  const [isLoadingCountries, setIsLoadingCountries] = useState(false);
 
   const {
     register,
@@ -36,7 +38,6 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
       restaurantName: '',
       cuisineType: 'Mediterranean',
       description: '',
-      phone: '',
       email: '',
       openingTime: '',
       closingTime: '',
@@ -48,6 +49,7 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
       state: '',
       zipCode: '',
       country: 'United States',
+      countryCode: 'US',
       dineIn: true,
       delivery: false,
       pickup: true,
@@ -61,13 +63,38 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
   const selectCountry = (val) => {
     setValue('country', val, { shouldValidate: true });
     setValue('state', '');
+
+    const selectedCountryData = availableCountries.find(country => country.country === val);
+    if (selectedCountryData) {
+      setValue('countryCode', selectedCountryData.country_code, { shouldValidate: true });
+    }
   };
 
   const selectRegion = (val) => {
     setValue('state', val, { shouldValidate: true });
   };
 
-  // Load existing restaurant data for editing
+  useEffect(() => {
+    const fetchAvailableCountries = async () => {
+      setIsLoadingCountries(true);
+      try {
+        const result = await restaurantService.getTwilioAvailableCountries();
+        if (result.success) {
+          setAvailableCountries(result.data.countries || []);
+        } else {
+          showError('Failed to load available countries');
+        }
+      } catch (error) {
+        console.error('Error fetching available countries:', error);
+        showError('Error loading available countries');
+      } finally {
+        setIsLoadingCountries(false);
+      }
+    };
+
+    fetchAvailableCountries();
+  }, []);
+
   useEffect(() => {
     if (isEditMode && editId) {
       const loadRestaurantData = async () => {
@@ -78,23 +105,21 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
             const data = result.data;
             const location = data.locations?.[0] || {};
 
-            // Set form values
             setValue('restaurantName', data.name || '');
             setValue('cuisineType', data.cuisine_type || 'Mediterranean');
             setValue('description', data.description || '');
-            setValue('phone', data.phone_number || '');
             setValue('email', data.email || '');
             setValue('openingTime', data.opening_time || '');
             setValue('closingTime', data.closing_time || '');
             setValue('minDeliveryTime', data.delivery_minimum || '10');
             setValue('maxDeliveryTime', data.delivery_maximum || '30');
 
-            // Location data
             setValue('streetAddress', location.street_address || '');
             setValue('city', location.city || '');
             setValue('state', location.state || '');
             setValue('zipCode', location.zip_code || '');
             setValue('country', location.country || 'United States');
+            setValue('countryCode', data.country_code || 'US');
             setValue('dineIn', location.is_dine_in_available || true);
             setValue('delivery', location.is_delivery_available || false);
             setValue('pickup', location.is_pickup_available || true);
@@ -121,14 +146,13 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
         name: data.restaurantName,
         email: data.email.trim().toLowerCase(),
         description: data.description,
-        phone_number: data.phone,
         opening_time: data.openingTime,
         closing_time: data.closingTime,
         cuisine_type: data.cuisineType,
         delivery_minimum: data.minDeliveryTime.toString(),
         delivery_maximum: data.maxDeliveryTime.toString(),
         business_type: 'restaurant',
-        // Location data as array
+        country_code: data.countryCode,
         location: [{
           street_address: data.streetAddress,
           city: data.city,
@@ -228,22 +252,6 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TextField
-              label="Restaurant Phone *"
-              name="phone"
-              type="tel"
-              placeholder="1234567890"
-              icon={Phone}
-              error={errors.phone?.message}
-              {...register('phone', {
-                required: 'Phone number is required',
-                minLength: {
-                  value: 8,
-                  message: "Phone number must be at least 8 digits"
-                }
-              })}
-            />
-
-            <TextField
               label="Contact Email *"
               name="email"
               type="email"
@@ -258,9 +266,6 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
                 }
               })}
             />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TimeField
               label="Opening Time *"
               name="openingTime"
@@ -270,7 +275,9 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
                 required: 'Opening time is required'
               })}
             />
+          </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TimeField
               label="Closing Time *"
               name="closingTime"
@@ -280,9 +287,6 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
                 required: 'Closing time is required'
               })}
             />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <NumberField
               label="Minimum Delivery Time *"
               name="minDeliveryTime"
@@ -298,7 +302,9 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
                 valueAsNumber: true
               })}
             />
+          </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <NumberField
               label="Maximum Delivery Time *"
               name="maxDeliveryTime"
@@ -343,7 +349,7 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
               })}
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               <TextField
                 label="City *"
                 name="city"
@@ -382,7 +388,7 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               <TextField
                 label="ZIP Code *"
                 name="zipCode"
@@ -402,12 +408,26 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Country *
                 </label>
-                <CountryDropdown
+                <select
                   value={selectedCountry}
-                  onChange={(val) => selectCountry(val)}
+                  onChange={(e) => selectCountry(e.target.value)}
                   className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.country ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                />
+                    } ${isEditMode ? 'bg-gray-50 text-gray-500' : ''}`}
+                  disabled={isLoadingCountries || isEditMode}
+                >
+                  {isLoadingCountries ? (
+                    <option>Loading countries...</option>
+                  ) : (
+                    <>
+                      <option value="">Select Country</option>
+                      {availableCountries.map((country) => (
+                        <option key={country.country_code} value={country.country}>
+                          {country.country}
+                        </option>
+                      ))}
+                    </>
+                  )}
+                </select>
                 {errors.country && (
                   <p className="mt-1 text-sm text-red-600">{errors.country.message}</p>
                 )}
@@ -418,9 +438,19 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
                   })}
                 />
               </div>
+
+              <TextField
+                label="Country Code"
+                name="countryCode"
+                type="text"
+                placeholder="US"
+                readOnly
+                error={errors.countryCode?.message}
+                {...register('countryCode')}
+              />
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 mt-6">
               <h4 className="text-lg font-medium text-gray-900">Service Options</h4>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-4">

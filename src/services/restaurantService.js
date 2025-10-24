@@ -264,4 +264,20 @@ export const restaurantService = {
             };
         }
     },
+
+    getTwilioAvailableCountries: async () => {
+        try {
+            const response = await api.get('/twilio/available-countries');
+            return {
+                success: true,
+                data: response.data,
+                message: 'Available countries fetched successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to fetch available countries',
+            };
+        }
+    },
 }

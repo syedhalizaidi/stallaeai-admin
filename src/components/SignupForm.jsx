@@ -36,7 +36,7 @@ const SignupForm = ({ onTabChange }) => {
         email: data.email,
         phone_number: data.phoneNumber,
         password: data.password,
-        role: 'Admin'
+        role: 'Proprietor'
       }
       const result = await authService.signup(payload);
 

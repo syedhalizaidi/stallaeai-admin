@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Car, Clock, Users, Home, MapPin } from 'lucide-react';
+import { Car, Clock, Users, Home } from 'lucide-react';
 import TextField from '../TextField';
 import NumberField from '../NumberField';
 import TimeField from '../TimeField';
 import SelectField from '../SelectField';
-import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
+import LocationSection from './LocationSection';
 import { businessService } from '../../services/businessService';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -29,7 +29,6 @@ const CarDealershipForm = ({ onNext, isEditMode = false, editId = null }) => {
   } = useForm({
     defaultValues: {
       name: '',
-      phone_number: '',
       email: '',
       website: '',
       street_address: '',
@@ -37,6 +36,7 @@ const CarDealershipForm = ({ onNext, isEditMode = false, editId = null }) => {
       state: '',
       zip_code: '',
       country: 'United States',
+      country_code: 'US',
       business_type: 'car_dealership',
       brand_specialization: '',
       total_cars_available: 0,
@@ -55,21 +55,10 @@ const CarDealershipForm = ({ onNext, isEditMode = false, editId = null }) => {
     }
   });
 
-  const selectedCountry = watch('country');
-
-  const selectCountry = (val) => {
-    setValue('country', val, { shouldValidate: true });
-    setValue('state', '');
-  };
-
-  const selectRegion = (val) => {
-    setValue('state', val, { shouldValidate: true });
-  };
 
   const onSubmit = async (data) => {
     const payload = {
       name: data.name,
-      phone_number: data.phone_number,
       email: data.email,
       website: data.website,
       business_type: data.business_type,
@@ -87,6 +76,7 @@ const CarDealershipForm = ({ onNext, isEditMode = false, editId = null }) => {
       days_open: data.days_open,
       staff_count: data.staff_count,
       parking_capacity: data.parking_capacity,
+      country_code: data.country_code,
       location: [
         {
           street_address: data.street_address,
@@ -135,7 +125,6 @@ const CarDealershipForm = ({ onNext, isEditMode = false, editId = null }) => {
 
           reset({
             name: b.name || '',
-            phone_number: b.phone_number || '',
             email: b.email || '',
             website: b.website || '',
             business_type: b.business_type || 'car_dealership',
@@ -158,6 +147,7 @@ const CarDealershipForm = ({ onNext, isEditMode = false, editId = null }) => {
             state: loc?.state || '',
             zip_code: loc?.zip_code || '',
             country: loc?.country || 'United States',
+            country_code: b.country_code || 'US',
           })
         }
       };
@@ -213,19 +203,6 @@ const CarDealershipForm = ({ onNext, isEditMode = false, editId = null }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <TextField
-                label="Phone Number"
-                name="phone_number"
-                placeholder="e.g., 12345678"
-                error={errors.phone_number?.message}
-                {...register('phone_number', {
-                  minLength: {
-                    value: 8,
-                    message: "Phone number must be at least 8 digits"
-                  }
-                })}
-              />
-
-              <TextField
                 label="Email"
                 name="email"
                 type="email"
@@ -242,102 +219,14 @@ const CarDealershipForm = ({ onNext, isEditMode = false, editId = null }) => {
           </div>
 
           {/* Location */}
-          <div className="space-y-6">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center">
-              <MapPin className="h-5 w-5 mr-2 text-purple-600" />
-              Location
-            </h3>
-
-            <TextField
-              label="Street Address *"
-              name="street_address"
-              type="text"
-              placeholder="123 Main Street"
-              icon={MapPin}
-              error={errors.street_address?.message}
-              {...register('street_address', {
-                required: 'Street address is required',
-                minLength: {
-                  value: 5,
-                  message: 'Street address must be at least 5 characters'
-                }
-              })}
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextField
-                label="City *"
-                name="city"
-                type="text"
-                placeholder="Enter city"
-                error={errors.city?.message}
-                {...register('city', {
-                  required: 'City is required',
-                  minLength: {
-                    value: 2,
-                    message: 'City must be at least 2 characters'
-                  }
-                })}
-              />
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  State *
-                </label>
-                <RegionDropdown
-                  country={selectedCountry}
-                  value={watch('state')}
-                  onChange={(val) => selectRegion(val)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.state ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                />
-                {errors.state && (
-                  <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>
-                )}
-                <input
-                  type="hidden"
-                  {...register('state', {
-                    required: 'State is required'
-                  })}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextField
-                label="ZIP Code *"
-                name="zip_code"
-                type="text"
-                placeholder="Enter ZIP code"
-                error={errors.zip_code?.message}
-                {...register('zip_code', {
-                  required: 'ZIP code is required',
-                  pattern: {
-                    value: /^[0-9]{5}(-[0-9]{4})?$/,
-                    message: 'Please enter a valid ZIP code (e.g., 12345 or 12345-6789)'
-                  }
-                })}
-              />
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Country *
-                </label>
-                <CountryDropdown
-                  value={selectedCountry}
-                  onChange={(val) => selectCountry(val)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.country ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                />
-                {errors.country && (
-                  <p className="mt-1 text-sm text-red-600">{errors.country.message}</p>
-                )}
-                <input
-                  type="hidden"
-                  {...register('country', {
-                    required: 'Country is required'
-                  })}
-                />
-              </div>
-            </div>
-          </div>
+          <LocationSection 
+            title="Location"
+            register={register}
+            errors={errors}
+            watch={watch}
+            setValue={setValue}
+            isEditMode={isEditMode}
+          />
 
           {/* Dealership Details */}
           <div className="space-y-4">
