@@ -345,7 +345,7 @@ const RestaurantsModule = () => {
                         <div className="flex items-center">
                           <Phone className="h-5 w-5 text-gray-400 mr-3" />
                           <div className="text-sm text-gray-900">
-                            {restaurant?.phone_number || 'N/A'}
+                            {restaurant?.twilio_number?.phone_number || 'N/A'}
                           </div>
                         </div>
                       </td>
