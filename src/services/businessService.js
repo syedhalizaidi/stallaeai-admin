@@ -89,7 +89,7 @@ export const businessService = {
 
     getBusinesses: async () => {
         try {
-            const response = await api.get('/business');
+            const response = await api.get('/business/my');
             return {
                 success: true,
                 data: response.data,

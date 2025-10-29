@@ -3,7 +3,7 @@ import api from './api';
 export const restaurantService = {
     getRestaurants: async () => {
         try {
-            const response = await api.get('/business');
+            const response = await api.get('/business/my');
             return {
                 success: true,
                 data: response.data,
