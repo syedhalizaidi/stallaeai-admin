@@ -9,7 +9,7 @@ const Breadcrumb = ({ currentPage, restaurantName, showRestaurantName = false })
       {
         label: 'Restaurants',
         isActive: currentPage === 'restaurants',
-        onClick: () => navigate('/restaurants')
+        onClick: () => navigate('/dashboard-businesses')
       }
     ];
 

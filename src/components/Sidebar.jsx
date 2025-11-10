@@ -10,10 +10,17 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../assets/stellae-logo.png';
 import { hasPermission, clearUserData, getUserRole } from '../utils/permissionUtils';
+import { PERMISSION_ROUTE_MAP } from '../constants/permissionRouteMap';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const userPermissionsStr = localStorage.getItem("userPermissions");
+  const userPermissions = userPermissionsStr ? JSON.parse(userPermissionsStr) : [];
+
+  const allowedAppRoutes = userPermissions
+    .map((perm) => PERMISSION_ROUTE_MAP[perm])
+    .filter(Boolean);
 
   const menuItems = [
     {
@@ -26,7 +33,7 @@ const Sidebar = () => {
       id: 'restaurants',
       label: 'Business',
       icon: Store,
-      path: '/restaurants'
+      path: '/dashboard-businesses'
     },
     {
       id: 'knowledge-base',
@@ -106,9 +113,10 @@ const Sidebar = () => {
                 );
               }
               
-              // Filter items based on user permissions for non-admin users
-              if (item.path !== '/dashboard' && item.path !== '/restaurants' && !hasPermission(item.path)) {
-                return null;
+              if (userRole !== "Admin") {
+                const isAllowed = allowedAppRoutes.includes(item.path);
+
+                if (!isAllowed) return null;
               }
 
               const Icon = item.icon;

@@ -1,6 +1,8 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
+import { PERMISSION_ROUTE_MAP } from '../constants/permissionRouteMap';
 
-const ProtectedRoute = ({ children, allowedRoles = [], requiredRoute = null }) => {
+const ProtectedRoute = ({ children }) => {
+  const location = useLocation();
   const userRole = localStorage.getItem('userRole')?.replace(/"/g, '');
   const userPermissionsStr = localStorage.getItem('userPermissions');
   const userPermissions = userPermissionsStr ? JSON.parse(userPermissionsStr) : [];
@@ -9,26 +11,13 @@ const ProtectedRoute = ({ children, allowedRoles = [], requiredRoute = null }) =
   if (userRole === 'Admin') {
     return children;
   }
-  
-  // Check route-based permissions if requiredRoute is specified
-  if (requiredRoute) {
-    if (!userPermissions.includes(requiredRoute)) {
-      return <Navigate to="/dashboard" replace />;
-    }
+  const allowedAppRoutes = userPermissions
+    .map((perm) => PERMISSION_ROUTE_MAP[perm] || perm)
+    .filter(Boolean);
+  const currentPath = location.pathname;
+  if (allowedAppRoutes.includes(currentPath)) {
     return children;
   }
-  
-  // If no specific roles are allowed, allow all authenticated users
-  if (allowedRoles.length === 0) {
-    return children;
-  }
-  
-  // Check if user role is in allowed roles
-  if (allowedRoles.includes(userRole)) {
-    return children;
-  }
-  
-  // Redirect to dashboard if user doesn't have permission
   return <Navigate to="/dashboard" replace />;
 };
 

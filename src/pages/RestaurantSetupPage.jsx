@@ -52,7 +52,7 @@ const RestaurantSetupPage = () => {
             return (
                 <BarberForm
                     onNext={() => {
-                        navigate('/restaurants');
+                        navigate('/dashboard-businesses');
                     }}
                 />
             );
@@ -62,7 +62,7 @@ const RestaurantSetupPage = () => {
             return (
                 <CarDealershipForm
                     onNext={() => {
-                        navigate('/restaurants');
+                        navigate('/dashboard-businesses');
                     }}
                 />
             );
@@ -92,7 +92,7 @@ const RestaurantSetupPage = () => {
                 return (
                     <Images
                         onPrevious={() => handleStepChange('menu')}
-                        onNext={() => navigate('/restaurants')}
+                        onNext={() => navigate('/dashboard-businesses')}
                         editId={editId}
                         isEditMode={!!editId}
                     />
