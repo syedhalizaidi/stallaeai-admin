@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Shield } from 'lucide-react';
 import LoginForm from '../components/LoginForm';
 import SignupForm from '../components/SignupForm';
 import Logo from '../assets/stellae-logo.png';

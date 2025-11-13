@@ -2,7 +2,9 @@ import {
   LayoutDashboard, 
   Store,
   Mic,
-  LogOut
+  LogOut,
+  FileStack,
+  Bell
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -43,7 +45,19 @@ const Sidebar = () => {
       label: 'Voice',
       icon: Mic,
       path: '/voice'
-    }] : [])
+    }] : []),
+     {
+      id: 'knowledge-base',
+      label: 'Knowledge Base',
+      icon: FileStack,
+      path: '/knowledge-base'
+    },
+    {
+      id: 'notifications',
+      label: 'Notifications',
+      icon: Bell,
+      path: '/notifications'
+    },
   ];
 
   const handleNavigation = (path) => {

@@ -7,6 +7,8 @@ import RestaurantsPage from './pages/RestaurantsPage';
 import RestaurantSetupPage from './pages/RestaurantSetupPage';
 import VoicePage from './pages/VoicePage';
 import ProtectedRoute from './components/ProtectedRoute';
+import KnowledgePage from './pages/KnowledgePage';
+import NotificationPage from './pages/NotificationsPage';
 
 function App() {
   return (
@@ -29,6 +31,22 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Manager', 'Proprietor']}>
                 <VoicePage />
+              </ProtectedRoute>
+            }
+          />
+           <Route
+            path="/knowledge-base"
+            element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <KnowledgePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <NotificationPage />
               </ProtectedRoute>
             }
           />

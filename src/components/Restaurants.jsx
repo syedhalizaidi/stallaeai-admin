@@ -418,7 +418,6 @@ const RestaurantsModule = () => {
         businessName={businessToDelete?.name || 'this business'}
         isLoading={isDeleting}
       />
-
     </div>
   );
 };
