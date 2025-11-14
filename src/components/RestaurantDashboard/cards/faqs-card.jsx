@@ -1,10 +1,11 @@
 "use client"
 
-import Notes from "../Notes/Notes.jsx" // adjust path if needed
+import Notes from "../Notes/Notes.jsx";
 import "./faqs-card.css"
 
 export default function FAQsCard({
   onOpen,
+  orders = [],
   noteText,
   setNoteText,
   handleSubmitNote,
@@ -13,6 +14,8 @@ export default function FAQsCard({
   isNoteEnabled,
   setIsNoteEnabled,
 }) {
+  const topOrders = orders.slice(0, 3)
+
   return (
     <div className="card-container">
       <Notes
@@ -27,14 +30,23 @@ export default function FAQsCard({
 
       <div className="card">
         <div className="card-content">
-          <div className="card-icon">
-            <span>❓</span>
+          <div className="card-header">
+            <div className="card-icon">
+              <span>❓</span>
+            </div>
+            <h3 className="card-title">FAQs</h3>
           </div>
-          <h3 className="card-title">FAQs</h3>
 
-          <div className="card-info">
-            <p className="info-text">Frequently Asked Questions</p>
-            <p className="info-subtext">12 common questions</p>
+          <div className="orders-list">
+            {topOrders.map((faq) => (
+              <div key={faq.id} className="order-item">
+                <p className="order-customer">{faq.customer_name}</p>
+                <p className="order-details"><strong>Q:</strong> {faq.question}</p>
+                <p className="order-details"><strong>A:</strong> {faq.answer}</p>
+                <p className="order-time">{new Date(faq.timestamp).toLocaleString()}</p>
+              </div>
+            ))}
+            {topOrders.length === 0 && <p className="no-orders">No FAQs available</p>}
           </div>
 
           <button className="card-button" onClick={onOpen}>

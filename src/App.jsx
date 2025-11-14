@@ -9,6 +9,7 @@ import VoicePage from './pages/VoicePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import KnowledgePage from './pages/KnowledgePage';
 import NotificationPage from './pages/NotificationsPage';
+import ManageMenu from './pages/ManageMenu';
 
 function App() {
   return (
@@ -47,6 +48,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Admin']}>
                 <NotificationPage />
+              </ProtectedRoute>
+            }
+          />
+            <Route
+            path="/menu-management"
+            element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <ManageMenu />
               </ProtectedRoute>
             }
           />

@@ -1,6 +1,5 @@
 "use client"
-import { useState } from "react"
-import Notes from "../Notes/Notes.jsx"
+import Notes from "../Notes/Notes.jsx" 
 import "./recent-orders-card.css"
 
 export default function RecentOrdersCard({ onOpen, orders = [], noteText, setNoteText, handleSubmitNote, handleDeleteNote, noteLoading }) {
@@ -19,11 +18,12 @@ export default function RecentOrdersCard({ onOpen, orders = [], noteText, setNot
 
       <div className="card">
         <div className="card-content">
-          <div className="card-icon">
-            <span>📋</span>
+          <div className="card-header">
+            <div className="card-icon">
+              <span>📋</span>
+            </div>
+            <h3 className="card-title">Recent Orders</h3>
           </div>
-          <h3 className="card-title">Recent Orders</h3>
-
           <div className="orders-list">
             {topOrders.map((order) => (
               <div key={order.id} className="order-item">
@@ -41,6 +41,6 @@ export default function RecentOrdersCard({ onOpen, orders = [], noteText, setNot
           </button>
         </div>
       </div>
-    </div>
+    </div >
   )
 }

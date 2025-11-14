@@ -1,0 +1,289 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 15, 15, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal {
+  background: #fff;
+  width: 40%;
+  max-width: 800px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: fadeIn 0.3s ease;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f8f8;
+  padding: 0px 20px;
+  border-bottom: 1px solid #e5e5e5;
+
+  h3 {
+    font-size: 1.3rem;
+    color: #222;
+    font-weight: 600;
+  }
+
+  .closeBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #000;
+    }
+  }
+}
+
+.modalContent {
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.menuItem {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+
+  .itemInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    h4 {
+      font-size: 1.1rem;
+      color: #222;
+      font-weight: 600;
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: #666;
+      margin: 0;
+    }
+  }
+
+  .editButtons {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+/* 🔵 Edit Modal Styles */
+.editModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 15, 15, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.editModal {
+  background: #fff;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  animation: fadeInUp 0.3s ease;
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 20px;
+
+  input,
+  textarea {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    resize: none;
+    outline: none;
+
+    &:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+    }
+  }
+
+  textarea {
+    min-height: 90px;
+  }
+}
+
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* 🌐 Responsive Design */
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+  }
+
+  .menuItem {
+    padding: 12px;
+  }
+
+  .editButtons {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .editModal {
+    width: 95%;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalHeader h3 {
+    font-size: 1.1rem;
+  }
+
+  .menuItem h4 {
+    font-size: 1rem;
+  }
+
+  .editButtons button {
+    width: 100%;
+  }
+}
+
+/* ✨ Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.loaderIcon {
+  width: 18px;
+  height: 18px;
+  animation: spin 1s linear infinite;
+}
+.imageSection {
+  margin-top: 10px;
+
+  label {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 6px;
+    display: block;
+  }
+}
+
+.imagePreviewContainer {
+  position: relative;
+  display: inline-block;
+  margin-top: 6px;
+
+  img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .deleteImageBtn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 4px;
+    transition: background 0.2s ease;
+    color: #d00;
+
+    &:hover {
+      background: rgba(255, 220, 220, 0.9);
+    }
+  }
+}
+
+.imageUpload {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  height: 120px;
+  width: 120px;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  &:hover {
+    border-color: #888;
+    background: #f9f9f9;
+  }
+
+  .uploadLabel {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: #555;
+    cursor: pointer;
+
+    svg {
+      opacity: 0.7;
+    }
+  }
+}

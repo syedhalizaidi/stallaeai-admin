@@ -39,11 +39,12 @@ export default function ReservationsCard({
 
       <div className="card">
         <div className="card-content">
-          <div className="card-icon">
-            <span>📅</span>
+          <div className="card-header">
+            <div className="card-icon">
+              <span>📅</span>
+            </div>
+            <h3 className="card-title">Reservations</h3>
           </div>
-          <h3 className="card-title">Reservations</h3>
-
           {nextReservations.length > 0 ? (
             nextReservations.map((res) => (
               <div key={res.id} className="reservation-info">

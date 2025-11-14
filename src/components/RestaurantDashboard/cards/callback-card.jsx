@@ -1,41 +1,51 @@
 "use client"
 
-import { useState } from "react"
-import Notes from "../Notes/Notes.jsx"
+import Notes from "../Notes/Notes.jsx" 
 import "./callback-card.css"
 
 export default function CallbackCard({
   onOpen,
-  callBackNote,
-  setCallBackNote,
-  handleCallBackSubmitNote,
+  orders = [],
+  noteText,
+  setNoteText,
+  handleSubmitNote,
   handleDeleteNote,
   noteLoading,
-  isCallBackEnabled,
-  setIsCallBackEnabled,
+  isNoteEnabled,
+  setIsNoteEnabled,
 }) {
+  const topOrders = orders.slice(0, 3)
+
   return (
     <div className="card-container">
       <Notes
-        noteText={callBackNote}
-        setNoteText={setCallBackNote}
-        handleSubmitNote={handleCallBackSubmitNote}
+        noteText={noteText}
+        setNoteText={setNoteText}
+        handleSubmitNote={handleSubmitNote}
         handleDeleteNote={handleDeleteNote}
         noteLoading={noteLoading}
-        isNoteEnabled={isCallBackEnabled}
-        setIsNoteEnabled={setIsCallBackEnabled}
+        isNoteEnabled={isNoteEnabled}
+        setIsNoteEnabled={setIsNoteEnabled}
       />
 
       <div className="card">
         <div className="card-content">
-          <div className="card-icon">
-            <span>☎️</span>
+          <div className="card-header">
+            <div className="card-icon">
+              <span>☎️</span>
+            </div>
+            <h3 className="card-title">Request a Call Back</h3>
           </div>
-          <h3 className="card-title">Request a Call Back</h3>
 
-          <div className="card-info">
-            <p className="info-text">Manage customer call back requests</p>
-            <p className="info-subtext">4 pending requests</p>
+          <div className="orders-list">
+            {topOrders.map((order) => (
+              <div key={order.id} className="order-item">
+                <p className="order-customer">{order.customer_name}</p>
+                <p className="order-details">{order.callback_number}</p>
+                <p className="order-time">{new Date(order.timestamp).toLocaleString()}</p>
+              </div>
+            ))}
+            {topOrders.length === 0 && <p className="no-orders">No pending requests</p>}
           </div>
 
           <button className="card-button" onClick={onOpen}>

@@ -1,0 +1,381 @@
+
+.menuItemsSection {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+@media (max-width: 600px) {
+  .menuItemsSection {
+    padding: 0.5rem;
+    margin-top: 1rem;
+  }
+  .menuItemsTitle {
+    font-size: 15px;
+    margin-bottom: 0.5rem;
+  }
+  .categoryHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+  .menuItemsList {
+    gap: 0.5rem;
+  }
+  .menuItemCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0.5rem;
+    min-height: 0;
+  }
+  .menuItemMainImage,
+  .menuItemMainImagePlaceholder {
+    width: 56px;
+    height: 56px;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+  .menuItemInfo {
+    width: 100%;
+    gap: 0.15rem;
+  }
+  .menuItemHeaderRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  .menuItemName,
+  .menuItemPrice {
+    font-size: 14px;
+  }
+  .menuItemDescription {
+    font-size: 12px;
+  }
+  .menuItemDetailsRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    margin-top: 0.15rem;
+  }
+  .menuItemPrepTime {
+    font-size: 11px;
+    padding: 2px 6px;
+    margin-right: 0;
+  }
+  .menuItemImagesList {
+    gap: 0.15rem;
+  }
+  .menuItemImageThumb {
+    width: 24px;
+    height: 24px;
+  }
+  .buttonGroup {
+    flex-direction: row;
+    gap: 6px;
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+  }
+}
+
+.menuItemsTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.categoryGroup {
+  margin-bottom: 1.5rem;
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.categoryName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.itemCount {
+  background-color: #f9fafd;
+  color: #000000;
+  font-size: 11px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 10px;
+  height: 10px;
+  line-height: 1;
+}
+
+.menuItemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.menuItem {
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.menuItemCard {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 0.75rem 1.25rem;
+  gap: 1.25rem;
+  min-height: 90px;
+  position: relative;
+}
+
+.menuItemMainImage {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-right: 1rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.menuItemMainImagePlaceholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  border: 1px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.menuItemInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.menuItemHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.menuItemName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0;
+}
+
+.menuItemPrice {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.menuItemDescription {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.4;
+  margin-bottom: 0.25rem;
+}
+
+.menuItemDetailsRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.menuItemPrepTime {
+  font-size: 12px;
+  color: #2563eb;
+  font-weight: 500;
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 2px 8px;
+  margin-right: 0.5rem;
+}
+
+.menuItemImagesList {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.menuItemImageThumb {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+}
+
+.menuItemName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.menuItemDetails {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.menuItemDescription {
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+.menuItemImages {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.menuItemImage {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+}
+/* 🔴 Delete Modal Styling */
+.editModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10vh;
+  z-index: 9999;
+  backdrop-filter: blur(3px);
+}
+
+.editModal {
+  background: #fff;
+  border-radius: 16px;
+  width: 420px;
+  max-width: 90%;
+  padding: 24px 28px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  animation: slideDownFade 0.3s ease-in-out;
+  transition: all 0.3s ease;
+}
+
+@keyframes slideDownFade {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modalHeader h3 {
+  font-size: 1.25rem;
+  color: #222;
+  font-weight: 600;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #444;
+  transition: 0.2s;
+}
+
+.closeBtn:hover {
+  color: #000;
+  transform: rotate(90deg);
+}
+
+.editForm {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.deleteMessage {
+  color: #444;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.editActions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.deleteBtn {
+  background-color: #e63946;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 500;
+  transition: background 0.25s ease;
+}
+
+.deleteBtn:hover {
+  background-color: #d32f2f;
+}
+
+.cancelBtn {
+  background-color: #f1f1f1;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  transition: 0.25s;
+}
+
+.cancelBtn:hover {
+  background-color: #e0e0e0;
+}

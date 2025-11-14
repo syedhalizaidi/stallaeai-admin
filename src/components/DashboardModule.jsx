@@ -28,6 +28,10 @@ const DashboardModule = () => {
     if (result.success) {
       setRestaurants(result.data);
       setError(null);
+
+      if (result.data.length > 0 && !selectedBusiness) {
+        setSelectedBusiness(result.data[0]);
+      }
     } else {
       setError(result.error);
     }
@@ -171,13 +175,14 @@ const DashboardModule = () => {
           <span className="font-medium text-gray-800">
             {selectedBusiness
               ? selectedBusiness.name ||
-              selectedBusiness.business_name ||
-              "Unnamed Business"
+                selectedBusiness.business_name ||
+                "Unnamed Business"
               : `Business List (${restaurants.length})`}
           </span>
           <ChevronDown
-            className={`h-5 w-5 text-gray-600 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""
-              }`}
+            className={`h-5 w-5 text-gray-600 transition-transform duration-200 ${
+              dropdownOpen ? "rotate-180" : ""
+            }`}
           />
         </button>
 
@@ -202,8 +207,9 @@ const DashboardModule = () => {
         )}
       </div>
 
-      {selectedBusiness && <RestaurantDashboard restaurant={selectedBusiness} />}
-
+      {selectedBusiness && (
+        <RestaurantDashboard restaurant={selectedBusiness} />
+      )}
     </div>
   );
 };

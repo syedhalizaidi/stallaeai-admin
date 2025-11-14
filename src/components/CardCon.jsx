@@ -18,8 +18,8 @@ import CallbackModal from "./RestaurantDashboard/modals/callback-modal.jsx";
 import "./dashboard.css"
 import { useToast } from "../contexts/ToastContext.jsx";
 
-const RestaurantDashboard = ({restaurant}) => {
-    const {showSuccess, showError} = useToast();
+const RestaurantDashboard = ({ restaurant }) => {
+    const { showSuccess, showError } = useToast();
     const [orderData, setOrderData] = useState([]);
     const [noteLoading, setNoteLoading] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -62,6 +62,9 @@ const RestaurantDashboard = ({restaurant}) => {
         if (diffHours < 24) return `${diffHours} hour(s) ago`;
         return `${diffDays} day(s) ago`;
     };
+    const [faqOrders, setFaqOrders] = useState([]);
+    const [callbackOrders, setCallbackOrders] = useState([]);
+    const [normalOrders, setNormalOrders] = useState([]);
 
     const fetchOrders = async () => {
         try {
@@ -81,6 +84,8 @@ const RestaurantDashboard = ({restaurant}) => {
 
             const reservationOrders = [];
             const foodOrders = [];
+            const faqOrders = [];
+            const callbackOrders = [];
 
             allOrders.forEach((order) => {
                 let parsedDetails = {};
@@ -97,6 +102,17 @@ const RestaurantDashboard = ({restaurant}) => {
                     if (parsedDetails?.date_time || parsedDetails?.party_size) {
                         orderType = "reservation";
                     }
+
+                    // Detect FAQ requests
+                    if (parsedDetails?.type === "faq_request") {
+                        orderType = "faq";
+                    }
+
+                    // Detect Callback requests
+                    if (parsedDetails?.type === "callback_request") {
+                        orderType = "callback";
+                    }
+
                 } catch (e) {
                     console.error("Failed to parse order_details for:", order.id, e);
                 }
@@ -108,54 +124,78 @@ const RestaurantDashboard = ({restaurant}) => {
                     relativeTime: getRelativeTime(order.timestamp),
                 };
 
-                if (orderType === "reservation") {
-                    let bookingDate = null;
-                    let startTime = null;
+                // Separate orders into categories
+                switch (orderType) {
+                    case "reservation":
+                        let bookingDate = null;
+                        let startTime = null;
 
-                    if (parsedDetails.date_time) {
-                        const [datePart, timePart] = parsedDetails.date_time.split("T");
-                        const [year, month, day] = datePart.split("-");
+                        if (parsedDetails.date_time) {
+                            const [datePart, timePart] = parsedDetails.date_time.split("T");
+                            const [year, month, day] = datePart.split("-");
+                            const fixedYear = parseInt(year) < 2025 ? "2025" : year;
+                            bookingDate = `${fixedYear}-${month}-${day}`;
+                            startTime = timePart || null;
+                        }
 
-                        const fixedYear = parseInt(year) < 2025 ? "2025" : year;
-                        bookingDate = `${fixedYear}-${month}-${day}`;
-                        startTime = timePart || null;
-                    }
+                        reservationOrders.push({
+                            id: order.id,
+                            customer_name: parsedDetails.customer_name || order.customer_name || "Unknown",
+                            booking_date: bookingDate,
+                            start_time: startTime,
+                            end_time: parsedDetails.end_time || null,
+                            contact_info: order.phone_number,
+                            party_size: parsedDetails.party_size || null,
+                            timestamp: order.timestamp,
+                        });
+                        break;
 
-                    reservationOrders.push({
-                        id: order.id,
-                        customer_name:
-                            parsedDetails.customer_name || order.customer_name || "Unknown",
-                        booking_date: bookingDate,
-                        start_time: startTime,
-                        end_time: parsedDetails.end_time || null,
-                        contact_info: order.phone_number,
-                        party_size: parsedDetails.party_size || null,
-                        timestamp: order.timestamp,
-                    });
+                    case "faq":
+                        faqOrders.push({
+                            id: order.id,
+                            customer_name: parsedDetails.customer_name || order.customer_name || "Unknown",
+                            question: parsedDetails.question,
+                            answer: parsedDetails.answer,
+                            asked_at: parsedDetails.asked_at,
+                            customer_number: parsedDetails.customer_number || order.phone_number,
+                            timestamp: order.timestamp,
+                        });
+                        break;
 
-                } else {
-                    foodOrders.push(normalizedOrder);
+                    case "callback":
+                        callbackOrders.push({
+                            id: order.id,
+                            customer_name: parsedDetails.customer_name || order.customer_name || "Unknown",
+                            callback_number: parsedDetails.callback_number || order.phone_number,
+                            requested_at: parsedDetails.requested_at,
+                            timestamp: order.timestamp,
+                        });
+                        break;
+
+                    default:
+                        foodOrders.push(normalizedOrder);
+                        break;
                 }
             });
 
-            // 🕒 Sort both types by timestamp (newest first)
-            const sortByTimestamp = (a, b) =>
-                new Date(b.timestamp) - new Date(a.timestamp);
-
+            // Sort by timestamp (newest first)
+            const sortByTimestamp = (a, b) => new Date(b.timestamp) - new Date(a.timestamp);
             foodOrders.sort(sortByTimestamp);
             reservationOrders.sort(sortByTimestamp);
+            faqOrders.sort(sortByTimestamp);
+            callbackOrders.sort(sortByTimestamp);
 
-            // 📦 Update states
-            const latestThree = foodOrders.slice(0, 3);
-
-            setLatestOrders(latestThree);
-            setOrderData({
-                ...orderResponse.data.data,
-                data: foodOrders,
-            });
+            // Update states
+            setLatestOrders(foodOrders.slice(0, 3));
+            setOrderData({ ...orderResponse.data.data, data: foodOrders });
             setReservations(reservationOrders);
-            console.log("Reservationssss: ", reservations);
-            console.log("Orderrrss: ", orderData);
+            setFaqOrders(faqOrders);
+            setCallbackOrders(callbackOrders);
+
+            console.log("Reservations:", reservationOrders);
+            console.log("Food Orders:", foodOrders);
+            console.log("FAQ Orders:", faqOrders);
+            console.log("Callback Orders:", callbackOrders);
 
         } catch (err) {
             console.error("Error fetching orders:", err);
@@ -164,23 +204,34 @@ const RestaurantDashboard = ({restaurant}) => {
     };
 
 
+
     useEffect(() => {
         fetchOrders();
         const interval = setInterval(fetchOrders, 3000);
         return () => clearInterval(interval);
-    }, []);
+    }, [restaurant]);
 
     const fetchNotes = async () => {
-        const response = await getNote(restaurant.id);
-        if (response.success) {
-            setUploadNote(response.data?.message || "");
-            setNoteId(response.data?.id || null);
+        try {
+            const response = await getNote(restaurant.id);
+
+            if (response.success && response.data) {
+                setUploadNote(response.data.message || "");
+                setNoteId(response.data.id || null);
+            } else {
+                setUploadNote("");
+                setNoteId(null);
+            }
+        } catch (err) {
+            console.error("Error fetching notes:", err);
+            setUploadNote("");
+            setNoteId(null);
         }
     };
 
     useEffect(() => {
         fetchNotes();
-    }, []);
+    }, [restaurant]);
 
     const handleSubmitNote = async () => {
         setNoteLoading(true);
@@ -217,7 +268,7 @@ const RestaurantDashboard = ({restaurant}) => {
                 showSuccess("Note submitted successfully");
                 fetchNotes();
                 setIsEditingNote(false);
-                setNoteText(uploadNote);
+                setNoteText(reservationNote);
             } else {
                 showError("Failed to submit note: " + response.message);
             }
@@ -328,6 +379,7 @@ const RestaurantDashboard = ({restaurant}) => {
                 <div className="dashboard-card-wrapper">
                     <CallbackCard
                         onOpen={() => setActiveModal("callback")}
+                        orders={callbackOrders || []} // <-- Pass callback orders
                         noteText={callBackNote}
                         setNoteText={setCallBackNote}
                         handleSubmitNote={handleCallBackSubmitNote}
@@ -341,6 +393,7 @@ const RestaurantDashboard = ({restaurant}) => {
                 <div className="dashboard-card-wrapper">
                     <FAQsCard
                         onOpen={() => setActiveModal("faqs")}
+                        orders={faqOrders || []} // <-- Pass FAQ orders
                         noteText={faqNote}
                         setNoteText={setFaqNote}
                         handleSubmitNote={handleFaqSubmitNote}
@@ -355,6 +408,7 @@ const RestaurantDashboard = ({restaurant}) => {
 
 
             {/* Modals */}
+            {/* Modals */}
             {activeModal === "orders" && (
                 <RecentOrdersModal
                     onClose={() => setActiveModal(null)}
@@ -367,8 +421,18 @@ const RestaurantDashboard = ({restaurant}) => {
                     reservations={reservations || []}
                 />
             )}
-            {activeModal === "callback" && <CallbackModal onClose={() => setActiveModal(null)} />}
-            {activeModal === "faqs" && <FAQsModal onClose={() => setActiveModal(null)} />}
+            {activeModal === "callback" && (
+                <CallbackModal
+                    onClose={() => setActiveModal(null)}
+                    orders={callbackOrders || []}
+                />
+            )}
+            {activeModal === "faqs" && (
+                <FAQsModal
+                    onClose={() => setActiveModal(null)}
+                    orders={faqOrders || []}
+                />
+            )}
         </div>
     );
 };

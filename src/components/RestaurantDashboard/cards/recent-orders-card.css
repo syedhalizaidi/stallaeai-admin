@@ -4,6 +4,7 @@
   gap: 1rem;
 }
 
+/* Notes styling stays the same */
 .card-notes {
   display: flex;
 }
@@ -14,7 +15,7 @@
   border: 2px solid rgba(85, 126, 191, 0.3);
   border-radius: 0.75rem;
   background-color: rgba(255, 255, 255, 0.05);
-  color: white;
+  color: black;
   font-size: 0.875rem;
   resize: vertical;
   min-height: 60px;
@@ -22,7 +23,7 @@
 }
 
 .notes-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .notes-input:focus {
@@ -32,22 +33,15 @@
   box-shadow: 0 0 0 3px rgba(85, 126, 191, 0.1);
 }
 
+/* Card background white */
 .card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: white;
   border-radius: 1rem;
-  background: linear-gradient(135deg, #557ebf 0%, #667eea 100%);
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.card:hover {
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
-  transform: scale(1.05);
-  background: rgba(255, 255, 255, 0.15);
+  cursor: default;
 }
 
 .card-content {
@@ -55,6 +49,19 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  width: 100%;
+}
+
+/* Header with blue gradient */
+.card-header {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #557ebf 0%, #667eea 100%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
 }
 
 .card-icon {
@@ -71,7 +78,6 @@
 .card-title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: white;
 }
 
 .orders-list {
@@ -82,34 +88,37 @@
 }
 
 .order-item {
-  background-color: rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, #dbe7fa 0%, #c6dbf8 100%);
   border-radius: 0.5rem;
   padding: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(85, 126, 191, 0.3);
   transition: all 0.2s ease;
 }
 
 .order-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #b3d0f5 0%, #99c2f2 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(85, 126, 191, 0.3);
 }
 
 .order-customer {
-  color: white;
+  color: #1a202c;
   font-weight: 600;
   font-size: 0.875rem;
 }
 
 .order-details {
-  color: rgba(255, 255, 255, 0.6);
+  color: #4a5568;
   font-size: 0.75rem;
 }
 
 .order-time {
-  color: rgba(255, 255, 255, 0.5);
+  color: #718096;
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
 
+/* Button styling remains */
 .card-button {
   width: 100%;
   margin-top: 1rem;
