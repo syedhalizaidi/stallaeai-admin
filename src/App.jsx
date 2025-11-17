@@ -11,6 +11,7 @@ import KnowledgePage from './pages/KnowledgePage';
 import NotificationPage from './pages/NotificationsPage';
 import ManageMenu from './pages/ManageMenu';
 import Layout from './components/Layout';
+import AddStaffPage from './pages/AddStaffPage';
 
 function App() {
   return (
@@ -58,6 +59,15 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["Admin"]}>
                   <ManageMenu />
+                </ProtectedRoute>
+              }
+            />
+
+             <Route
+              path="/add-staff"
+              element={
+                <ProtectedRoute allowedRoles={["Admin"]}>
+                  <AddStaffPage />
                 </ProtectedRoute>
               }
             />

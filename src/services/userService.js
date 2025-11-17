@@ -75,5 +75,22 @@ export const userService = {
                 details: error.response?.data
             };
         }
+    },
+
+    listUser: async () => {
+        try {
+            const response = await api.get('/user/list-users');
+            return {
+                success: true,
+                data: response.data.data,
+                message: 'Users listed successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || 'Failed to list users.',
+                details: error.response?.data
+            };
+        }
     }
 }

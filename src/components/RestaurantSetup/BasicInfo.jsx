@@ -225,7 +225,7 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
             />
 
             <SelectField
-              label="Cuisine Type *"
+              label="Cuisine Type "
               name="cuisineType"
               value={watch('cuisineType')}
               options={cuisineOptions}

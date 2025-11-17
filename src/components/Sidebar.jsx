@@ -5,7 +5,8 @@ import {
   LogOut,
   FileStack,
   Bell,
-  Menu
+  Menu,
+  UserPlus
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -59,6 +60,12 @@ const Sidebar = () => {
       icon: Menu,
       path: '/menu-management'
     },
+    {
+      id: 'add-staff',
+      label: 'Add staff',
+      icon: UserPlus,
+      path: '/add-staff'
+    },
     ...(businesses.length > 0 && userRole !== 'Staff' ? [{
       id: 'voice',
       label: 'Voice',
@@ -103,7 +110,7 @@ const Sidebar = () => {
                 <button
                   key={item.id}
                   onClick={() => handleNavigation(item.path)}
-                  className={`w-full flex items-center px-2 md:px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive
+                  className={`w-full flex items-center px-2 md:px-3 py-2 text-sm cursor-pointer font-medium rounded-lg transition-colors ${isActive
                     ? 'bg-purple-100 text-purple-700'
                     : 'text-gray-600 hover:bg-gray-100'
                     }`}
