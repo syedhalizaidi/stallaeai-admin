@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
 import { useToast } from "../contexts/ToastContext";
 import { restaurantService } from "../services/restaurantService";
 
@@ -94,11 +93,8 @@ const NotificationPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-
-      <div className="flex-1 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-xl mx-auto">
+    <div className="flex-1 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-xl mx-auto">
           <h1 className="text-2xl font-semibold text-gray-900 mb-4">
             Notifications
           </h1>
@@ -132,7 +128,6 @@ const NotificationPage = () => {
           )}
         </div>
       </div>
-    </div>
   );
 };
 

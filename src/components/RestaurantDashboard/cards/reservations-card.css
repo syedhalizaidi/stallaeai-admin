@@ -9,7 +9,7 @@
   display: flex;
   background: linear-gradient(135deg, #557ebf 0%, #667eea 100%);
   border-radius: 12px;
-
+  z-index: 1;
 }
 
 .notes-input {
@@ -45,7 +45,6 @@
   transition: all 0.3s ease;
   cursor: default;
 }
-
 
 /* .card:hover {
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
@@ -91,12 +90,13 @@
   background: linear-gradient(135deg, #dbe7fa 0%, #c6dbf8 100%);
   border-radius: 0.5rem;
   padding: 0.75rem;
+  width: 100%;
   border: 1px solid rgba(85, 126, 191, 0.3);
   transition: all 0.2s ease;
 }
 
-.reservation-info:hover{
-    background: linear-gradient(135deg, #b3d0f5 0%, #99c2f2 100%);
+.reservation-info:hover {
+  background: linear-gradient(135deg, #b3d0f5 0%, #99c2f2 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(85, 126, 191, 0.3);
 }

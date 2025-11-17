@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../components/Sidebar";
 import { useToast } from "../contexts/ToastContext";
 import { knowledgeBaseService } from "../services/knowledgeBaseService";
 import { restaurantService } from "../services/restaurantService";
@@ -105,10 +104,8 @@ const KnowledgePage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-      <div className="flex-1 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-3xl mx-auto">
+    <div className="flex-1 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-3xl mx-auto">
           <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-2xl shadow-md p-5 mb-8">
             <h1 className="text-2xl font-semibold mb-1">Knowledge Base</h1>
             <p className="text-sm opacity-80">Upload and manage proposal or FAQ documents for each business.</p>
@@ -214,7 +211,6 @@ const KnowledgePage = () => {
           </div>
         </div>
       </div>
-    </div>
   );
 };
 

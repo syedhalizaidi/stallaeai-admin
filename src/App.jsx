@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import KnowledgePage from './pages/KnowledgePage';
 import NotificationPage from './pages/NotificationsPage';
 import ManageMenu from './pages/ManageMenu';
+import Layout from './components/Layout';
 
 function App() {
   return (
@@ -17,48 +18,50 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<LoginPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/restaurants" element={<RestaurantsPage />} />
-          <Route
-            path="/setup"
-            element={
-              <ProtectedRoute allowedRoles={['Admin', 'Manager', 'Proprietor']}>
-                <RestaurantSetupPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/voice"
-            element={
-              <ProtectedRoute allowedRoles={['Admin', 'Manager', 'Proprietor']}>
-                <VoicePage />
-              </ProtectedRoute>
-            }
-          />
-           <Route
-            path="/knowledge-base"
-            element={
-              <ProtectedRoute allowedRoles={['Admin']}>
-                <KnowledgePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/notifications"
-            element={
-              <ProtectedRoute allowedRoles={['Admin']}>
-                <NotificationPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route element={<Layout />}> 
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/restaurants" element={<RestaurantsPage />} />
             <Route
-            path="/menu-management"
-            element={
-              <ProtectedRoute allowedRoles={['Admin']}>
-                <ManageMenu />
-              </ProtectedRoute>
-            }
-          />
+              path="/setup"
+              element={
+                <ProtectedRoute allowedRoles={["Admin", "Manager", "Proprietor"]}>
+                  <RestaurantSetupPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/voice"
+              element={
+                <ProtectedRoute allowedRoles={["Admin", "Manager", "Proprietor"]}>
+                  <VoicePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/knowledge-base"
+              element={
+                <ProtectedRoute allowedRoles={["Admin"]}>
+                  <KnowledgePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute allowedRoles={["Admin"]}>
+                  <NotificationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/menu-management"
+              element={
+                <ProtectedRoute allowedRoles={["Admin"]}>
+                  <ManageMenu />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
         </Routes>
       </Router>
     </ToastProvider>

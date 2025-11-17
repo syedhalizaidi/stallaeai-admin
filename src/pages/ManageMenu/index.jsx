@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "./ManageMenu.module.scss";
 import MenuForm from "../../components/MenuComponents/MenuForm";
-import Sidebar from "../../components/Sidebar";
 import { restaurantService } from "../../services/restaurantService";
 import { ChevronDown, Loader2 } from "lucide-react";
 
@@ -41,12 +40,9 @@ export default function ManageMenu() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-
-      <div
-        className={`flex-1 p-8 max-h-[90vh] overflow-y-auto ${styles.manageMenuWrapper}`}
-      >
+    <div
+      className={`flex-1 p-8 max-h-[90vh] overflow-y-auto ${styles.manageMenuWrapper}`}
+    >
         {/* Business Dropdown */}
         <div className="mb-6 relative w-full">
           {/* Dropdown button */}
@@ -121,7 +117,6 @@ export default function ManageMenu() {
             Please select a business to manage its menu.
           </div>
         )}
-      </div>
     </div>
   );
 }

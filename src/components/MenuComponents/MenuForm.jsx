@@ -93,7 +93,10 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
     const formData = new FormData();
     formData.append("restaurant_id", restaurant_id);
     formData.append("name", itemToSave.name);
-    formData.append("category", itemToSave.category);
+    formData.append(
+      "category",
+      currentItem.category === "Other" ? customCategory : currentItem.category
+    );
     formData.append("description", itemToSave.description);
     formData.append("price", itemToSave.price);
     formData.append("prep_time", itemToSave.prep_time);
@@ -136,6 +139,7 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
         prep_time: "",
         images: [],
       });
+      setCustomCategory("");
       setEditingItemId(null);
     } catch (err) {
       console.error(err);
@@ -172,6 +176,7 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
       prep_time: "",
       images: [],
     });
+    setCustomCategory("");
     setEditingItemId(null);
     setShowForm(true);
   };

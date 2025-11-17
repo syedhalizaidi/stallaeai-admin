@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import SelectField from '../components/SelectField';
 import { businessService } from '../services/businessService';
-import Sidebar from '../components/Sidebar';
 import { useToast } from '../contexts/ToastContext';
 
 const VoicePage = () => {
@@ -185,15 +184,13 @@ const VoicePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-      <div className="flex-1 p-4 sm:p-6 lg:p-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Voice</h1>
-          <p className="text-gray-500">Select a business to continue</p>
-        </div>
+    <div className="flex-1 p-4 sm:p-6 lg:p-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900">Voice</h1>
+        <p className="text-gray-500">Select a business to continue</p>
+      </div>
 
-        <div className="max-w-xl space-y-4">
+      <div className="max-w-xl space-y-4">
           <SelectField
             label="Business"
             name="businessId"
@@ -241,7 +238,6 @@ const VoicePage = () => {
           {error && <div className="text-sm text-red-600">{error}</div>}
         </div>
       </div>
-    </div>
   );
 };
 
