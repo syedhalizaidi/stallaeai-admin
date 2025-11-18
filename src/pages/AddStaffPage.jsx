@@ -25,7 +25,7 @@ const AddStaffPage = () => {
   const userRole = localStorage.getItem("userRole")?.replace(/"/g, "");
 
   const fetchUsers = async () => {
-    const result = await userService.listUser();
+    const result = await userService.listStaffUser();
     if (result.success) {
       setUsers(result.data);
       setLoading(false);
@@ -231,13 +231,13 @@ const AddStaffPage = () => {
                             className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
                             onClick={() => handleEditUser(user)}
                           />
-                          <Trash2
+                          {/* <Trash2
                             className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteUser(user);
                             }}
-                          />
+                          /> */}
                         </td>
                       )}
                   </tr>
@@ -254,16 +254,17 @@ const AddStaffPage = () => {
         onClose={handleCloseModal}
         onUserAdded={handleUserAdded}
         editUser={editingUser}
+        IsStaffMember={true}
       />
 
-      {/* Delete User Modal */}
+      {/* Delete User Modal
       <DeleteUserModal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}
         onConfirm={confirmDeleteUser}
         userName={userToDelete?.full_name || userToDelete?.email || "this user"}
         isLoading={isDeleting}
-      />
+      /> */}
     </div>
   );
 };

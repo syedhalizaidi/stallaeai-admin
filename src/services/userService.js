@@ -77,9 +77,9 @@ export const userService = {
         }
     },
 
-    listUser: async () => {
+    listStaffUser: async () => {
         try {
-            const response = await api.get('/user/list-users');
+            const response = await api.get('/admin/staff');
             return {
                 success: true,
                 data: response.data.data,
@@ -92,5 +92,38 @@ export const userService = {
                 details: error.response?.data
             };
         }
-    }
+    },
+    createStaffUser: async (userData) => {
+        try {
+            const response = await api.post('/admin/create/staff', userData);
+            return {
+                success: true,
+                data: response.data,
+                message: 'User created successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || 'Failed to create user.',
+                details: error.response?.data
+            };
+        }
+    },
+
+    updateStaffUser: async (userId, userData) => {
+        try {
+            const response = await api.put(`/admin/update/staff/${userId}`, userData);
+            return {
+                success: true,
+                data: response.data.data,
+                message: 'User updated successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || 'Failed to update user.',
+                details: error.response?.data
+            };
+        }
+    },
 }

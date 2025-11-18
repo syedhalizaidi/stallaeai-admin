@@ -11,7 +11,7 @@ const roleOptions = [
     { value: 'Staff', label: 'Staff' },
 ];
 
-const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = null }) => {
+const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = null, IsStaffMember = false }) => {
     const { showError } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [submitMessage, setSubmitMessage] = useState('');
@@ -61,7 +61,7 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                 full_name: data.full_name,
                 email: data.email,
                 phone_number: data.phone_number,
-                role: data.role,
+                role: IsStaffMember ? "Staff" : data.role,
                 business_id: restaurantId
             };
 
@@ -72,9 +72,17 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
 
             let result;
             if (isEditMode) {
-                result = await userService.updateUser(editUser.id, payload);
+                if (!IsStaffMember) {
+                    result = await userService.updateUser(editUser.id, payload);
+                } else {
+                    result = await userService.updateStaffUser(editUser.id, payload);
+                }
             } else {
-                result = await userService.createUser(payload);
+                if (!IsStaffMember) {
+                    result = await userService.createUser(payload);
+                } else {
+                    result = await userService.createStaffUser(payload);
+                }
             }
 
             if (result.success) {
@@ -89,7 +97,7 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                 setTimeout(() => {
                     setSubmitMessage('');
                     onClose();
-                }, 3000);
+                }, 300);
             }
             else {
                 showError(result.error);
@@ -113,7 +121,7 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
 
     return (
         <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
                     <h2 className="text-xl font-semibold text-gray-900">
                         {isEditMode ? 'Edit User' : 'Add New User'}
@@ -127,16 +135,16 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                     </button>
                 </div>
 
-                <div className="p-6">
-                    {submitMessage && (
+                {submitMessage && (
+                    <div className="p-6">
                         <div className={`p-4 rounded-lg text-sm ${submitMessage.includes('successfully')
                             ? 'bg-green-50 text-green-700 border border-green-200'
                             : 'bg-red-50 text-red-700 border border-red-200'
                             }`}>
                             {submitMessage}
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
                     <TextField
@@ -197,7 +205,7 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                             }
                         })}
                     />
-                    <SelectField
+                    {!IsStaffMember && <SelectField
                         label="Role"
                         placeholder="Select a role"
                         icon={Shield}
@@ -206,7 +214,7 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                         {...register('role', {
                             required: 'Role is required'
                         })}
-                    />
+                    />}
 
                     <div className="flex space-x-3 pt-4">
                         <button
