@@ -391,11 +391,11 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               <TextField
                 label={selectedCountry === 'Canada' ? 'Postal Code *' : 'ZIP Code *'}
-                name="postalOrZip"
+                name="zipCode"
                 type="text"
                 placeholder={selectedCountry === 'Canada' ? 'Enter Postal Code (e.g., A1B-2C3)' : 'Enter ZIP Code (e.g., 12345)'}
-                error={errors.postalOrZip?.message}
-                {...register('postalOrZip', {
+                error={errors.zipCode?.message}
+                {...register('zipCode', {
                   required: selectedCountry === 'Canada' ? 'Postal code is required' : 'ZIP code is required',
                   pattern: {
                     value: selectedCountry === 'Canada' ? /^[A-Za-z]\d[A-Za-z]-\d[A-Za-z]\d$/ : /^\d{5}$/,

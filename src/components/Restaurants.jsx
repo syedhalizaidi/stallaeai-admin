@@ -13,11 +13,11 @@ import {
 import { restaurantService } from "../services/restaurantService";
 import { businessService } from "../services/businessService";
 import Users from "./Users";
-import AddBusinessModal from "./SetupBusiness/AddBusinessModal";
 import BarberForm from "./SetupBusiness/BarberForm";
 import CarDealershipForm from "./SetupBusiness/CarDealershipForm";
 import DeleteBusinessModal from "./DeleteBusinessModal";
 import VoiceControl from "../pages/VoicePage";
+import GenericStep from "./RestaurantSetup/GenericStep";
 
 export const BUSINESS_TYPES = {
   restaurant: "Restaurant",
@@ -33,7 +33,6 @@ const RestaurantsModule = () => {
   const [error, setError] = useState(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [isAddBusinessModalOpen, setIsAddBusinessModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [businessType, setBusinessType] = useState(null);
   const [editBusinessId, setEditBusinessId] = useState(null);
@@ -72,10 +71,6 @@ const RestaurantsModule = () => {
 
   const handleAddRestaurant = () => {
     setIsAddBusinessModalOpen(true);
-  };
-
-  const handleCategorySelected = (category) => {
-    setSelectedCategory(category);
   };
 
   const handleDeleteClick = (restaurant) => {
@@ -153,7 +148,7 @@ const RestaurantsModule = () => {
   useEffect(() => {
     fetchBusinesses();
     fetchVoices();
-  }, []);
+  }, [isAddBusinessModalOpen]);
 
   return (
     <div className="p-4 sm:p-6">
@@ -508,11 +503,11 @@ const RestaurantsModule = () => {
         </div>
       )}
 
-      <AddBusinessModal
-        isOpen={isAddBusinessModalOpen}
-        onClose={() => setIsAddBusinessModalOpen(false)}
-        onCategorySelected={handleCategorySelected}
-      />
+      {isAddBusinessModalOpen && (
+        <div className="absolute top-0 left-0 right-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <GenericStep onClose={() => setIsAddBusinessModalOpen(false)} />
+        </div>
+      )}
 
       {isEditMode && businessType && (
         <div
