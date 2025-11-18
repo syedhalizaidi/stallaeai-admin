@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   Store,
-  Mic,
   LogOut,
   FileStack,
   Bell,
@@ -9,25 +8,11 @@ import {
   UserPlus
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import Logo from '../assets/stellae-logo.png';
-import { businessService } from '../services/businessService';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [businesses, setBusinesses] = useState([]);
-  const userRole = localStorage.getItem('userRole')?.replace(/"/g, '');
-
-  useEffect(() => {
-    const fetchBusinesses = async () => {
-      const result = await businessService.getBusinesses();
-      if (result.success) {
-        setBusinesses(result.data || []);
-      }
-    };
-    fetchBusinesses();
-  }, []);
 
   const menuItems = [
     {
@@ -48,12 +33,12 @@ const Sidebar = () => {
       icon: FileStack,
       path: '/knowledge-base'
     },
-    {
-      id: 'notifications',
-      label: 'Notifications',
-      icon: Bell,
-      path: '/notifications'
-    },
+    // {
+    //   id: 'notifications',
+    //   label: 'Notifications',
+    //   icon: Bell,
+    //   path: '/notifications'
+    // },
     {
       id: 'menu-management',
       label: 'Manage Menu',
@@ -65,13 +50,7 @@ const Sidebar = () => {
       label: 'Add staff',
       icon: UserPlus,
       path: '/add-staff'
-    },
-    ...(businesses.length > 0 && userRole !== 'Staff' ? [{
-      id: 'voice',
-      label: 'Voice',
-      icon: Mic,
-      path: '/voice'
-    }] : []),
+    }
   ];
 
   const handleNavigation = (path) => {

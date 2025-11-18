@@ -183,12 +183,11 @@ const AddStaffPage = () => {
                     Role
                   </th>
                   {(userRole === "Admin" ||
-                    userRole === "Proprietor" ||
-                    userRole === "Manager") && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  )}
+                    userRole === "Proprietor") && (
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    )}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -226,22 +225,21 @@ const AddStaffPage = () => {
                       </div>
                     </td>
                     {(userRole === "Admin" ||
-                      userRole === "Proprietor" ||
-                      userRole === "Manager") && (
-                      <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
-                        <SquarePen
-                          className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
-                          onClick={() => handleEditUser(user)}
-                        />
-                        <Trash2
-                          className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteUser(user);
-                          }}
-                        />
-                      </td>
-                    )}
+                      userRole === "Proprietor") && (
+                        <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
+                          <SquarePen
+                            className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
+                            onClick={() => handleEditUser(user)}
+                          />
+                          <Trash2
+                            className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteUser(user);
+                            }}
+                          />
+                        </td>
+                      )}
                   </tr>
                 ))}
               </tbody>

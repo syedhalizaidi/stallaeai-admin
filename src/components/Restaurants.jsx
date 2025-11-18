@@ -1,16 +1,34 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Store, MapPin, Phone, Star, Plus, Loader2, ChevronRight, SquarePen, Trash2, BriefcaseBusiness, Volume2, Play, Pause } from 'lucide-react';
-import { restaurantService } from '../services/restaurantService';
-import Users from './Users';
-import AddBusinessModal from './SetupBusiness/AddBusinessModal';
-import BarberForm from './SetupBusiness/BarberForm';
-import CarDealershipForm from './SetupBusiness/CarDealershipForm';
-import DeleteBusinessModal from './DeleteBusinessModal';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Store,
+  Phone,
+  Plus,
+  Loader2,
+  ChevronRight,
+  SquarePen,
+  Trash2,
+  BriefcaseBusiness,
+} from "lucide-react";
+import { restaurantService } from "../services/restaurantService";
+import { businessService } from "../services/businessService";
+import Users from "./Users";
+import AddBusinessModal from "./SetupBusiness/AddBusinessModal";
+import BarberForm from "./SetupBusiness/BarberForm";
+import CarDealershipForm from "./SetupBusiness/CarDealershipForm";
+import DeleteBusinessModal from "./DeleteBusinessModal";
+import VoiceControl from "../pages/VoicePage";
+
+export const BUSINESS_TYPES = {
+  restaurant: "Restaurant",
+  car_dealership: "Car Dealership",
+  barber: "Barber",
+};
 
 const RestaurantsModule = () => {
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState([]);
+  const [voices, setVoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
@@ -22,9 +40,8 @@ const RestaurantsModule = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [businessToDelete, setBusinessToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [currentPlayingAudio, setCurrentPlayingAudio] = useState(null);
-  const [currentPlayingVoiceId, setCurrentPlayingVoiceId] = useState(null);
-  const userRole = localStorage.getItem('userRole')?.replace(/"/g, '');
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const userRole = localStorage.getItem("userRole")?.replace(/"/g, "");
 
   const fetchBusinesses = async () => {
     const result = await restaurantService.getRestaurants();
@@ -35,6 +52,13 @@ const RestaurantsModule = () => {
     } else {
       setError(result.error);
       setLoading(false);
+    }
+  };
+
+  const fetchVoices = async () => {
+    const result = await businessService.getVoices();
+    if (result.success) {
+      setVoices(result.data?.voices || []);
     }
   };
 
@@ -61,10 +85,11 @@ const RestaurantsModule = () => {
 
   const handleDeleteConfirm = async () => {
     if (!businessToDelete) return;
-
     setIsDeleting(true);
     try {
-      const result = await restaurantService.deleteRestaurant(businessToDelete.id);
+      const result = await restaurantService.deleteRestaurant(
+        businessToDelete.id
+      );
       if (result.success) {
         fetchBusinesses();
         setIsDeleteModalOpen(false);
@@ -101,60 +126,24 @@ const RestaurantsModule = () => {
     fetchBusinesses();
   };
 
-  const handleVoicePlayPause = (e, restaurant) => {
-    e.stopPropagation();
-
-    if (!restaurant?.voice?.preview_url) return;
-
-    const voiceId = restaurant.voice.id;
-
-    // If this voice is currently playing, pause it
-    if (currentPlayingVoiceId === voiceId && currentPlayingAudio) {
-      currentPlayingAudio.pause();
-      setCurrentPlayingAudio(null);
-      setCurrentPlayingVoiceId(null);
-      return;
-    }
-
-    // Stop any currently playing audio
-    if (currentPlayingAudio) {
-      currentPlayingAudio.pause();
-    }
-
-    // Start playing the new voice
-    const audio = new Audio(restaurant.voice.preview_url);
-    setCurrentPlayingAudio(audio);
-    setCurrentPlayingVoiceId(voiceId);
-
-    audio.play().catch(console.error);
-
-    // Clean up when audio ends
-    audio.addEventListener('ended', () => {
-      setCurrentPlayingAudio(null);
-      setCurrentPlayingVoiceId(null);
-    });
-  };
-
-  // Function to render the appropriate form based on business type
   const renderBusinessForm = () => {
     if (!businessType) return null;
-
     const commonProps = {
       onNext: handleEditSuccess,
       editId: editBusinessId,
-      isEditMode: true
+      isEditMode: true,
     };
-
-    if (businessType === 'restaurant') {
-      navigate(`/setup?step=basic-info&editId=${editBusinessId}&businessType=${businessType}`);
+    if (businessType === "restaurant") {
+      navigate(
+        `/setup?step=basic-info&editId=${editBusinessId}&businessType=${businessType}`
+      );
     }
-
     switch (businessType) {
-      case 'barber':
+      case "barber":
         return <BarberForm {...commonProps} />;
-      case 'car_dealership':
+      case "car_dealership":
         return <CarDealershipForm {...commonProps} />;
-      case 'restaurant':
+      case "restaurant":
         return <BarberForm {...commonProps} />;
       default:
         return <BarberForm {...commonProps} />;
@@ -163,13 +152,15 @@ const RestaurantsModule = () => {
 
   useEffect(() => {
     fetchBusinesses();
+    fetchVoices();
   }, []);
 
   return (
-    <div>
-      <div className="mb-6 flex justify-between items-center">
-        <div className="mb-6">
-          <nav className="flex items-center space-x-2 text-sm">
+    <div className="p-4 sm:p-6">
+      {/* Breadcrumb / Header */}
+      <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+        <div className="mb-2 sm:mb-0">
+          <nav className="flex flex-wrap items-center space-x-2 text-sm">
             {selectedRestaurant ? (
               <>
                 <span
@@ -179,7 +170,9 @@ const RestaurantsModule = () => {
                   Business
                 </span>
                 <ChevronRight className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-500 font-medium">{selectedRestaurant.name}</span>
+                <span className="text-gray-500 font-medium">
+                  {selectedRestaurant.name}
+                </span>
                 <ChevronRight className="h-4 w-4 text-gray-400" />
                 <span className="text-purple-600 font-medium">Users</span>
               </>
@@ -189,213 +182,345 @@ const RestaurantsModule = () => {
           </nav>
         </div>
 
-        {userRole !== 'Staff' && (
-          <div className="flex space-x-4">
-            {!selectedRestaurant && (
-              <button
-                onClick={handleAddRestaurant}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Add Business
-              </button>
-            )}
-          </div>
+        {userRole !== "Staff" && !selectedRestaurant && (
+          <button
+            onClick={handleAddRestaurant}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer mt-2 sm:mt-0"
+          >
+            <Plus className="h-5 w-5 mr-2" /> Add Business
+          </button>
         )}
       </div>
 
-      {/* Content based on selection */}
+      {/* Conditional rendering */}
       {selectedRestaurant ? (
         <Users
           restaurantId={selectedRestaurant.id}
           restaurantName={selectedRestaurant.name}
         />
-      ) : (
-        // Restaurant List
-        loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-purple-600 mx-auto mb-4" />
-              <p className="text-gray-600">Loading Businesses...</p>
-            </div>
+      ) : loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-600 mx-auto mb-4" />
+            <p className="text-gray-600">Loading Businesses...</p>
           </div>
-        ) : error ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-            <div className="text-center">
-              <div className="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Store className="h-6 w-6 text-red-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Businesses</h3>
-              <p className="text-gray-600 mb-4">{error}</p>
+        </div>
+      ) : error ? (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8">
+          <div className="text-center">
+            <div className="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Store className="h-6 w-6 text-red-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Error Loading Businesses
+            </h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={fetchBusinesses}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      ) : restaurants?.length === 0 ? (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 text-center">
+          <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Store className="h-6 w-6 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            No Businesses Found
+          </h3>
+          {userRole !== "Staff" && (
+            <>
+              <p className="text-gray-600 mb-4">
+                You haven't added any businesses yet. Get started by adding your
+                first Business.
+              </p>
               <button
-                onClick={fetchBusinesses}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
+                onClick={handleAddRestaurant}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium flex items-center transition-colors mx-auto"
               >
-                Try Again
+                <Plus className="h-5 w-5 mr-2" /> Add Your First Business
               </button>
-            </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="p-4 sm:p-6 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Businesses List
+            </h3>
+            <p className="text-sm text-gray-600">
+              View and manage all your businesses
+            </p>
           </div>
-        ) : restaurants?.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-            <div className="text-center">
-              <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Store className="h-6 w-6 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Businesses Found</h3>
-              {userRole !== 'Staff' && (
-                <>
-                  <p className="text-gray-600 mb-4">You haven't added any businesses yet. Get started by adding your first Business.</p>
-                  <button
-                    onClick={handleAddRestaurant}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors mx-auto cursor-pointer"
-                  >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Add Your First Business
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Businesses List</h3>
-              <p className="text-sm text-gray-600">View and manage all your businesses</p>
-            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Voice
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Phone
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Business Type
-                    </th>
-                    {(userRole === 'Admin' || userRole === 'Proprietor' || userRole === 'Manager') && (
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {restaurants?.map((restaurant) => (
-                    <tr
-                      key={restaurant.id}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleRestaurantClick(restaurant)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full flex items-center justify-center mr-3">
-                            {restaurant?.logo ? (
-                              <img
-                                src={restaurant.logo}
-                                alt={restaurant.name || 'Restaurant'}
-                                className="h-full w-full rounded-full object-cover"
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                  e.target.nextSibling.style.display = 'flex';
+          {/* Mobile list (stacked cards) */}
+          <div className="sm:hidden">
+            <div className="divide-y divide-gray-200">
+              {restaurants?.map((restaurant) => (
+                <div
+                  key={restaurant.id}
+                  className="p-3 flex items-start justify-between gap-2 hover:bg-gray-50 cursor-pointer relative"
+                  onClick={() => handleRestaurantClick(restaurant)}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="h-8 w-8 rounded-full flex items-center justify-center bg-gray-100 overflow-hidden flex-shrink-0">
+                      {restaurant?.logo ? (
+                        <img
+                          src={restaurant.logo}
+                          alt={restaurant.name || "Restaurant"}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <Store className="h-4 w-4 text-purple-600" />
+                      )}
+                    </div>
+                    <div className="min-w-0 max-w-[150px]">
+                      <div className="text-sm font-medium text-gray-900">
+                        {restaurant?.name || "N/A"}
+                      </div>
+                      <div className="text-xs text-gray-500 flex items-center gap-2 mt-1">
+                        <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                        <span className="">
+                          {restaurant?.twilio_number?.phone_number || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-1 min-w-0">
+                    <td className="px-3 sm:px-6 py-2 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <BriefcaseBusiness className="h-5 w-5 text-gray-400 mr-2 sm:mr-3" />
+                        <div className="text-sm text-gray-900">
+                          {BUSINESS_TYPES[
+                            restaurant?.business_type?.toLowerCase()
+                          ] ||
+                            restaurant?.business_type ||
+                            "N/A"}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* three-dots menu */}
+                    <div className="flex items-center">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(
+                            openMenuId === restaurant.id ? null : restaurant.id
+                          );
+                        }}
+                        aria-haspopup="true"
+                        aria-expanded={openMenuId === restaurant.id}
+                        className="text-gray-500 hover:text-gray-700 px-2 py-1 rounded"
+                      >
+                        {/* simple ellipsis */}
+                        <span className="text-lg leading-none">⋯</span>
+                      </button>
+
+                      {openMenuId === restaurant.id && (
+                        <div
+                          className="absolute right-3 top-10 bg-white border border-gray-200 rounded shadow-lg w-48 z-50 p-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            className="absolute top-1 right-1 text-gray-400 hover:text-gray-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                            }}
+                          >
+                            ✕
+                          </button>
+
+                          <div className="w-full px-2 py-1 mt-4">
+                            <div className="text-xs text-gray-500 mb-1">
+                              Voice
+                            </div>
+                            <div className="w-full">
+                              <VoiceControl
+                                voice={restaurant.voice}
+                                businessId={restaurant.id}
+                                voices={voices}
+                                onVoiceUpdated={() => {
+                                  fetchBusinesses();
+                                  setOpenMenuId(null);
                                 }}
                               />
-                            ) : null}
-                            <Store className="h-5 w-5 text-purple-600" style={{ display: restaurant?.logo ? 'none' : 'flex' }} />
+                            </div>
                           </div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {restaurant?.name || 'N/A'}
+
+                          <div className="border-t border-gray-100 p-2">
+                            Number:{" "}
+                            {restaurant?.twilio_number?.phone_number || ""}
                           </div>
+
+                          {(userRole === "Admin" ||
+                            userRole === "Proprietor") && (
+                            <div className="border-t border-gray-100 p-2 flex items-center justify-between">
+                              Action:
+                              <SquarePen
+                                className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditBusiness(
+                                    restaurant?.business_type,
+                                    restaurant.id
+                                  );
+                                }}
+                              />
+                              <Trash2
+                                className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteClick(restaurant);
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Volume2 className="h-5 w-5 text-gray-400 mr-3" />
-                          <div className="text-sm text-gray-900">
-                            {restaurant?.voice ? (
-                              <div className="flex items-center space-x-2">
-                                <span>{restaurant.voice.name}</span>
-                                {restaurant.voice.preview_url && (
-                                  <button
-                                    onClick={(e) => handleVoicePlayPause(e, restaurant)}
-                                    className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                                    title={currentPlayingVoiceId === restaurant.voice.id ? "Pause voice" : "Play voice"}
-                                  >
-                                    {currentPlayingVoiceId === restaurant.voice.id ? (
-                                      <Pause className="h-4 w-4 text-purple-600" />
-                                    ) : (
-                                      <Play className="h-4 w-4 text-purple-600" />
-                                    )}
-                                  </button>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">No voice assigned</span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Phone className="h-5 w-5 text-gray-400 mr-3" />
-                          <div className="text-sm text-gray-900">
-                            {restaurant?.twilio_number?.phone_number || 'N/A'}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <BriefcaseBusiness className="h-5 w-5 text-gray-400 mr-3" />
-                          <div className="text-sm text-gray-900">
-                            {restaurant?.business_type || 'N/A'}
-                          </div>
-                        </div>
-                      </td>
-                      {(userRole === 'Admin' || userRole === 'Proprietor' || userRole === 'Manager') && (
-                        <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
-                          <SquarePen
-                            className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditBusiness(restaurant?.business_type, restaurant.id);
-                            }}
-                          />
-                          <Trash2
-                            className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteClick(restaurant);
-                            }}
-                          />
-                        </td>
                       )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        )
+
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="w-full table-auto">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-3 sm:px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th className="px-3 sm:px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Voice
+                  </th>
+                  <th className="px-3 sm:px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Phone
+                  </th>
+                  <th className="px-3 sm:px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Business Type
+                  </th>
+                  {(userRole === "Admin" || userRole === "Proprietor") && (
+                    <th className="px-3 sm:px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {restaurants?.map((restaurant) => (
+                  <tr key={restaurant.id} className="hover:bg-gray-50">
+                    <td className="px-3 sm:px-6 py-2 whitespace-nowrap">
+                      <div
+                        className="flex items-center cursor-pointer"
+                        onClick={() => handleRestaurantClick(restaurant)}
+                      >
+                        <div className="h-10 w-10 rounded-full flex items-center justify-center mr-2 sm:mr-3">
+                          {restaurant?.logo ? (
+                            <img
+                              src={restaurant.logo}
+                              alt={restaurant.name || "Restaurant"}
+                              className="h-full w-full rounded-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = "none";
+                                e.target.nextSibling.style.display = "flex";
+                              }}
+                            />
+                          ) : null}
+                          <Store
+                            className="h-5 w-5 text-purple-600"
+                            style={{
+                              display: restaurant?.logo ? "none" : "flex",
+                            }}
+                          />
+                        </div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {restaurant?.name || "N/A"}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 sm:px-6 py-2 whitespace-nowrap content-start flex">
+                      <VoiceControl
+                        voice={restaurant.voice}
+                        businessId={restaurant.id}
+                        voices={voices}
+                        onVoiceUpdated={fetchBusinesses}
+                      />
+                    </td>
+                    <td className="px-3 sm:px-6 py-2 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <Phone className="h-5 w-5 text-gray-400 mr-2 sm:mr-3" />
+                        <div className="text-sm text-gray-900">
+                          {restaurant?.twilio_number?.phone_number || "N/A"}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 sm:px-6 py-2 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <BriefcaseBusiness className="h-5 w-5 text-gray-400 mr-2 sm:mr-3" />
+                        <div className="text-sm text-gray-900">
+                          {BUSINESS_TYPES[
+                            restaurant?.business_type?.toLowerCase()
+                          ] ||
+                            restaurant?.business_type ||
+                            "N/A"}
+                        </div>
+                      </div>
+                    </td>
+
+                    {(userRole === "Admin" || userRole === "Proprietor") && (
+                      <td className="px-3 sm:px-6 py-2 flex justify-center items-center gap-2 whitespace-nowrap text-sm font-medium h-[72px]">
+                        <SquarePen
+                          className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditBusiness(
+                              restaurant?.business_type,
+                              restaurant.id
+                            );
+                          }}
+                        />
+                        <Trash2
+                          className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(restaurant);
+                          }}
+                        />
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
-      {/* Add Business Modal */}
       <AddBusinessModal
         isOpen={isAddBusinessModalOpen}
         onClose={() => setIsAddBusinessModalOpen(false)}
         onCategorySelected={handleCategorySelected}
       />
 
-      {/* Edit Business Modal */}
       {isEditMode && businessType && (
-        <div className="fixed inset-0  flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.55)' }}>
-          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 p-4 sm:p-6"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.55)" }}
+        >
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-full sm:max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
               {renderBusinessForm()}
               <div className="mt-4 flex justify-end">
                 <button
@@ -410,12 +535,11 @@ const RestaurantsModule = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       <DeleteBusinessModal
         isOpen={isDeleteModalOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
-        businessName={businessToDelete?.name || 'this business'}
+        businessName={businessToDelete?.name || "this business"}
         isLoading={isDeleting}
       />
     </div>

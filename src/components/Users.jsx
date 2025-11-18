@@ -168,7 +168,7 @@ const Users = ({ restaurantId, restaurantName }) => {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Role
                                     </th>
-                                    {(userRole === 'Admin' || userRole === 'Proprietor' || userRole === 'Manager') && (
+                                    {(userRole === 'Admin' || userRole === 'Proprietor') && (
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Actions
                                         </th>
@@ -209,7 +209,7 @@ const Users = ({ restaurantId, restaurantName }) => {
                                                 </div>
                                             </div>
                                         </td>
-                                        {(userRole === 'Admin' || userRole === 'Proprietor' || userRole === 'Manager') && (
+                                        {(userRole === 'Admin' || userRole === 'Proprietor') && (
                                             <td className="px-6 py-4 flex gap-2 whitespace-nowrap text-sm font-medium">
                                                 <SquarePen
                                                     className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"

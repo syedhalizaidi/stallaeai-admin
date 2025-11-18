@@ -1,246 +1,212 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import SelectField from '../components/SelectField';
-import { businessService } from '../services/businessService';
-import { useToast } from '../contexts/ToastContext';
+import { useState, useEffect, useMemo, useRef } from "react";
+import { SquarePen, ChevronDown, Volume2 } from "lucide-react";
+import { useToast } from "../contexts/ToastContext";
+import { businessService } from "../services/businessService";
 
-const VoicePage = () => {
+const VoiceControl = ({
+  voice: initialVoice,
+  businessId,
+  voices: parentVoices,
+  onVoiceUpdated,
+}) => {
   const { showSuccess, showError } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [businesses, setBusinesses] = useState([]);
-  const [selectedBusinessId, setSelectedBusinessId] = useState('');
-  const [voices, setVoices] = useState([]);
-  const [selectedVoiceId, setSelectedVoiceId] = useState('');
-  const [selectedVoicePreviewUrl, setSelectedVoicePreviewUrl] = useState('');
-  const [selectedVoiceName, setSelectedVoiceName] = useState('');
-  const [hasExistingVoice, setHasExistingVoice] = useState(false);
+  const [voices, setVoices] = useState(parentVoices || []);
+  const [selectedVoiceId, setSelectedVoiceId] = useState(
+    initialVoice?.id || ""
+  );
+  const [selectedVoiceName, setSelectedVoiceName] = useState(
+    initialVoice?.name || ""
+  );
+  const [selectedVoicePreviewUrl, setSelectedVoicePreviewUrl] = useState(
+    initialVoice?.preview_url || ""
+  );
+  const [hasExistingVoice, setHasExistingVoice] = useState(!!initialVoice);
   const [voiceChanged, setVoiceChanged] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState(null);
+  const [playingVoiceId, setPlayingVoiceId] = useState(null);
+  const [isEditing, setIsEditing] = useState(!initialVoice);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const fetchBusinesses = async () => {
-      setIsLoading(true);
-      setError('');
-      const result = await businessService.getBusinesses();
-      if (result.success) {
-        setBusinesses(result.data);
-      } else {
-        setError(result.error || 'Failed to fetch businesses');
+    if (parentVoices?.length) setVoices(parentVoices);
+  }, [parentVoices]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
       }
-      setIsLoading(false);
     };
-    fetchBusinesses();
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (!selectedBusinessId) {
-      setVoices([]);
-      setSelectedVoiceId('');
-      setSelectedVoicePreviewUrl('');
-      setSelectedVoiceName('');
-      setHasExistingVoice(false);
-      setVoiceChanged(false);
-      return;
-    }
-
-    const fetchVoicesAndCheckBusinessVoice = async () => {
-      setIsLoading(true);
-      setError('');
-      
-      try {
-        const voicesResult = await businessService.getVoices();
-        if (voicesResult.success) {
-          const list = voicesResult.data?.voices || [];
-          setVoices(list ?? []);
-        } else {
-          setError(voicesResult.error || 'Failed to fetch voices');
-        }
-
-        // Check if selected business has a voice from the businesses listing
-        const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
-        if (selectedBusiness && selectedBusiness.voice) {
-          const businessVoice = selectedBusiness.voice;
-
-          const voicesList = voicesResult.success ? (voicesResult.data?.voices || []) : [];
-          const matchingVoice = voicesList.find(v => {
-            const nameMatch = v.name === businessVoice.name;
-            return nameMatch;
-          });
-          
-          if (matchingVoice) {
-            const voiceId = matchingVoice.id;
-            setSelectedVoiceId(voiceId);
-            setSelectedVoicePreviewUrl(businessVoice.preview_url || '');
-            setSelectedVoiceName(businessVoice.name || '');
-            setHasExistingVoice(true);
-            setVoiceChanged(false); 
-          } else {
-            setSelectedVoiceId('');
-            setSelectedVoicePreviewUrl('');
-            setSelectedVoiceName('');
-            setHasExistingVoice(true);
-            setVoiceChanged(false); 
-          }
-        } else {
-          setSelectedVoiceId('');
-          setSelectedVoicePreviewUrl('');
-          setSelectedVoiceName('');
-          setHasExistingVoice(false);
-          setVoiceChanged(false);
-        }
-      } catch (error) {
-        setError('Failed to fetch voice data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchVoicesAndCheckBusinessVoice();
-  }, [selectedBusinessId]);
-
-
-  const businessOptions = useMemo(() => {
-    return businesses?.map((b) => ({ value: b.id, label: b.name }));
-  }, [businesses]);
-  
-  const voiceOptions = useMemo(() => {
-    return (voices || []).map((v) => ({ value: v.id || v.voice_id, label: v.name }));
-  }, [voices]);
-
-  const handleVoiceChange = (e) => {
-    const newVoiceId = e.target.value;
-    setSelectedVoiceId(newVoiceId);
-    
-    const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
-    
+  const handleVoiceChange = (id) => {
+    const match = voices.find((v) => (v.id || v.voice_id) === id);
+    setSelectedVoiceId(id);
+    setSelectedVoiceName(match?.name || "");
+    setSelectedVoicePreviewUrl(match?.preview_url || "");
     setVoiceChanged(true);
-    
-    if (selectedBusiness && selectedBusiness.voice) {
-      setHasExistingVoice(true);
-    } else {
-      setHasExistingVoice(false);
-    }
-    
-    const match = voices.find((v) => (v.id || v.voice_id) === newVoiceId);
-    const preview = match?.preview_url || '';
-    const name = match?.name || '';
-    setSelectedVoicePreviewUrl(preview);
-    setSelectedVoiceName(name);
+    setDropdownOpen(false);
   };
 
   const handleSubmit = async () => {
-    if (!selectedVoiceId || !selectedBusinessId) {
-      showError('Please select both business and voice');
+    if (!selectedVoiceId || !businessId) {
+      showError("Please select a voice");
       return;
     }
-    
     setIsSubmitting(true);
-    setError('');
-
     try {
-      const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
-      const selectedVoice = voices.find(v => (v.id || v.voice_id) === selectedVoiceId);
-      
+      const selectedVoice = voices.find(
+        (v) => (v.id || v.voice_id) === selectedVoiceId
+      );
       const voiceData = {
-        name: selectedVoice?.name || '',
-        category: selectedVoice?.category || '',
-        gender: selectedVoice?.gender || '',
-        preview_url: selectedVoice?.preview_url || '',
-        business_id: selectedBusinessId,
-        id: selectedVoiceId
+        name: selectedVoice?.name || "",
+        category: selectedVoice?.category || "",
+        gender: selectedVoice?.gender || "",
+        preview_url: selectedVoice?.preview_url || "",
+        business_id: businessId,
+        id: selectedVoiceId,
       };
+      const result = hasExistingVoice
+        ? await businessService.updateVoice(businessId, voiceData)
+        : await businessService.createVoice(voiceData);
 
-      // Use appropriate API based on whether voice already exists
-      let result;
-      if (hasExistingVoice) {
-        // Update existing voice assignment
-        result = await businessService.updateVoice(selectedBusinessId, voiceData);
-      } else {
-        // Create new voice assignment
-        result = await businessService.createVoice(voiceData);
-      }
-      
       if (result.success) {
-        const businessName = selectedBusiness?.name || 'Business';
-        const voiceName = selectedVoice?.name || 'Voice';
-        const action = hasExistingVoice ? 'updated' : 'assigned';
-        showSuccess(`Voice ${voiceName} ${action} to ${businessName} successfully`);
-        setHasExistingVoice(true); 
+        showSuccess(`Voice ${selectedVoice?.name} assigned successfully`);
+        setHasExistingVoice(true);
         setVoiceChanged(false);
-        
-        // Refresh business listing to get updated voice information
-        const refreshResult = await businessService.getBusinesses();
-        if (refreshResult.success) {
-          setBusinesses(refreshResult.data);
-        }
+        setIsEditing(false);
+        onVoiceUpdated && onVoiceUpdated();
       } else {
         showError(result.error);
       }
-    } catch (error) {
-      showError('Failed to assign voice');
+    } catch {
+      showError("Failed to assign voice");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="flex-1 p-4 sm:p-6 lg:p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Voice</h1>
-        <p className="text-gray-500">Select a business to continue</p>
-      </div>
+  const handlePlayPause = (voice) => {
+    if (!voice.preview_url) return;
+    if (playingVoiceId === voice.id || playingVoiceId === voice.voice_id) {
+      currentAudio?.pause();
+      setCurrentAudio(null);
+      setPlayingVoiceId(null);
+      return;
+    }
+    currentAudio?.pause();
+    const audio = new Audio(voice.preview_url);
+    setCurrentAudio(audio);
+    setPlayingVoiceId(voice.id || voice.voice_id);
+    audio.play().catch(() => setPlayingVoiceId(null));
+    audio.addEventListener("ended", () => {
+      setCurrentAudio(null);
+      setPlayingVoiceId(null);
+    });
+  };
 
-      <div className="max-w-xl space-y-4">
-          <SelectField
-            label="Business"
-            name="businessId"
-            value={selectedBusinessId}
-            onChange={(e) => setSelectedBusinessId(e.target.value)}
-            options={businessOptions}
-            placeholder={isLoading ? 'Loading businesses...' : 'Select business'}
-            disabled={isLoading}
-            required
-          />
-          <SelectField
-            label="Voice"
-            name="voiceId"
-            value={selectedVoiceId}
-            onChange={handleVoiceChange}
-            options={voiceOptions}
-            placeholder={!selectedBusinessId ? 'Select business first' : (isLoading ? 'Loading voices...' : 'Select voice')}
-            disabled={isLoading || !selectedBusinessId}
-            required
-          />
-          {selectedVoiceName && (
-            <div className="text-sm text-gray-700">Selected voice: <span className="font-medium">{selectedVoiceName}</span></div>
-          )}
-          {selectedVoicePreviewUrl && (
-            <audio key={selectedVoicePreviewUrl} src={selectedVoicePreviewUrl} controls autoPlay className="w-full" />
-          )}
-          {selectedBusinessId && selectedVoiceId && (
-            // Show button only if:
-            // 1. Business has no voice and user selected a voice (voiceChanged will be true)
-            // 2. Business has voice and user changed the selection (voiceChanged will be true)
-            (voiceChanged || (!hasExistingVoice && selectedVoiceId)) && (
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className={`w-full py-2 px-4 rounded-lg focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors font-medium ${
-                  isSubmitting 
-                    ? 'bg-gray-400 cursor-not-allowed text-white' 
-                    : 'bg-purple-600 hover:bg-purple-700 text-white'
-                }`}
-              >
-                {isSubmitting ? 'Processing...' : (hasExistingVoice ? 'Update Voice' : 'Assign Voice')}
-              </button>
-            )
-          )}
-          {error && <div className="text-sm text-red-600">{error}</div>}
+  const VoiceDropdown = () => (
+    <div ref={dropdownRef} className="relative w-60">
+      <button
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+        className="w-full flex justify-between items-center px-3 py-2 border rounded-lg bg-white hover:bg-gray-50"
+      >
+        <span>{selectedVoiceName || "Select voice"}</span>
+        <ChevronDown className="h-4 w-4 text-gray-500" />
+      </button>
+      {dropdownOpen && (
+        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
+          {voices.map((voice) => (
+            <div
+              key={voice.id || voice.voice_id}
+              className="flex justify-between items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleVoiceChange(voice.id || voice.voice_id)}
+            >
+              <span>{voice.name}</span>
+              {voice.preview_url && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlayPause(voice);
+                  }}
+                  className="ml-2 p-1 rounded-full"
+                >
+                  <Volume2
+                    className={`h-5 w-5 ${
+                      playingVoiceId === (voice.id || voice.voice_id)
+                        ? "text-purple-600"
+                        : "text-gray-400"
+                    }`}
+                  />
+                </button>
+              )}
+            </div>
+          ))}
         </div>
-      </div>
+      )}
+    </div>
+  );
+
+  if (!hasExistingVoice && !isEditing) {
+    return <VoiceDropdown />;
+  }
+
+  return (
+    <div className="flex items-center space-x-6">
+      {!isEditing && hasExistingVoice ? (
+        <>
+          {selectedVoicePreviewUrl && (
+            <button
+              onClick={() =>
+                handlePlayPause({
+                  id: selectedVoiceId,
+                  preview_url: selectedVoicePreviewUrl,
+                })
+              }
+              className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <Volume2
+                className={`h-5 w-5 ${
+                  playingVoiceId === selectedVoiceId
+                    ? "text-purple-600"
+                    : "text-gray-400"
+                }`}
+              />
+            </button>
+          )}
+          <span>{selectedVoiceName}</span>
+
+          <button
+            onClick={() => setIsEditing(true)}
+            className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <SquarePen className="h-4 w-4 text-purple-600" />
+          </button>
+        </>
+      ) : (
+        <>
+          <VoiceDropdown />
+          {voiceChanged && (
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className={`p-1 rounded-full bg-purple-600 text-white ${
+                isSubmitting
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-purple-700"
+              }`}
+            >
+              <SquarePen className="h-4 w-4" />
+            </button>
+          )}
+        </>
+      )}
+    </div>
   );
 };
 
-export default VoicePage;
-
-
+export default VoiceControl;

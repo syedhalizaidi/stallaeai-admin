@@ -12,34 +12,37 @@ const DashboardModule = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
 
-  const fetchStats = async () => {
-    const result = await dashboardService.getDashboardStats();
-    if (result.success) {
-      setStats(result.data);
-      setError(null);
-    } else {
-      setError(result.error);
-    }
-    setLoading(false);
-  };
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [statsResult, businessesResult] = await Promise.all([
+        dashboardService.getDashboardStats(),
+        restaurantService.getRestaurants(),
+      ]);
 
-  const fetchBusinesses = async () => {
-    const result = await restaurantService.getRestaurants();
-    if (result.success) {
-      setRestaurants(result.data);
-      setError(null);
-
-      if (result.data.length > 0 && !selectedBusiness) {
-        setSelectedBusiness(result.data[0]);
+      if (statsResult.success) {
+        setStats(statsResult.data);
+      } else {
+        setError(statsResult.error);
       }
-    } else {
-      setError(result.error);
+
+      if (businessesResult.success) {
+        setRestaurants(businessesResult.data);
+        if (businessesResult.data.length > 0 && !selectedBusiness) {
+          setSelectedBusiness(businessesResult.data[0]);
+        }
+      } else {
+        setError(businessesResult.error);
+      }
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchStats();
-    fetchBusinesses();
+    fetchData();
   }, []);
 
   const handleSelectBusiness = (business) => {
@@ -69,11 +72,7 @@ const DashboardModule = () => {
           </h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
-            onClick={() => {
-              setLoading(true);
-              fetchStats();
-              fetchBusinesses();
-            }}
+            onClick={fetchData}
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
           >
             Try Again

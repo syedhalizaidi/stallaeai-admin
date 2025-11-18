@@ -5,7 +5,6 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import RestaurantsPage from './pages/RestaurantsPage';
 import RestaurantSetupPage from './pages/RestaurantSetupPage';
-import VoicePage from './pages/VoicePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import KnowledgePage from './pages/KnowledgePage';
 import NotificationPage from './pages/NotificationsPage';
@@ -25,16 +24,8 @@ function App() {
             <Route
               path="/setup"
               element={
-                <ProtectedRoute allowedRoles={["Admin", "Manager", "Proprietor"]}>
+                <ProtectedRoute allowedRoles={["Admin", "Proprietor"]}>
                   <RestaurantSetupPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/voice"
-              element={
-                <ProtectedRoute allowedRoles={["Admin", "Manager", "Proprietor"]}>
-                  <VoicePage />
                 </ProtectedRoute>
               }
             />

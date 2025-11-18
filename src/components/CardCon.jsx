@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import "react-calendar/dist/Calendar.css";
 import {
     getOrders,
-    getRestaurantById,
     getNote,
     createNote,
     deleteNote
@@ -22,20 +21,15 @@ const RestaurantDashboard = ({ restaurant }) => {
     const { showSuccess, showError } = useToast();
     const [orderData, setOrderData] = useState([]);
     const [noteLoading, setNoteLoading] = useState(false);
-    const [deleteLoading, setDeleteLoading] = useState(false);
     const [uploadNote, setUploadNote] = useState("");
     const [reservationNote, setReservationNote] = useState("");
     const [callBackNote, setCallBackNote] = useState("");
     const [faqNote, setFaqNote] = useState("");
-    const [isEditingNote, setIsEditingNote] = useState(false);
     const [isNoteEnabled, setIsNoteEnabled] = useState(true);
     const [isReservationEnabled, setIsReservationEnabled] = useState(true);
     const [isCallBackEnabled, setIsCallBackEnabled] = useState(true);
     const [isFaqEnabled, setIsFaqEnabled] = useState(true);
     const [noteText, setNoteText] = useState(null);
-    const [noteId, setNoteId] = useState(null);
-    const userRole = localStorage.getItem("user_role");
-    const [latestOrders, setLatestOrders] = useState([]);
     const [reservations, setReservations] = useState([]);
     const [activeModal, setActiveModal] = useState(false);
 
@@ -64,7 +58,6 @@ const RestaurantDashboard = ({ restaurant }) => {
     };
     const [faqOrders, setFaqOrders] = useState([]);
     const [callbackOrders, setCallbackOrders] = useState([]);
-    const [normalOrders, setNormalOrders] = useState([]);
 
     const fetchOrders = async () => {
         try {
@@ -87,7 +80,11 @@ const RestaurantDashboard = ({ restaurant }) => {
             const faqOrders = [];
             const callbackOrders = [];
 
+            console.log({callbackOrders});
+
             allOrders.forEach((order) => {
+    console.log({order});
+
                 let parsedDetails = {};
                 let orderType = "food";
 
@@ -121,7 +118,7 @@ const RestaurantDashboard = ({ restaurant }) => {
                     ...order,
                     order_details: parsedDetails,
                     order_type: orderType,
-                    relativeTime: getRelativeTime(order.timestamp),
+                    relativeTime: getRelativeTime(order.timestamp.replace('Z', '')),
                 };
 
                 // Separate orders into categories
@@ -146,19 +143,19 @@ const RestaurantDashboard = ({ restaurant }) => {
                             end_time: parsedDetails.end_time || null,
                             contact_info: order.phone_number,
                             party_size: parsedDetails.party_size || null,
-                            timestamp: order.timestamp,
+                            timestamp: order.timestamp.replace('Z', ''),
                         });
                         break;
 
                     case "faq":
                         faqOrders.push({
                             id: order.id,
-                            customer_name: parsedDetails.customer_name || order.customer_name || "Unknown",
+                            customer_name: parsedDetails.customer_name || order.customer_name || order.phone_number ||"Unknown",
                             question: parsedDetails.question,
                             answer: parsedDetails.answer,
                             asked_at: parsedDetails.asked_at,
                             customer_number: parsedDetails.customer_number || order.phone_number,
-                            timestamp: order.timestamp,
+                            timestamp: order.timestamp.replace('Z', ''),
                         });
                         break;
 
@@ -168,7 +165,7 @@ const RestaurantDashboard = ({ restaurant }) => {
                             customer_name: parsedDetails.customer_name || order.customer_name || "Unknown",
                             callback_number: parsedDetails.callback_number || order.phone_number,
                             requested_at: parsedDetails.requested_at,
-                            timestamp: order.timestamp,
+                            timestamp: order.timestamp.replace('Z', ''),
                         });
                         break;
 
@@ -186,16 +183,10 @@ const RestaurantDashboard = ({ restaurant }) => {
             callbackOrders.sort(sortByTimestamp);
 
             // Update states
-            setLatestOrders(foodOrders.slice(0, 3));
             setOrderData({ ...orderResponse.data.data, data: foodOrders });
             setReservations(reservationOrders);
             setFaqOrders(faqOrders);
             setCallbackOrders(callbackOrders);
-
-            console.log("Reservations:", reservationOrders);
-            console.log("Food Orders:", foodOrders);
-            console.log("FAQ Orders:", faqOrders);
-            console.log("Callback Orders:", callbackOrders);
 
         } catch (err) {
             console.error("Error fetching orders:", err);
@@ -217,15 +208,12 @@ const RestaurantDashboard = ({ restaurant }) => {
 
             if (response.success && response.data) {
                 setUploadNote(response.data.message || "");
-                setNoteId(response.data.id || null);
             } else {
                 setUploadNote("");
-                setNoteId(null);
             }
         } catch (err) {
             console.error("Error fetching notes:", err);
             setUploadNote("");
-            setNoteId(null);
         }
     };
 
@@ -244,7 +232,6 @@ const RestaurantDashboard = ({ restaurant }) => {
             if (response.success) {
                 showSuccess("Note submitted successfully");
                 fetchNotes();
-                setIsEditingNote(false);
                 setNoteText(uploadNote);
             } else {
                 showError("Failed to submit note: " + response.message);
@@ -267,7 +254,6 @@ const RestaurantDashboard = ({ restaurant }) => {
             if (response.success) {
                 showSuccess("Note submitted successfully");
                 fetchNotes();
-                setIsEditingNote(false);
                 setNoteText(reservationNote);
             } else {
                 showError("Failed to submit note: " + response.message);
@@ -290,7 +276,6 @@ const RestaurantDashboard = ({ restaurant }) => {
             if (response.success) {
                 showSuccess("Note submitted successfully");
                 fetchNotes();
-                setIsEditingNote(false);
                 setNoteText(uploadNote);
             } else {
                 showError("Failed to submit note: " + response.message);
@@ -313,7 +298,6 @@ const RestaurantDashboard = ({ restaurant }) => {
             if (response.success) {
                 showSuccess("Note submitted successfully");
                 fetchNotes();
-                setIsEditingNote(false);
                 setNoteText(uploadNote);
             } else {
                 showError("Failed to submit note: " + response.message);
@@ -326,20 +310,16 @@ const RestaurantDashboard = ({ restaurant }) => {
     };
 
     const handleDeleteNote = async () => {
-        setDeleteLoading(true);
         try {
             const response = await deleteNote(restaurant.id);
             if (response.success) {
                 showSuccess("Note deleted successfully");
                 setUploadNote("");
-                setNoteId(null);
             } else {
                 showError("Failed to delete note: " + response.message);
             }
         } catch (error) {
             showError("Failed to delete note");
-        } finally {
-            setDeleteLoading(false);
         }
     };
 
