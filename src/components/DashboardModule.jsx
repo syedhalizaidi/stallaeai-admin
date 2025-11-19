@@ -83,7 +83,7 @@ const DashboardModule = () => {
 
   const statCards = [
     {
-      title: "Total Restaurants",
+      title: "Total Business",
       value: stats?.total_business,
       icon: Store,
       gradient: "from-blue-50 to-blue-100",
@@ -120,8 +120,6 @@ const DashboardModule = () => {
     },
   ];
 
-  console.log({ selectedBusiness });
-
   return (
     <div>
       {/* Header */}
@@ -129,7 +127,7 @@ const DashboardModule = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600">
-            Welcome to your restaurant management dashboard
+            Welcome to your business management dashboard
           </p>
         </div>
       </div>

@@ -125,8 +125,8 @@ const RestaurantSetupPage = () => {
                                     </div>
                                 </div>
                             </div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Setup Your Restaurant</h1>
-                            <p className="text-gray-600">Let's get your restaurant ready for AI-powered orders</p>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Setup Your Business</h1>
+                            <p className="text-gray-600">Let's get your business ready for AI-powered orders</p>
                         </div>
                     </div>
 
