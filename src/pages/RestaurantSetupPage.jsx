@@ -13,6 +13,7 @@ const RestaurantSetupPage = () => {
     const [currentStep, setCurrentStep] = useState('basic-info');
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [editId, setEditId] = useState(null);
+    const [businessType] = useState(searchParams.get('businessType'));
 
     const steps = [
         { id: 'basic-info', name: 'Basic Info', icon: Home },
@@ -24,9 +25,9 @@ const RestaurantSetupPage = () => {
         const step = searchParams.get('step') || 'basic-info';
         const category = searchParams.get('category');
         const editIdParam = searchParams.get('editId');
-        
+
         setCurrentStep(step);
-        setEditId(editIdParam);        
+        setEditId(editIdParam);
         if (category) {
             setSelectedCategory(decodeURIComponent(category));
         }
@@ -74,6 +75,7 @@ const RestaurantSetupPage = () => {
                         onNext={() => handleStepChange('menu')}
                         editId={editId}
                         isEditMode={!!editId}
+                        businessType={businessType}
                     />
                 );
             case 'menu':
@@ -82,6 +84,7 @@ const RestaurantSetupPage = () => {
                         onNext={() => handleStepChange('images')}
                         onPrevious={() => handleStepChange('basic-info')}
                         editId={editId}
+                        businessType={businessType}
                         isEditMode={!!editId}
                     />
                 );
@@ -152,11 +155,10 @@ const RestaurantSetupPage = () => {
                                         <button
                                             key={step.id}
                                             onClick={() => handleStepChange(step.id)}
-                                            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
-                                                isActive
-                                                    ? 'bg-blue-600 text-white shadow-lg transform scale-105'
-                                                    : 'text-gray-400 bg-gray-100 cursor-not-allowed opacity-60'
-                                            }`}
+                                            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${isActive
+                                                ? 'bg-blue-600 text-white shadow-lg transform scale-105'
+                                                : 'text-gray-400 bg-gray-100 cursor-not-allowed opacity-60'
+                                                }`}
                                             disabled={!isActive}
                                         >
                                             <Icon className="h-4 w-4" />

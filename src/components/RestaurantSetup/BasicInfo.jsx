@@ -11,16 +11,38 @@ import CheckboxField from '../CheckboxField';
 import { restaurantService } from '../../services/restaurantService';
 import { useToast } from '../../contexts/ToastContext';
 
+const BUSINESS_CONFIG = {
+  restaurant: {
+    showCuisine: true,
+    showDeliveryTime: true,
+    showServiceOptions: true,
+    showAccessibility: true
+  },
+  barber: {
+    showCuisine: false,
+    showDeliveryTime: false,
+    showServiceOptions: false,
+    showAccessibility: true
+  },
+  car_dealership: {
+    showCuisine: false,
+    showDeliveryTime: false,
+    showServiceOptions: false,
+    showAccessibility: false
+  }
+};
+
 const cuisineOptions = [
   { value: "Mediterranean", label: "Mediterranean" },
   { value: "Italian", label: "Italian" },
   { value: "Mexican", label: "Mexican" },
   { value: "Asian", label: "Asian" },
   { value: "American", label: "American" },
-  { value: "French", label: "French" },
+  { value: "French", label: "French" }
 ];
 
-const BasicInfo = ({ onNext, editId, isEditMode }) => {
+const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
+  const config = BUSINESS_CONFIG[businessType] || {};
   const { showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
@@ -35,26 +57,25 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
     setValue
   } = useForm({
     defaultValues: {
-      restaurantName: '',
-      cuisineType: 'Mediterranean',
+      businessName: '',
+      cuisineType: '',
       description: '',
       email: '',
       openingTime: '',
       closingTime: '',
-      minDeliveryTime: "10",
-      maxDeliveryTime: "30",
-      // Location fields
+      minDeliveryTime: '',
+      maxDeliveryTime: '',
       streetAddress: '',
       city: '',
       state: '',
       zipCode: '',
       country: 'United States',
       countryCode: 'US',
-      dineIn: true,
+      dineIn: false,
       delivery: false,
-      pickup: true,
+      pickup: false,
       wheelchairAccessible: false,
-      parkingAvailable: false,
+      parkingAvailable: false
     }
   });
 
@@ -63,7 +84,6 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
   const selectCountry = (val) => {
     setValue('country', val, { shouldValidate: true });
     setValue('state', '');
-
     const selectedCountryData = availableCountries.find(country => country.country === val);
     if (selectedCountryData) {
       setValue('countryCode', selectedCountryData.country_code, { shouldValidate: true });
@@ -81,77 +101,64 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
         const result = await restaurantService.getTwilioAvailableCountries();
         if (result.success) {
           setAvailableCountries(result.data.countries || []);
-        } else {
-          showError('Failed to load available countries');
         }
-      } catch (error) {
-        console.error('Error fetching available countries:', error);
-        showError('Error loading available countries');
       } finally {
         setIsLoadingCountries(false);
       }
     };
-
     fetchAvailableCountries();
   }, []);
 
   useEffect(() => {
     if (isEditMode && editId) {
-      const loadRestaurantData = async () => {
+      const load = async () => {
         setIsLoadingData(true);
         try {
           const result = await restaurantService.getRestaurantDetails(editId);
           if (result.success && result.data) {
             const data = result.data;
             const location = data.locations?.[0] || {};
-
-            setValue('restaurantName', data.name || '');
-            setValue('cuisineType', data.cuisine_type || 'Mediterranean');
+            setValue('businessName', data.name || '');
+            setValue('cuisineType', data.cuisine_type || '');
             setValue('description', data.description || '');
             setValue('email', data.email || '');
             setValue('openingTime', data.opening_time || '');
             setValue('closingTime', data.closing_time || '');
-            setValue('minDeliveryTime', data.delivery_minimum || '10');
-            setValue('maxDeliveryTime', data.delivery_maximum || '30');
-
+            setValue('minDeliveryTime', data.delivery_minimum || '');
+            setValue('maxDeliveryTime', data.delivery_maximum || '');
             setValue('streetAddress', location.street_address || '');
             setValue('city', location.city || '');
             setValue('state', location.state || '');
             setValue('zipCode', location.zip_code || '');
             setValue('country', location.country || 'United States');
             setValue('countryCode', data.country_code || 'US');
-            setValue('dineIn', location.is_dine_in_available || true);
+            setValue('dineIn', location.is_dine_in_available || false);
             setValue('delivery', location.is_delivery_available || false);
-            setValue('pickup', location.is_pickup_available || true);
+            setValue('pickup', location.is_pickup_available || false);
             setValue('wheelchairAccessible', location.is_wheelchair_accessible || false);
             setValue('parkingAvailable', location.is_parking_available || false);
-          } else {
-            showError(result.error || 'Failed to load restaurant data');
           }
-        } catch (error) {
-          showError('Failed to load restaurant data');
         } finally {
           setIsLoadingData(false);
         }
       };
-      loadRestaurantData();
+      load();
     }
-  }, [isEditMode, editId, setValue, showError]);
+  }, [isEditMode, editId, setValue]);
 
   const onSubmit = async (data) => {
     setIsLoading(true);
-
     try {
       const payload = {
-        name: data.restaurantName,
+        name: data.businessName,
         email: data.email.trim().toLowerCase(),
         description: data.description,
         opening_time: data.openingTime,
         closing_time: data.closingTime,
-        cuisine_type: data.cuisineType,
-        delivery_minimum: data.minDeliveryTime.toString(),
-        delivery_maximum: data.maxDeliveryTime.toString(),
-        business_type: 'restaurant',
+        cuisine_type: config.showCuisine ? data.cuisineType : null,
+        delivery_minimum: config.showDeliveryTime ? data.minDeliveryTime?.toString() : null,
+        delivery_maximum: config.showDeliveryTime ? data.maxDeliveryTime?.toString() : null,
+        business_type: businessType,
         country_code: data.countryCode,
         location: [{
           street_address: data.streetAddress,
@@ -159,11 +166,11 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
           state: data.state,
           zip_code: data.zipCode,
           country: data.country,
-          is_dine_in_available: data.dineIn,
-          is_delivery_available: data.delivery,
-          is_pickup_available: data.pickup,
-          is_wheelchair_accessible: data.wheelchairAccessible,
-          is_parking_available: data.parkingAvailable,
+          is_dine_in_available: config.showServiceOptions ? data.dineIn : false,
+          is_delivery_available: config.showServiceOptions ? data.delivery : false,
+          is_pickup_available: config.showServiceOptions ? data.pickup : false,
+          is_wheelchair_accessible: config.showAccessibility ? data.wheelchairAccessible : false,
+          is_parking_available: config.showAccessibility ? data.parkingAvailable : false
         }]
       };
 
@@ -177,15 +184,11 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
       if (result.success) {
         localStorage.setItem('restaurant_id', result.restaurantId);
         onNext();
-      } else {
-        showError(result.error);
       }
-    } catch (error) {
-      console.error('Registration error:', error);
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   if (isLoadingData) {
     return (
@@ -193,7 +196,7 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600">Loading restaurant data...</p>
+            <p className="text-gray-600">Loading data…</p>
           </div>
         </div>
       </div>
@@ -205,7 +208,7 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
       <div className="flex items-center mb-6">
         <Home className="h-6 w-6 text-blue-600 mr-3" />
         <h2 className="text-2xl font-semibold text-gray-900">
-          {isEditMode ? 'Edit Restaurant Info' : 'Basic Info'}
+          {isEditMode ? 'Edit Business Info' : 'Basic Info'}
         </h2>
       </div>
 
@@ -213,120 +216,89 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TextField
-              label="Restaurant Name *"
-              name="restaurantName"
+              label="Business Name *"
+              name="businessName"
               type="text"
-              placeholder="Your Restaurant Name"
+              placeholder="Enter business name"
               icon={Home}
-              error={errors.restaurantName?.message}
-              {...register('restaurantName', {
-                required: 'Restaurant name is required',
-              })}
+              error={errors.businessName?.message}
+              {...register('businessName', { required: 'Business name is required' })}
             />
 
-            <SelectField
-              label="Cuisine Type "
-              name="cuisineType"
-              value={watch('cuisineType')}
-              options={cuisineOptions}
-              placeholder="Select an option"
-              error={errors.cuisineType?.message}
-              required
-              {...register('cuisineType', {
-                required: 'Cuisine type is required',
-                validate: (value) => value !== '' || 'Please select a cuisine type'
-              })}
-            />
-          </div>
-
-          <TextAreaField
-            label="Restaurant Description *"
-            name="description"
-            placeholder="Tell customers about your restaurant, specialties, atmosphere..."
-            rows={4}
-            error={errors.description?.message}
-            {...register('description', {
-              required: 'Restaurant description is required',
-            })}
-          />
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TextField
               label="Contact Email *"
               name="email"
               type="email"
-              placeholder="restaurant@example.com"
+              placeholder="business@example.com"
               icon={Mail}
               error={errors.email?.message}
-              {...register('email', {
-                required: 'Email is required',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Please enter a valid email address'
-                }
-              })}
+              {...register('email', { required: 'Email is required' })}
             />
+          </div>
+
+          <TextAreaField
+            label="Description *"
+            name="description"
+            placeholder="Enter description"
+            rows={4}
+            error={errors.description?.message}
+            {...register('description', { required: 'Description is required' })}
+          />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {config.showCuisine && (
+              <SelectField
+                label="Cuisine Type *"
+                name="cuisineType"
+                value={watch('cuisineType')}
+                options={cuisineOptions}
+                placeholder="Select cuisine"
+                error={errors.cuisineType?.message}
+                required
+                {...register('cuisineType')}
+              />
+            )}
+
+            {config.showDeliveryTime && (
+              <NumberField
+                label="Min Delivery Time"
+                name="minDeliveryTime"
+                icon={Clock}
+                error={errors.minDeliveryTime?.message}
+                {...register('minDeliveryTime')}
+              />
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TimeField
               label="Opening Time *"
               name="openingTime"
               icon={Clock}
               error={errors.openingTime?.message}
-              {...register('openingTime', {
-                required: 'Opening time is required'
-              })}
+              {...register('openingTime', { required: 'Opening time is required' })}
             />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TimeField
               label="Closing Time *"
               name="closingTime"
               icon={Clock}
               error={errors.closingTime?.message}
-              {...register('closingTime', {
-                required: 'Closing time is required'
-              })}
+              {...register('closingTime', { required: 'Closing time is required' })}
             />
-            <NumberField
-              label="Minimum Delivery Time *"
-              name="minDeliveryTime"
-              min="1"
-              icon={Clock}
-              error={errors.minDeliveryTime?.message}
-              {...register('minDeliveryTime', {
-                required: 'Minimum delivery time is required',
-                min: {
-                  value: 1,
-                  message: 'Minimum delivery time must be at least 1 minute'
-                },
-                valueAsNumber: true
-              })}
-            />
+
+
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {config.showDeliveryTime && (
             <NumberField
-              label="Maximum Delivery Time *"
+              label="Max Delivery Time"
               name="maxDeliveryTime"
-              min="1"
               icon={Clock}
               error={errors.maxDeliveryTime?.message}
-              {...register('maxDeliveryTime', {
-                required: 'Maximum delivery time is required',
-                min: {
-                  value: 1,
-                  message: 'Maximum delivery time must be at least 1 minute'
-                },
-                valueAsNumber: true,
-                validate: (value) => {
-                  const minTime = watch('minDeliveryTime');
-                  return value >= minTime || 'Maximum delivery time must be greater than or equal to minimum delivery time';
-                }
-              })}
+              {...register('maxDeliveryTime')}
             />
-          </div>
+          )}
 
-          {/* Location Section */}
           <div className="border-t pt-8 mt-8">
             <div className="flex items-center mb-6">
               <MapPin className="h-6 w-6 text-blue-600 mr-3" />
@@ -340,13 +312,7 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
               placeholder="123 Main Street"
               icon={MapPin}
               error={errors.streetAddress?.message}
-              {...register('streetAddress', {
-                required: 'Street address is required',
-                minLength: {
-                  value: 5,
-                  message: 'Street address must be at least 5 characters'
-                }
-              })}
+              {...register('streetAddress', { required: 'Street address is required' })}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
@@ -356,126 +322,76 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
                 type="text"
                 placeholder="Enter city"
                 error={errors.city?.message}
-                {...register('city', {
-                  required: 'City is required',
-                  minLength: {
-                    value: 2,
-                    message: 'City must be at least 2 characters'
-                  }
-                })}
+                {...register('city', { required: 'City is required' })}
               />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  State *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
                 <RegionDropdown
                   country={selectedCountry}
                   value={watch('state')}
                   onChange={(val) => selectRegion(val)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.state ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                  className={`w-full px-4 py-3 border rounded-lg ${errors.state ? 'border-red-500' : 'border-gray-300'}`}
                 />
-                {errors.state && (
-                  <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>
-                )}
-                <input
-                  type="hidden"
-                  {...register('state', {
-                    required: 'State is required'
-                  })}
-                />
+                <input type="hidden" {...register('state', { required: 'State is required' })} />
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               <TextField
-                label={selectedCountry === 'Canada' ? 'Postal Code *' : 'ZIP Code *'}
+                label="ZIP Code *"
                 name="zipCode"
                 type="text"
-                placeholder={selectedCountry === 'Canada' ? 'Enter Postal Code (e.g., A1B-2C3)' : 'Enter ZIP Code (e.g., 12345)'}
+                placeholder="12345"
                 error={errors.zipCode?.message}
-                {...register('zipCode', {
-                  required: selectedCountry === 'Canada' ? 'Postal code is required' : 'ZIP code is required',
-                  pattern: {
-                    value: selectedCountry === 'Canada' ? /^[A-Za-z]\d[A-Za-z]-\d[A-Za-z]\d$/ : /^\d{5}$/,
-                    message:
-                      selectedCountry === 'Canada'
-                        ? 'Please enter a valid Postal Code (e.g., A1B-2C3)'
-                        : 'Please enter a valid ZIP Code (e.g., 12345)',
-                  },
-                })}
+                {...register('zipCode', { required: 'ZIP code is required' })}
               />
 
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Country *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
                 <select
                   value={selectedCountry}
                   onChange={(e) => selectCountry(e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.country ? 'border-red-500' : 'border-gray-300'
-                    } ${isEditMode ? 'bg-gray-50 text-gray-500' : ''}`}
-                  disabled={isLoadingCountries || isEditMode}
+                  className={`w-full px-4 py-3 border rounded-lg ${errors.country ? 'border-red-500' : 'border-gray-300'}`}
                 >
-                  {isLoadingCountries ? (
-                    <option>Loading countries...</option>
-                  ) : (
-                    <>
-                      <option value="">Select Country</option>
-                      {availableCountries.map((country) => (
-                        <option key={country.country_code} value={country.country}>
-                          {country.country}
-                        </option>
-                      ))}
-                    </>
-                  )}
+                  <option value="">Select Country</option>
+                  {availableCountries.map((c) => (
+                    <option key={c.country_code} value={c.country}>{c.country}</option>
+                  ))}
                 </select>
-                {errors.country && (
-                  <p className="mt-1 text-sm text-red-600">{errors.country.message}</p>
-                )}
-                <input
-                  type="hidden"
-                  {...register('country', {
-                    required: 'Country is required'
-                  })}
-                />
+                <input type="hidden" {...register('country', { required: 'Country is required' })} />
               </div>
 
               <TextField
                 label="Country Code"
                 name="countryCode"
                 type="text"
-                placeholder="US"
                 readOnly
                 error={errors.countryCode?.message}
                 {...register('countryCode')}
               />
             </div>
 
-            <div className="space-y-4 mt-6">
-              <h4 className="text-lg font-medium text-gray-900">Service Options</h4>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-4">
+            {config.showServiceOptions && (
+              <div className="space-y-4 mt-6">
+                <h4 className="text-lg font-medium text-gray-900">Service Options</h4>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <CheckboxField
-                    label="Dine-in available"
+                    label="Dine-in"
                     name="dineIn"
                     checked={watch('dineIn')}
                     onChange={(e) => setValue('dineIn', e.target.checked)}
                     {...register('dineIn')}
                   />
                   <CheckboxField
-                    label="Delivery available"
+                    label="Delivery"
                     name="delivery"
                     checked={watch('delivery')}
                     onChange={(e) => setValue('delivery', e.target.checked)}
                     {...register('delivery')}
                   />
-                </div>
-                <div className="space-y-4">
                   <CheckboxField
-                    label="Pickup available"
+                    label="Pickup"
                     name="pickup"
                     checked={watch('pickup')}
                     onChange={(e) => setValue('pickup', e.target.checked)}
@@ -483,23 +399,21 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
                   />
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="space-y-4">
-              <h4 className="text-lg font-medium text-gray-900">Accessibility & Amenities</h4>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-4">
+            {config.showAccessibility && (
+              <div className="space-y-4 mt-6">
+                <h4 className="text-lg font-medium text-gray-900">Accessibility & Amenities</h4>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <CheckboxField
-                    label="Wheelchair accessible"
+                    label="Wheelchair Accessible"
                     name="wheelchairAccessible"
                     checked={watch('wheelchairAccessible')}
                     onChange={(e) => setValue('wheelchairAccessible', e.target.checked)}
                     {...register('wheelchairAccessible')}
                   />
-                </div>
-                <div className="space-y-4">
                   <CheckboxField
-                    label="Parking available"
+                    label="Parking Available"
                     name="parkingAvailable"
                     checked={watch('parkingAvailable')}
                     onChange={(e) => setValue('parkingAvailable', e.target.checked)}
@@ -507,7 +421,7 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
                   />
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -515,19 +429,16 @@ const BasicInfo = ({ onNext, editId, isEditMode }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center ${isLoading
-              ? 'bg-gray-400 cursor-not-allowed text-white'
-              : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
-              }`}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center ${isLoading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
           >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isEditMode ? 'Updating Restaurant...' : 'Creating Restaurant...'}
+                {isEditMode ? 'Updating…' : 'Creating…'}
               </>
             ) : (
               <>
-                Next: Menu
+                Next
                 <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>

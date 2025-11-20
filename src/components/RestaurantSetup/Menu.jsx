@@ -9,18 +9,46 @@ import NumberField from '../NumberField';
 import MenuItemsList from './MenuItemsList';
 import { useToast } from '../../contexts/ToastContext';
 
-const categories = [
-    { value: "Appetizers", label: "Appetizers" },
-    { value: "Soups", label: "Soups" },
-    { value: "Salad", label: "Salad" },
-    { value: "Main Courses", label: "Main Courses" },
-    { value: "Desserts", label: "Desserts" },
-    { value: "Beverages", label: "Beverages" },
-    { value: "Side Dishes", label: "Side Dishes" },
-    { value: "Other", label: "Other" },
-];
+const CATEGORY_MAP = {
+    restaurant: [
+        { value: "Appetizers", label: "Appetizers" },
+        { value: "Soups", label: "Soups" },
+        { value: "Salad", label: "Salad" },
+        { value: "Main Courses", label: "Main Courses" },
+        { value: "Desserts", label: "Desserts" },
+        { value: "Beverages", label: "Beverages" },
+        { value: "Side Dishes", label: "Side Dishes" },
+        { value: "Other", label: "Other" }
+    ],
 
-const Menu = ({ onNext, onPrevious }) => {
+    car_dealership: [
+        { value: "Sedan", label: "Sedan" },
+        { value: "SUV", label: "SUV" },
+        { value: "Truck", label: "Truck" },
+        { value: "Coupe", label: "Coupe" },
+        { value: "Convertible", label: "Convertible" },
+        { value: "Hatchback", label: "Hatchback" },
+        { value: "Van", label: "Van" },
+        { value: "Electric", label: "Electric" },
+        { value: "Hybrid", label: "Hybrid" },
+        { value: "Other", label: "Other" }
+    ],
+
+    barber: [
+        { value: "Haircut", label: "Haircut" },
+        { value: "Beard", label: "Beard" },
+        { value: "Shave", label: "Shave" },
+        { value: "Kids Cut", label: "Kids Cut" },
+        { value: "Hair Color", label: "Hair Color" },
+        { value: "Facial", label: "Facial" },
+        { value: "Packages", label: "Packages" },
+        { value: "Other", label: "Other" }
+    ]
+};
+
+
+const Menu = ({ onNext, onPrevious, businessType }) => {
+    const categories = CATEGORY_MAP[businessType] || CATEGORY_MAP["restaurant"];
     const { showError } = useToast();
     const [showAddForm, setShowAddForm] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -244,7 +272,7 @@ const Menu = ({ onNext, onPrevious }) => {
                             <TextField
                                 label="Item Name *"
                                 name="name"
-                                placeholder="e.g., Margherita Pizza"
+                                placeholder="Item Name"
                                 error={errors.name?.message}
                                 {...register('name', {
                                     required: 'Item name is required',

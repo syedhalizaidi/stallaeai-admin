@@ -81,7 +81,7 @@ const EditMenuItemModal = ({ isOpen, onClose, onUpdate, item }) => {
                         <TextField
                             label="Item Name *"
                             name="name"
-                            placeholder="e.g., Margherita Pizza"
+                            placeholder="Item Name"
                             error={errors.name?.message}
                             {...register('name', {
                                 required: 'Item name is required',

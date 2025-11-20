@@ -248,7 +248,7 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
                   name="name"
                   value={currentItem.name}
                   onChange={handleCurrentItemChange}
-                  placeholder="e.g., Margherita Pizza"
+                  placeholder="Item Name"
                   required
                 />
                 <SelectField

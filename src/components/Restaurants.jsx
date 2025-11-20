@@ -128,21 +128,10 @@ const RestaurantsModule = () => {
       editId: editBusinessId,
       isEditMode: true,
     };
-    if (businessType === "restaurant") {
-      navigate(
-        `/setup?step=basic-info&editId=${editBusinessId}&businessType=${businessType}`
-      );
-    }
-    switch (businessType) {
-      case "barber":
-        return <BarberForm {...commonProps} />;
-      case "car_dealership":
-        return <CarDealershipForm {...commonProps} />;
-      case "restaurant":
-        return <BarberForm {...commonProps} />;
-      default:
-        return <BarberForm {...commonProps} />;
-    }
+
+    navigate(
+      `/setup?step=basic-info&editId=${editBusinessId}&businessType=${businessType}`
+    );
   };
 
   useEffect(() => {
@@ -359,27 +348,27 @@ const RestaurantsModule = () => {
 
                           {(userRole === "Admin" ||
                             userRole === "Proprietor") && (
-                            <div className="border-t border-gray-100 p-2 flex items-center justify-between">
-                              Action:
-                              <SquarePen
-                                className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditBusiness(
-                                    restaurant?.business_type,
-                                    restaurant.id
-                                  );
-                                }}
-                              />
-                              <Trash2
-                                className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteClick(restaurant);
-                                }}
-                              />
-                            </div>
-                          )}
+                              <div className="border-t border-gray-100 p-2 flex items-center justify-between">
+                                Action:
+                                <SquarePen
+                                  className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditBusiness(
+                                      restaurant?.business_type,
+                                      restaurant.id
+                                    );
+                                  }}
+                                />
+                                <Trash2
+                                  className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteClick(restaurant);
+                                  }}
+                                />
+                              </div>
+                            )}
                         </div>
                       )}
                     </div>
