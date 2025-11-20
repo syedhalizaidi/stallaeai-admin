@@ -17,7 +17,7 @@ import {
 } from "../../services/restaurantDashboardService";
 import { useToast } from "../../contexts/ToastContext";
 
-const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevious }) => {
+const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevious, bussinessType }) => {
   const [restaurant_id, setRestaurantId] = useState(null);
   const [currentItem, setCurrentItem] = React.useState({
     name: "",
@@ -39,16 +39,44 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const categoryOptions = [
-    { value: "Appetizers", label: "Appetizers" },
-    { value: "Soups", label: "Soups" },
-    { value: "Salad", label: "Salad" },
-    { value: "Main Courses", label: "Main Courses" },
-    { value: "Desserts", label: "Desserts" },
-    { value: "Beverages", label: "Beverages" },
-    { value: "Side Dishes", label: "Side Dishes" },
-    { value: "Other", label: "Other" },
-  ];
+  const CATEGORY_MAP = {
+    restaurant: [
+      { value: "Appetizers", label: "Appetizers" },
+      { value: "Soups", label: "Soups" },
+      { value: "Salad", label: "Salad" },
+      { value: "Main Courses", label: "Main Courses" },
+      { value: "Desserts", label: "Desserts" },
+      { value: "Beverages", label: "Beverages" },
+      { value: "Side Dishes", label: "Side Dishes" },
+      { value: "Other", label: "Other" }
+    ],
+
+    car_dealership: [
+      { value: "Sedan", label: "Sedan" },
+      { value: "SUV", label: "SUV" },
+      { value: "Truck", label: "Truck" },
+      { value: "Coupe", label: "Coupe" },
+      { value: "Convertible", label: "Convertible" },
+      { value: "Hatchback", label: "Hatchback" },
+      { value: "Van", label: "Van" },
+      { value: "Electric", label: "Electric" },
+      { value: "Hybrid", label: "Hybrid" },
+      { value: "Other", label: "Other" }
+    ],
+
+    barber: [
+      { value: "Haircut", label: "Haircut" },
+      { value: "Beard", label: "Beard" },
+      { value: "Shave", label: "Shave" },
+      { value: "Kids Cut", label: "Kids Cut" },
+      { value: "Hair Color", label: "Hair Color" },
+      { value: "Facial", label: "Facial" },
+      { value: "Packages", label: "Packages" },
+      { value: "Other", label: "Other" }
+    ]
+  };
+  const categoryOptions = CATEGORY_MAP[bussinessType] || CATEGORY_MAP["restaurant"];
+
 
   const handleCurrentItemChange = async (eOrFiles) => {
     if (eOrFiles.length === 0 && imageId) {

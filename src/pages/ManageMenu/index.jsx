@@ -111,6 +111,7 @@ export default function ManageMenu() {
             menuItems={menu}
             restaurantId={selectedBusiness.id}
             onMenuItemsChange={setMenu}
+            bussinessType={selectedBusiness.business_type}
           />
         ) : (
           <div className="text-gray-600 text-sm">
