@@ -213,7 +213,7 @@ export const restaurantService = {
             return {
                 success: true,
                 data: response.data,
-                message: "Restaurant images uploaded successfully!",
+                message: "Business images uploaded successfully!",
             };
         } catch (error) {
             return {
@@ -255,7 +255,7 @@ export const restaurantService = {
             return {
                 success: true,
                 data: response.data,
-                message: "Restaurant images updated successfully!",
+                message: "Business images updated successfully!",
             };
         } catch (error) {
             return {

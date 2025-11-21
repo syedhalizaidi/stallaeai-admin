@@ -255,7 +255,7 @@ const RestaurantsModule = () => {
                       {restaurant?.logo ? (
                         <img
                           src={restaurant.logo}
-                          alt={restaurant.name || "Restaurant"}
+                          alt={restaurant.name || "Business"}
                           className="h-full w-full object-cover"
                           onError={(e) => {
                             e.target.style.display = "none";
@@ -414,7 +414,7 @@ const RestaurantsModule = () => {
                           {restaurant?.logo ? (
                             <img
                               src={restaurant.logo}
-                              alt={restaurant.name || "Restaurant"}
+                              alt={restaurant.name || "Business"}
                               className="h-full w-full rounded-full object-cover"
                               onError={(e) => {
                                 e.target.style.display = "none";

@@ -18,7 +18,7 @@ export const registerRestaurant = async (restaurantData) => {
       success: true,
       data: response.data,
       restaurantId: response.data?.id || response.data?.data?.id,
-      message: "Restaurant registered successfully!",
+      message: "Business registered successfully!",
     };
   } catch (error) {
     return {
@@ -27,7 +27,7 @@ export const registerRestaurant = async (restaurantData) => {
       message:
         error.response?.data?.message ||
         error.response?.data?.detail ||
-        "Restaurant registration failed",
+        "Business registration failed",
     };
   }
 };
@@ -102,7 +102,7 @@ export const updateRestaurant = async (restaurantId, restaurantData) => {
     return {
       success: true,
       data: response.data,
-      message: "Restaurant updated successfully!",
+      message: "Business updated successfully!",
     };
   } catch (error) {
     return {
@@ -111,7 +111,7 @@ export const updateRestaurant = async (restaurantId, restaurantData) => {
       message:
         error.response?.data?.message ||
         error.response?.data?.detail ||
-        "Restaurant update failed",
+        "Business update failed",
     };
   }
 };
@@ -132,7 +132,7 @@ export const getRestaurantById = async (restaurantId) => {
     return {
       success: true,
       data: restaurantData,
-      message: "Restaurant data retrieved successfully!",
+      message: "Business data retrieved successfully!",
     };
   } catch (error) {
     return {
@@ -438,7 +438,7 @@ export const uploadRestaurantImages = async (formData) => {
     return {
       success: true,
       data: response.data,
-      message: "Restaurant images uploaded successfully!",
+      message: "Business images uploaded successfully!",
     };
   } catch (error) {
     return {
@@ -497,7 +497,7 @@ export const deleteRestaurantLogo = async (restaurant_id) => {
     return {
       success: true,
       data: response.data,
-      message: "Restaurant Logo deleted successfully!",
+      message: "Business Logo deleted successfully!",
     };
   } catch (error) {
     return {
@@ -527,7 +527,7 @@ export const deleteRestaurantExteriorImage = async (image_id) => {
     return {
       success: true,
       data: response.data,
-      message: "Restaurant Exterior Image deleted successfully!",
+      message: "Business Exterior Image deleted successfully!",
     };
   } catch (error) {
     return {
@@ -559,7 +559,7 @@ export const updateRestaurantImage = async (restaurant_id, formData) => {
     return {
       success: true,
       data: response.data,
-      message: "Restaurant Images updated successfully!",
+      message: "Business Images updated successfully!",
     };
   } catch (error) {
     return {
@@ -632,7 +632,7 @@ export const submitRestaurantReview = async (restaurant_id, rating) => {
     return {
       success: true,
       data: response.data,
-      message: "Restaurant review submitted successfully!",
+      message: "Business review submitted successfully!",
     };
   } catch (error) {
     return {
