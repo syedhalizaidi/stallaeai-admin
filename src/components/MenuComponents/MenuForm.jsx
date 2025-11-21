@@ -320,7 +320,7 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
                   required
                 />
                 <NumberInput
-                  label="Prep Time (minutes)"
+                  label="Duration (minutes)"
                   name="prep_time"
                   value={currentItem.prep_time}
                   onChange={handleCurrentItemChange}

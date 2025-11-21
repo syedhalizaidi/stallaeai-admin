@@ -114,7 +114,7 @@ const EditMenuItemModal = ({ isOpen, onClose, onUpdate, item }) => {
                         {...register('description')}
                     />
 
-                    {/* Price and Prep Time Row */}
+                    {/* Price and Duration Row */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <NumberField
                             label="Price *"
@@ -134,17 +134,17 @@ const EditMenuItemModal = ({ isOpen, onClose, onUpdate, item }) => {
                         />
 
                         <NumberField
-                            label="Prep Time (minutes) *"
+                            label="Duration (minutes) *"
                             name="prepTime"
                             placeholder="15"
                             min="1"
                             icon={Clock}
                             error={errors.prepTime?.message}
                             {...register('prepTime', {
-                                required: 'Prep time is required',
+                                required: 'Duration is required',
                                 min: {
                                     value: 1,
-                                    message: 'Prep time must be at least 1 minute'
+                                    message: 'Duration must be at least 1 minute'
                                 }
                             })}
                         />
