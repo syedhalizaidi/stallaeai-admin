@@ -512,11 +512,13 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
 
                       <NumberField
                         label="Table Size"
+                        placeholder="e.g., 2, 4, 6"
                         name={`slots[${index}].tableSize`}
                         {...register(`slots.${index}.tableSize`)}
                       />
                       <NumberField
                         label="Quantity"
+                        placeholder="Number of such tables"
                         name={`slots[${index}].quantity`}
                         {...register(`slots.${index}.quantity`)}
                       />
@@ -533,6 +535,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                     <>
                       <NumberField
                         label="Number of Chairs"
+                        placeholder="e.g., 1, 2, 3"
                         name={`slots[${index}].quantity`}
                         {...register(`slots.${index}.quantity`)}
                       />
