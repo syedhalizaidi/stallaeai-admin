@@ -28,8 +28,23 @@ const DashboardModule = () => {
 
       if (businessesResult.success) {
         setRestaurants(businessesResult.data);
-        if (businessesResult.data.length > 0 && !selectedBusiness) {
-          setSelectedBusiness(businessesResult.data[0]);
+        const savedId = localStorage.getItem("businessId");
+        let businessToSelect = null;
+
+        if (savedId) {
+          businessToSelect = businessesResult.data.find(
+            (biz) => biz.id === savedId
+          );
+        }
+
+        if (!businessToSelect && businessesResult.data.length > 0) {
+          businessToSelect = businessesResult.data[0];
+        }
+
+        setSelectedBusiness(businessToSelect);
+
+        if (businessToSelect) {
+          localStorage.setItem("businessId", businessToSelect.id);
         }
       } else {
         setError(businessesResult.error);
@@ -47,6 +62,7 @@ const DashboardModule = () => {
 
   const handleSelectBusiness = (business) => {
     setSelectedBusiness(business);
+     localStorage.setItem("businessId", business.id);
     setDropdownOpen(false);
   };
 

@@ -4,7 +4,8 @@ import {
     getOrders,
     getNote,
     createNote,
-    deleteNote
+    deleteNote,
+    getReservations
 } from "../services/restaurantDashboardService";
 import ReservationsCard from "./RestaurantDashboard/cards/reservations-card.jsx";
 import ReservationsModal from "./RestaurantDashboard/modals/reservations-modal.jsx";
@@ -60,14 +61,42 @@ const RestaurantDashboard = ({ restaurant }) => {
     const [callbackOrders, setCallbackOrders] = useState([]);
 
     const fetchOrders = async () => {
+        // console.log(("restaurannnnttt: ", restaurant));
+
         try {
             const res = restaurant;
             if (!res) return;
+
 
             const phone = res?.twilio_number?.phone_number;
             if (!phone) {
                 console.warn("No Twilio number found for this restaurant");
                 return;
+            }
+            const businessID = localStorage.getItem("businessId")
+            const reservationss = await getReservations(businessID);
+            console.log("ress: ", reservationss);
+            const cleanDate = (str) =>
+                str?.replace("+00:00Z", "Z").replace("+00:00", "Z");
+
+            if (reservationss?.success) {
+                const mappedReservations = (reservationss.data?.data || []).map(r => {
+                    const start = new Date(cleanDate(r.start_time));
+                    const end = new Date(cleanDate(r.end_time));
+
+                    return {
+                        id: r.id,
+                        customer_name: r.customer_name,
+                        booking_date: start.toISOString().split("T")[0],
+                        start_time: start.toISOString().split("T")[1].substring(0, 5),
+                        end_time: end.toISOString().split("T")[1].substring(0, 5),
+                        contact_info: r.phone_number,
+                        party_size: r.party_size,
+                        timestamp: r.created_at
+                    };
+                });
+
+                setReservations(mappedReservations);
             }
 
             const orderResponse = await getOrders({ twilio_phone_number: phone });
@@ -80,10 +109,10 @@ const RestaurantDashboard = ({ restaurant }) => {
             const faqOrders = [];
             const callbackOrders = [];
 
-            console.log({callbackOrders});
+            // console.log({ callbackOrders });
 
             allOrders.forEach((order) => {
-    console.log({order});
+                // console.log({ order });
 
                 let parsedDetails = {};
                 let orderType = "food";
@@ -150,7 +179,7 @@ const RestaurantDashboard = ({ restaurant }) => {
                     case "faq":
                         faqOrders.push({
                             id: order.id,
-                            customer_name: parsedDetails.customer_name || order.customer_name || order.phone_number ||"Unknown",
+                            customer_name: parsedDetails.customer_name || order.customer_name || order.phone_number || "Unknown",
                             question: parsedDetails.question,
                             answer: parsedDetails.answer,
                             asked_at: parsedDetails.asked_at,
@@ -175,16 +204,13 @@ const RestaurantDashboard = ({ restaurant }) => {
                 }
             });
 
-            // Sort by timestamp (newest first)
             const sortByTimestamp = (a, b) => new Date(b.timestamp) - new Date(a.timestamp);
             foodOrders.sort(sortByTimestamp);
             reservationOrders.sort(sortByTimestamp);
             faqOrders.sort(sortByTimestamp);
             callbackOrders.sort(sortByTimestamp);
 
-            // Update states
             setOrderData({ ...orderResponse.data.data, data: foodOrders });
-            setReservations(reservationOrders);
             setFaqOrders(faqOrders);
             setCallbackOrders(callbackOrders);
 

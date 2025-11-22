@@ -34,23 +34,19 @@ export const registerRestaurant = async (restaurantData) => {
 
 export const getRestaurants = async () => {
   try {
-
     const token = localStorage.getItem("access_token");
 
-    const response = await apiClient.get("/business/my",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    
+    const response = await apiClient.get("/business/my", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     return {
       success: true,
       data: response.data,
     };
-  }
-  catch (error) {
+  } catch (error) {
     return {
       success: false,
       error: error,
@@ -60,21 +56,18 @@ export const getRestaurants = async () => {
         "Failed to retrieve Restaurants",
     };
   }
-}
-
+};
 
 export const getAllRestaurants = async () => {
   try {
     const response = await apiClient.get("/business/");
-    console.log("All Restaurant:",response);
-    
-    
+    console.log("All Restaurant:", response);
+
     return {
       success: true,
       data: response.data,
     };
-  }
-  catch (error) {
+  } catch (error) {
     return {
       success: false,
       error: error,
@@ -84,7 +77,7 @@ export const getAllRestaurants = async () => {
         "Failed to retrieve Restaurants",
     };
   }
-}
+};
 export const updateRestaurant = async (restaurantId, restaurantData) => {
   try {
     const token = localStorage.getItem("access_token");
@@ -118,16 +111,11 @@ export const updateRestaurant = async (restaurantId, restaurantData) => {
 
 export const getRestaurantById = async (restaurantId) => {
   try {
-    const response = await apiClient.get(
-      `/business/${restaurantId}`,
-      {}
-    );
+    const response = await apiClient.get(`/business/${restaurantId}`, {});
 
     const restaurantData = response.data;
 
-
-    localStorage.setItem("phone_number",restaurantData.phone_number );
-
+    localStorage.setItem("phone_number", restaurantData.phone_number);
 
     return {
       success: true,
@@ -664,6 +652,35 @@ export const getRestaurantStats = async (restaurant_number) => {
     };
   }
 };
+
+export const getReservations = async (restaurant_id) => {
+  try {
+    const token = localStorage.getItem("authToken");
+
+    const response = await apiClient.get(
+      `/business/reservations/${restaurant_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error,
+      message:
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to fetch Reservations",
+    };
+  }
+};
+
 export const getOrders = async ({
   twilio_phone_number,
   status,
@@ -699,7 +716,6 @@ export const updateOrderStatus = async (order_id, status) => {
   try {
     const response = await apiClient2.put(`/orders/${order_id}`, {
       order_status: status,
-
     });
 
     return {
@@ -719,10 +735,9 @@ export const updateOrderStatus = async (order_id, status) => {
 };
 export const updateOrdermenu = async (updatedOrder) => {
   try {
-
-    const response = await apiClient2.put(`/orders/${updatedOrder.id}`,
+    const response = await apiClient2.put(
+      `/orders/${updatedOrder.id}`,
       updatedOrder
-
     );
 
     return {
@@ -765,8 +780,7 @@ export const createNote = async (note) => {
       success: true,
       data: response.data,
     };
-  }
-  catch (error) {
+  } catch (error) {
     return {
       success: false,
       error,
