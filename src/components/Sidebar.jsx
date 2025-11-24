@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../assets/stellae-logo.png';
+import { hasPermission, clearUserData, getUserRole } from '../utils/permissionUtils';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ const Sidebar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    clearUserData();
     navigate('/');
   };
 
@@ -83,6 +84,33 @@ const Sidebar = () => {
             </div>
 
             {menuItems.map((item) => {
+              const userRole = getUserRole();
+              
+              // Admin users have access to all menu items
+              if (userRole === 'Admin') {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavigation(item.path)}
+                    className={`w-full flex items-center px-2 md:px-3 py-2 text-sm cursor-pointer font-medium rounded-lg transition-colors ${isActive
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    title={item.label}
+                  >
+                    <Icon className="h-5 w-5 md:mr-3" />
+                    <span className="hidden md:block">{item.label}</span>
+                  </button>
+                );
+              }
+              
+              // Filter items based on user permissions for non-admin users
+              if (item.path !== '/dashboard' && item.path !== '/restaurants' && !hasPermission(item.path)) {
+                return null;
+              }
+
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               return (

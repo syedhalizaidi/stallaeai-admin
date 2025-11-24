@@ -32,6 +32,7 @@ const LoginForm = () => {
       setIsLoading(false);
       localStorage.setItem('authToken', result.data.tokens.access_token);
       localStorage.setItem('userRole', JSON.stringify(result.data.role));
+      localStorage.setItem('userPermissions', JSON.stringify(result.data.permissions || []));
       navigate('/dashboard');
     } else {
       setIsLoading(false);

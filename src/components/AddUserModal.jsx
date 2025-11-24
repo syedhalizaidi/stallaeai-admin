@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { X, User, Mail, Lock, Phone, Shield, Loader2 } from 'lucide-react';
+import { X, User, Mail, Lock, Phone, Shield, Loader2, ChevronDown } from 'lucide-react';
 import { userService } from '../services/userService';
 import { useForm } from 'react-hook-form';
 import TextField from './TextField';
 import SelectField from './SelectField';
 import { useToast } from '../contexts/ToastContext';
+import { ROUTES } from '../constants/routes';
 
 const roleOptions = [
     { value: 'Proprietor', label: 'Proprietor' },
@@ -15,6 +16,8 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
     const { showError } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [submitMessage, setSubmitMessage] = useState('');
+    const [selectedPermissions, setSelectedPermissions] = useState([]);
+    const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
     const isEditMode = !!editUser;
 
     const {
@@ -43,6 +46,7 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                 phone_number: editUser.phone_number || '',
                 role: editUser.role || ''
             });
+            setSelectedPermissions(editUser.permissions || []);
         } else {
             reset({
                 full_name: '',
@@ -51,6 +55,7 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                 phone_number: '',
                 role: ''
             });
+            setSelectedPermissions([]);
         }
     }, [editUser, reset]);
 
@@ -62,7 +67,8 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                 email: data.email,
                 phone_number: data.phone_number,
                 role: IsStaffMember ? "Staff" : data.role,
-                business_id: restaurantId
+                business_id: restaurantId,
+                permissions: selectedPermissions
             };
 
             // Add password only for create mode
@@ -88,6 +94,7 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
             if (result.success) {
                 setSubmitMessage(result.message);
                 reset();
+                setSelectedPermissions([]);
 
                 // Call the callback to refresh users list
                 if (onUserAdded) {
@@ -147,64 +154,161 @@ const AddUserModal = ({ isOpen, onClose, restaurantId, onUserAdded, editUser = n
                 )}
 
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-                    <TextField
-                        label="Full Name"
-                        type="text"
-                        placeholder="Enter full name"
-                        icon={User}
-                        error={errors.full_name?.message}
-                        {...register('full_name', {
-                            required: 'Full name is required'
-                        })}
-                    />
-                    <TextField
-                        label="Email"
-                        type="email"
-                        placeholder="Enter email address"
-                        icon={Mail}
-                        error={errors.email?.message}
-                        {...register('email', {
-                            required: 'Email is required',
-                            pattern: {
-                                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                message: 'Invalid email address'
-                            }
-                        })}
-                    />
-                    {!isEditMode && (
+                    <div className="grid grid-cols-2 gap-4">
                         <TextField
-                            label="Password"
-                            type="password"
-                            placeholder="Enter password"
-                            icon={Lock}
-                            error={errors.password?.message}
-                            {...register('password', {
-                                required: 'Password is required',
+                            label="Full Name"
+                            type="text"
+                            placeholder="Enter full name"
+                            icon={User}
+                            error={errors.full_name?.message}
+                            {...register('full_name', {
+                                required: 'Full name is required'
+                            })}
+                        />
+                        <TextField
+                            label="Email"
+                            type="email"
+                            placeholder="Enter email address"
+                            icon={Mail}
+                            error={errors.email?.message}
+                            {...register('email', {
+                                required: 'Email is required',
+                                pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: 'Invalid email address'
+                                }
+                            })}
+                        />
+                    </div>
+                    
+                    {!isEditMode && (
+                        <div className="grid grid-cols-2 gap-4">
+                            <TextField
+                                label="Password"
+                                type="password"
+                                placeholder="Enter password"
+                                icon={Lock}
+                                error={errors.password?.message}
+                                {...register('password', {
+                                    required: 'Password is required',
+                                    minLength: {
+                                        value: 8,
+                                        message: "Password must be at least 8 characters"
+                                    },
+                                    pattern: {
+                                        value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+                                        message: "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+                                    }
+                                })}
+                            />
+                            <TextField
+                                label="Phone Number"
+                                type="tel"
+                                placeholder="1234567890"
+                                icon={Phone}
+                                error={errors.phone_number?.message}
+                                {...register('phone_number', {
+                                    required: 'Phone number is required',
+                                    minLength: {
+                                        value: 8,
+                                        message: "Phone number must be at least 8 digits"
+                                    }
+                                })}
+                            />
+                        </div>
+                    )}
+
+                    {isEditMode && (
+                        <TextField
+                            label="Phone Number"
+                            type="tel"
+                            placeholder="1234567890"
+                            icon={Phone}
+                            error={errors.phone_number?.message}
+                            {...register('phone_number', {
+                                required: 'Phone number is required',
                                 minLength: {
                                     value: 8,
-                                    message: "Password must be at least 8 characters"
-                                },
-                                pattern: {
-                                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                                    message: "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+                                    message: "Phone number must be at least 8 digits"
                                 }
                             })}
                         />
                     )}
-                    <TextField
-                        label="Phone Number"
-                        type="tel"
-                        placeholder="1234567890"
-                        icon={Phone}
-                        error={errors.phone_number?.message}
-                        {...register('phone_number', {
-                            required: 'Phone number is required',
-                            minLength: {
-                                value: 8,
-                                message: "Phone number must be at least 8 digits"
-                            }
-                        })}
-                    />
+                    
+                    {/* Grant Permission Dropdown */}
+                    <div className="relative">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Grant Permission
+                        </label>
+                        <button
+                            type="button"
+                            onClick={() => setIsPermissionsOpen(!isPermissionsOpen)}
+                            className="w-full px-4 py-2 text-left border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 flex items-center justify-between"
+                        >
+                            <span className="text-gray-700">
+                                {selectedPermissions.length > 0
+                                    ? `${selectedPermissions.length} permission(s) selected`
+                                    : 'Select routes'}
+                            </span>
+                            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isPermissionsOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {isPermissionsOpen && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                {ROUTES.map((route) => (
+                                    <label
+                                        key={route.value}
+                                        className="flex items-center px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 cursor-pointer"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedPermissions.includes(route.value)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedPermissions([...selectedPermissions, route.value]);
+                                                } else {
+                                                    setSelectedPermissions(
+                                                        selectedPermissions.filter(p => p !== route.value)
+                                                    );
+                                                }
+                                            }}
+                                            className="h-4 w-4 text-purple-600 rounded cursor-pointer"
+                                        />
+                                        <span className="ml-3 text-gray-700">{route.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Display selected permissions */}
+                    {selectedPermissions.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {selectedPermissions.map((permission) => {
+                                const route = ROUTES.find(r => r.value === permission);
+                                return (
+                                    <div
+                                        key={permission}
+                                        className="inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm"
+                                    >
+                                        {route?.label}
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setSelectedPermissions(
+                                                    selectedPermissions.filter(p => p !== permission)
+                                                )
+                                            }
+                                            className="text-purple-700 hover:text-purple-900 font-bold"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
                     {!IsStaffMember && <SelectField
                         label="Role"
                         placeholder="Select a role"

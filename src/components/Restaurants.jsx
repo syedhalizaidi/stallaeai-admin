@@ -166,7 +166,7 @@ const RestaurantsModule = () => {
           </nav>
         </div>
 
-        {userRole !== "Staff" && !selectedRestaurant && (
+        {!selectedRestaurant && (
           <button
             onClick={handleAddRestaurant}
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer mt-2 sm:mt-0"

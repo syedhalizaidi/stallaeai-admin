@@ -24,7 +24,7 @@ function App() {
             <Route
               path="/setup"
               element={
-                <ProtectedRoute allowedRoles={["Admin", "Proprietor"]}>
+                <ProtectedRoute allowedRoles={["Admin", "Proprietor"]} requiredRoute="/setup">
                   <RestaurantSetupPage />
                 </ProtectedRoute>
               }
@@ -32,7 +32,7 @@ function App() {
             <Route
               path="/knowledge-base"
               element={
-                <ProtectedRoute allowedRoles={["Admin"]}>
+                <ProtectedRoute allowedRoles={["Admin"]} requiredRoute="/knowledge-base">
                   <KnowledgePage />
                 </ProtectedRoute>
               }
@@ -40,7 +40,7 @@ function App() {
             <Route
               path="/notifications"
               element={
-                <ProtectedRoute allowedRoles={["Admin"]}>
+                <ProtectedRoute allowedRoles={["Admin"]} requiredRoute="/notifications">
                   <NotificationPage />
                 </ProtectedRoute>
               }
@@ -48,7 +48,7 @@ function App() {
             <Route
               path="/menu-management"
               element={
-                <ProtectedRoute allowedRoles={["Admin"]}>
+                <ProtectedRoute allowedRoles={["Admin"]} requiredRoute="/menu-management">
                   <ManageMenu />
                 </ProtectedRoute>
               }
@@ -57,7 +57,7 @@ function App() {
              <Route
               path="/add-staff"
               element={
-                <ProtectedRoute allowedRoles={["Admin"]}>
+                <ProtectedRoute allowedRoles={["Admin"]} requiredRoute="/add-staff">
                   <AddStaffPage />
                 </ProtectedRoute>
               }
