@@ -6,11 +6,11 @@ export const ROUTES = [
   },
   {
     value: '/restaurants',
-    label: 'Restaurants',
+    label: 'Bussiness Listing',
   },
   {
     value: '/setup',
-    label: 'Restaurant Setup',
+    label: 'Bussiness Setup',
   },
   {
     value: '/knowledge-base',
