@@ -7,7 +7,7 @@ const ProtectedRoute = ({ children }) => {
   const userPermissionsStr = localStorage.getItem('userPermissions');
   const userPermissions = userPermissionsStr ? JSON.parse(userPermissionsStr) : [];
   
-  // Admin has access to everything
+
   if (userRole === 'Admin') {
     return children;
   }
