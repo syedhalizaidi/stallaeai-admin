@@ -15,21 +15,21 @@ const BUSINESS_CONFIG = {
     showDeliveryTime: true,
     showServiceOptions: true,
     showAccessibility: true,
-    showSlots: true,
+
   },
   barber: {
     showCuisine: false,
     showDeliveryTime: false,
     showServiceOptions: false,
     showAccessibility: true,
-    showSlots: true,
+
   },
   car_dealership: {
     showCuisine: false,
     showDeliveryTime: false,
     showServiceOptions: false,
     showAccessibility: false,
-    showSlots: false,
+  
   },
 };
 
@@ -469,7 +469,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               </div>
             )}
           </div>
-          {config.showSlots && (
+          
             <CheckboxField
               label="Enable Reservations"
               name="enableReservations"
@@ -477,8 +477,8 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               onChange={(e) => setValue("enableReservations", e.target.checked)}
               {...register("enableReservations")}
             />
-          )}
-          {config.showSlots && watch("enableReservations") && (
+          
+          {watch("enableReservations") && (
             <div className="border-t pt-8 mt-8">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
                 Reservation Slots

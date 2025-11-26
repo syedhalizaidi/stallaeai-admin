@@ -111,7 +111,7 @@ const Images = ({ onNext, onPrevious }) => {
                 showError(response.error);
             }
         } catch (err) {
-            console.error('Error uploading restaurant images:', err);
+            console.error('Error uploading business images:', err);
         } finally {
             setIsSubmitting(false);
         }
@@ -153,7 +153,7 @@ const Images = ({ onNext, onPrevious }) => {
                     showError(response.error);
                 }
             } catch (err) {
-                console.error('Error updating restaurant images:', err);
+                console.error('Error updating business images:', err);
             } finally {
                 setIsSubmitting(false);
             }
@@ -190,7 +190,7 @@ const Images = ({ onNext, onPrevious }) => {
                     {/* Restaurant Logo Section */}
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-semibold text-gray-900">Restaurant Logo</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">Business Logo</h3>
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                 Required
                             </span>
@@ -244,7 +244,7 @@ const Images = ({ onNext, onPrevious }) => {
                     {/* Restaurant Exterior Section */}
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-semibold text-gray-900">Restaurant Exterior</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">Business Exterior</h3>
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                 Required
                             </span>
@@ -275,9 +275,9 @@ const Images = ({ onNext, onPrevious }) => {
                                         <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                                     </div>
                                     <div>
-                                        <p className="text-sm sm:text-base font-medium text-gray-900">Show customers what your restaurant looks like</p>
+                                        <p className="text-sm sm:text-base font-medium text-gray-900">Show customers what your business looks like</p>
                                         <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                                            Upload a photo of your restaurant exterior
+                                            Upload a photo of your business exterior
                                         </p>
                                     </div>
                                     <label className="inline-flex items-center px-3 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer">

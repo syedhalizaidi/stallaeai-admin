@@ -494,7 +494,7 @@ export const deleteRestaurantLogo = async (restaurant_id) => {
       message:
         error.response?.data?.message ||
         error.response?.data?.detail ||
-        "Failed to delete Restaurant Logo",
+        "Failed to delete Business Logo",
     };
   }
 };

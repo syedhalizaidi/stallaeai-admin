@@ -53,9 +53,6 @@ const UploadMenuModal = ({ isOpen, onClose, restaurantId, onUploadSuccess }) => 
           return `Item '${item.name}': 'price' must be a positive number`;
         }
 
-        if (!item.duration) {
-          return `Item '${item.name}': 'duration' is required`;
-        }
       }
     }
 
@@ -182,7 +179,7 @@ const UploadMenuModal = ({ isOpen, onClose, restaurantId, onUploadSuccess }) => 
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <h3 className="font-semibold text-gray-900 mb-2">Required Format</h3>
             <pre className="text-xs bg-gray-900 text-green-400 p-3 rounded overflow-x-auto">
-{`{
+              {`{
   "categories": [
     {
       "category_name": "Manicures",
