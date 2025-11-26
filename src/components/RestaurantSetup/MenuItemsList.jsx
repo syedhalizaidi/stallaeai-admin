@@ -3,7 +3,7 @@ import { Edit, Trash2, Clock } from "lucide-react";
 import DeleteMenuItemModal from "./DeleteMenuItemModal";
 import EditMenuItemModal from "./EditMenuItemModal";
 
-const MenuItemsList = ({ menuItems, onEdit, onDelete }) => {
+const MenuItemsList = ({ menuItems, onEdit, onDelete, businessType }) => {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
   const [editModal, setEditModal] = useState({ isOpen: false, item: null });
 
@@ -150,6 +150,7 @@ const MenuItemsList = ({ menuItems, onEdit, onDelete }) => {
         onClose={handleEditClose}
         onUpdate={handleEditUpdate}
         item={editModal.item}
+        businessType={businessType}
       />
     </div>
   );

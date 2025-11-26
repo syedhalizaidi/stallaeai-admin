@@ -6,20 +6,48 @@ import TextAreaField from '../TextAreaField';
 import SelectField from '../SelectField';
 import NumberField from '../NumberField';
 
-const categories = [
-    { value: 'Appetizers', label: 'Appetizers' },
-    { value: 'Main Courses', label: 'Main Courses' },
-    { value: 'Desserts', label: 'Desserts' },
-    { value: 'Beverages', label: 'Beverages' },
-    { value: 'Salads', label: 'Salads' },
-    { value: 'Soups', label: 'Soups' },
-    { value: 'Sides', label: 'Sides' },
-    { value: 'Side Dishes', label: 'Side Dishes' },
-    { value: 'Other', label: 'Other' }
-];
+const CATEGORY_MAP = {
+    restaurant: [
+        { value: 'Appetizers', label: 'Appetizers' },
+        { value: 'Main Courses', label: 'Main Courses' },
+        { value: 'Desserts', label: 'Desserts' },
+        { value: 'Beverages', label: 'Beverages' },
+        { value: 'Salads', label: 'Salads' },
+        { value: 'Soups', label: 'Soups' },
+        { value: 'Sides', label: 'Sides' },
+        { value: 'Side Dishes', label: 'Side Dishes' },
+        { value: 'Other', label: 'Other' }
+    ],
+    car_dealership: [
+        { value: 'Sedan', label: 'Sedan' },
+        { value: 'SUV', label: 'SUV' },
+        { value: 'Truck', label: 'Truck' },
+        { value: 'Coupe', label: 'Coupe' },
+        { value: 'Convertible', label: 'Convertible' },
+        { value: 'Hatchback', label: 'Hatchback' },
+        { value: 'Van', label: 'Van' },
+        { value: 'Electric', label: 'Electric' },
+        { value: 'Hybrid', label: 'Hybrid' },
+        { value: 'Other', label: 'Other' }
+    ],
+    barber: [
+        { value: 'Haircut', label: 'Haircut' },
+        { value: 'Beard', label: 'Beard' },
+        { value: 'Shave', label: 'Shave' },
+        { value: 'Kids Cut', label: 'Kids Cut' },
+        { value: 'Hair Color', label: 'Hair Color' },
+        { value: 'Facial', label: 'Facial' },
+        { value: 'Packages', label: 'Packages' },
+        { value: 'Other', label: 'Other' }
+    ]
+};
 
-const EditMenuItemModal = ({ isOpen, onClose, onUpdate, item }) => {
+const EditMenuItemModal = ({ isOpen, onClose, onUpdate, item, businessType }) => {
+    const hasPredefinedCategories = CATEGORY_MAP.hasOwnProperty(businessType);
+    const categoryOptions = CATEGORY_MAP[businessType] || [];
+    
     const [isLoading, setIsLoading] = useState(false);
+    const [customCategory, setCustomCategory] = useState('');
 
     const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm({
         defaultValues: {
@@ -33,18 +61,39 @@ const EditMenuItemModal = ({ isOpen, onClose, onUpdate, item }) => {
 
     useEffect(() => {
         if (item && isOpen) {
+            const itemCategory = item.category || '';
             setValue('name', item.name || '');
-            setValue('category', item.category || '');
             setValue('description', item.description || '');
             setValue('price', item.price || 0);
             setValue('prepTime', item.prep_time || 15);
+            
+            // Handle category based on business type
+            if (hasPredefinedCategories) {
+                const isInList = categoryOptions.some(opt => opt.value === itemCategory);
+                if (!isInList && itemCategory) {
+                    setValue('category', 'Other');
+                    setCustomCategory(itemCategory);
+                } else {
+                    setValue('category', itemCategory);
+                    setCustomCategory('');
+                }
+            } else {
+                setValue('category', itemCategory);
+            }
         }
-    }, [item, isOpen, setValue]);
+    }, [item, isOpen, setValue, hasPredefinedCategories, categoryOptions]);
 
     const onSubmit = async (data) => {
         setIsLoading(true);
         try {
-            await onUpdate(item.id, data);
+            // Handle category based on business type
+            const finalData = {
+                ...data,
+                category: hasPredefinedCategories && data.category === 'Other'
+                    ? customCategory
+                    : data.category
+            };
+            await onUpdate(item.id, finalData);
             onClose();
         } catch (error) {
             console.error('Error updating menu item:', error);
@@ -92,16 +141,40 @@ const EditMenuItemModal = ({ isOpen, onClose, onUpdate, item }) => {
                             })}
                         />
 
-                        <SelectField
-                            label="Category *"
-                            name="category"
-                            placeholder="Select category"
-                            options={categories}
-                            error={errors.category?.message}
-                            {...register('category', {
-                                required: 'Category is required'
-                            })}
-                        />
+                        {hasPredefinedCategories ? (
+                            <>
+                                <SelectField
+                                    label="Category *"
+                                    name="category"
+                                    placeholder="Select category"
+                                    options={categoryOptions}
+                                    error={errors.category?.message}
+                                    {...register('category', {
+                                        required: 'Category is required'
+                                    })}
+                                />
+                                {watch('category') === 'Other' && (
+                                    <TextField
+                                        label="Custom Category *"
+                                        name="customCategory"
+                                        placeholder="Enter your category"
+                                        value={customCategory}
+                                        onChange={(e) => setCustomCategory(e.target.value)}
+                                        error={!customCategory ? 'Custom category is required' : ''}
+                                    />
+                                )}
+                            </>
+                        ) : (
+                            <TextField
+                                label="Category *"
+                                name="category"
+                                placeholder="Enter category"
+                                error={errors.category?.message}
+                                {...register('category', {
+                                    required: 'Category is required'
+                                })}
+                            />
+                        )}
                     </div>
 
                     {/* Description */}

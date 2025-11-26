@@ -91,8 +91,10 @@ const MenuForm = ({
       { value: "Other", label: "Other" },
     ],
   };
-  const categoryOptions =
-    CATEGORY_MAP[bussinessType] || CATEGORY_MAP["restaurant"];
+  
+  // Check if business type has predefined categories
+  const hasPredefinedCategories = CATEGORY_MAP.hasOwnProperty(bussinessType);
+  const categoryOptions = CATEGORY_MAP[bussinessType] || [];
 
   const handleCurrentItemChange = async (eOrFiles) => {
     if (eOrFiles.length === 0 && imageId) {
@@ -139,7 +141,9 @@ const MenuForm = ({
     formData.append("name", itemToSave.name);
     formData.append(
       "category",
-      currentItem.category === "Other" ? customCategory : currentItem.category
+      hasPredefinedCategories && currentItem.category === "Other" 
+        ? customCategory 
+        : currentItem.category
     );
     formData.append("description", itemToSave.description);
     formData.append("price", itemToSave.price);
@@ -270,6 +274,7 @@ const MenuForm = ({
           restaurantId={restaurant_id}
           menu={menu}
           handleGetMenuItems={handleGetMenuItems}
+          businessType={bussinessType}
         />
 
         {showForm && (
@@ -295,22 +300,35 @@ const MenuForm = ({
                   placeholder="Item Name"
                   required
                 />
-                <SelectField
-                  label="Category"
-                  name="category"
-                  value={currentItem.category}
-                  onChange={handleCurrentItemChange}
-                  options={categoryOptions}
-                  placeholder="Select category"
-                  required
-                />
-                {currentItem.category === "Other" && (
+                {hasPredefinedCategories ? (
+                  <>
+                    <SelectField
+                      label="Category"
+                      name="category"
+                      value={currentItem.category}
+                      onChange={handleCurrentItemChange}
+                      options={categoryOptions}
+                      placeholder="Select category"
+                      required
+                    />
+                    {currentItem.category === "Other" && (
+                      <InputField
+                        label="Custom Category"
+                        name="customCategory"
+                        value={customCategory}
+                        onChange={(e) => setCustomCategory(e.target.value)}
+                        placeholder="Enter your category"
+                        required
+                      />
+                    )}
+                  </>
+                ) : (
                   <InputField
-                    label="Custom Category"
-                    name="customCategory"
-                    value={customCategory}
-                    onChange={(e) => setCustomCategory(e.target.value)}
-                    placeholder="Enter your category"
+                    label="Category"
+                    name="category"
+                    value={currentItem.category}
+                    onChange={handleCurrentItemChange}
+                    placeholder="Enter category"
                     required
                   />
                 )}

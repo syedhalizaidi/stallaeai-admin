@@ -49,13 +49,15 @@ const CATEGORY_MAP = {
 
 
 const Menu = ({ onNext, onPrevious, businessType }) => {
-    const categories = CATEGORY_MAP[businessType] || CATEGORY_MAP["restaurant"];
+    const hasPredefinedCategories = CATEGORY_MAP.hasOwnProperty(businessType);
+    const categories = CATEGORY_MAP[businessType] || [];
     const { showError } = useToast();
     const [showAddForm, setShowAddForm] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [uploadedImage, setUploadedImage] = useState(null);
     const [menuItems, setMenuItems] = useState([]);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [customCategory, setCustomCategory] = useState('');
 
     const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm({
         defaultValues: {
@@ -73,7 +75,12 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
         const formData = new FormData();
         formData.append('restaurant_id', restaurantId);
         formData.append('name', data.name);
-        formData.append('category', data.category);
+        formData.append(
+            'category',
+            hasPredefinedCategories && data.category === 'Other'
+                ? customCategory
+                : data.category
+        );
         formData.append('description', data.description);
         formData.append('price', data.price);
         formData.append('prep_time', data.prepTime);
@@ -88,6 +95,7 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
             if (result.success) {
                 reset();
                 setUploadedImage(null);
+                setCustomCategory('');
                 setShowAddForm(false);
                 // Refresh menu items list
                 getMenuItems();
@@ -105,6 +113,7 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
     const handleCancel = () => {
         reset();
         setUploadedImage(null);
+        setCustomCategory('');
         setShowAddForm(false);
     };
 
@@ -146,6 +155,14 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
         formData.append('description', data.description);
         formData.append('price', data.price);
         formData.append('prep_time', data.prepTime);
+
+        if (data.image) {
+            formData.append("images", data.image);
+        }
+
+        if (data.delete_image) {
+            formData.append("delete_image", "true");
+        }
 
         try {
             const result = await restaurantService.updateMenuItem(itemId, formData);
@@ -190,6 +207,7 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
                         menuItems={menuItems}
                         onEdit={handleEditItem}
                         onDelete={handleDeleteItem}
+                        businessType={businessType}
                     />
                 )}
                 <div className="flex gap-3 flex-wrap mt-6">
@@ -303,16 +321,40 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
                                 })}
                             />
 
-                            <SelectField
-                                label="Category *"
-                                name="category"
-                                placeholder="Select category"
-                                options={categories}
-                                error={errors.category?.message}
-                                {...register('category', {
-                                    required: 'Category is required'
-                                })}
-                            />
+                            {hasPredefinedCategories ? (
+                                <>
+                                    <SelectField
+                                        label="Category *"
+                                        name="category"
+                                        placeholder="Select category"
+                                        options={categories}
+                                        error={errors.category?.message}
+                                        {...register('category', {
+                                            required: 'Category is required'
+                                        })}
+                                    />
+                                    {watch('category') === 'Other' && (
+                                        <TextField
+                                            label="Custom Category *"
+                                            name="customCategory"
+                                            placeholder="Enter your category"
+                                            value={customCategory}
+                                            onChange={(e) => setCustomCategory(e.target.value)}
+                                            error={!customCategory ? 'Custom category is required' : ''}
+                                        />
+                                    )}
+                                </>
+                            ) : (
+                                <TextField
+                                    label="Category *"
+                                    name="category"
+                                    placeholder="Enter category"
+                                    error={errors.category?.message}
+                                    {...register('category', {
+                                        required: 'Category is required'
+                                    })}
+                                />
+                            )}
                         </div>
 
                         {/* Description */}
