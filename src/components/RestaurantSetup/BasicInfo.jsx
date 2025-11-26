@@ -71,6 +71,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       dineIn: false,
       delivery: false,
       pickup: false,
+      enableReservations: false,
       wheelchairAccessible: false,
       parkingAvailable: false,
       slots:
@@ -469,6 +470,15 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             )}
           </div>
           {config.showSlots && (
+            <CheckboxField
+              label="Enable Reservations"
+              name="enableReservations"
+              checked={watch("enableReservations")}
+              onChange={(e) => setValue("enableReservations", e.target.checked)}
+              {...register("enableReservations")}
+            />
+          )}
+          {config.showSlots && watch("enableReservations") && (
             <div className="border-t pt-8 mt-8">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
                 Reservation Slots
@@ -478,18 +488,18 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                   key={item.id}
                   className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 items-end"
                 >
-                  {businessType === "restaurant" && (
+                 
                     <>
 
                       <NumberField
-                        label="Table Size"
-                        placeholder="e.g., 2, 4, 6"
+                        label="Reservation Size"
+                        placeholder="Person Count"
                         name={`slots[${index}].tableSize`}
                         {...register(`slots.${index}.tableSize`)}
                       />
                       <NumberField
                         label="Quantity"
-                        placeholder="Number of such tables"
+                        placeholder="Number of such reservations"
                         name={`slots[${index}].quantity`}
                         {...register(`slots.${index}.quantity`)}
                       />
@@ -501,20 +511,10 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                         Remove
                       </button>
                     </>
-                  )}
-                  {businessType === "barber" && (
-                    <>
-                      <NumberField
-                        label="Number of Chairs"
-                        placeholder="e.g., 1, 2, 3"
-                        name={`slots[${index}].quantity`}
-                        {...register(`slots.${index}.quantity`)}
-                      />
-                    </>
-                  )}
+                  
                 </div>
               ))}
-              {businessType === "restaurant" && (
+              
                 <button
                   type="button"
                   onClick={() =>
@@ -524,7 +524,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                 >
                   Add Table Slot
                 </button>
-              )}
+              
             </div>
           )}
         </div>
