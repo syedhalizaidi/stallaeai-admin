@@ -4,8 +4,6 @@ import { Home, Mail, Clock, Loader2, MapPin } from "lucide-react";
 import { RegionDropdown } from "react-country-region-selector";
 import TextField from "../TextField";
 import SelectField from "../SelectField";
-import TimeField from "../TimeField";
-import { businessService } from "../../services/businessService";
 import { useToast } from "../../contexts/ToastContext";
 import { BUSINESS_TYPES } from "../Restaurants";
 import { restaurantService } from "../../services/restaurantService";
@@ -15,6 +13,8 @@ const GenericStep = ({ onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [availableCountries, setAvailableCountries] = useState([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(false);
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState("");
 
   const {
     register,
@@ -28,8 +28,6 @@ const GenericStep = ({ onClose }) => {
       businessType: "",
       description: "",
       email: "",
-      openingTime: "",
-      closingTime: "",
       streetAddress: "",
       city: "",
       state: "",
@@ -43,6 +41,7 @@ const GenericStep = ({ onClose }) => {
   });
 
   const selectedCountry = watch("country");
+  const selectedBusinessType = watch("businessType");
 
   const selectCountry = (val) => {
     setValue("country", val, { shouldValidate: true });
@@ -59,6 +58,14 @@ const GenericStep = ({ onClose }) => {
 
   const selectRegion = (val) => {
     setValue("state", val, { shouldValidate: true });
+  };
+
+  const convertToSnakeCase = (str) => {
+    return str
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_]/g, '');
   };
 
   useEffect(() => {
@@ -80,15 +87,32 @@ const GenericStep = ({ onClose }) => {
     fetchAvailableCountries();
   }, []);
 
+  useEffect(() => {
+    if (selectedBusinessType === "other") {
+      setShowCustomCategory(true);
+    } else {
+      setShowCustomCategory(false);
+      setCustomCategory("");
+    }
+  }, [selectedBusinessType]);
+
   const onSubmit = async (data) => {
+    if (data.businessType === "other" && !customCategory.trim()) {
+      showError("Please enter a custom business category");
+      return;
+    }
+
     setIsLoading(true);
     try {
+      let businessTypeToSend = data.businessType;
+      if (data.businessType === "other" && customCategory.trim()) {
+        businessTypeToSend = convertToSnakeCase(customCategory);
+      }
+
       const payload = {
         name: data.businessName,
         email: data.email.trim().toLowerCase(),
-        opening_time: data.openingTime,
-        closing_time: data.closingTime,
-        business_type: data.businessType,
+        business_type: businessTypeToSend,
         country_code: data.countryCode,
         location: [
           {
@@ -142,10 +166,13 @@ const GenericStep = ({ onClose }) => {
               label="Business Category"
               name="businessType"
               value={watch("businessType")}
-              options={Object.entries(BUSINESS_TYPES).map(([key, label]) => ({
-                value: key,
-                label,
-              }))}
+              options={[
+                ...Object.entries(BUSINESS_TYPES).map(([key, label]) => ({
+                  value: key,
+                  label,
+                })),
+                { value: "other", label: "Other" },
+              ]}
               placeholder="Select Category"
               error={errors.businessType?.message}
               required
@@ -156,6 +183,21 @@ const GenericStep = ({ onClose }) => {
               })}
             />
           </div>
+
+          {showCustomCategory && (
+            <div className="mt-6">
+              <TextField
+                label="Custom Business Category *"
+                name="customCategory"
+                type="text"
+                placeholder="e.g., Hair Salon, Pet Store"
+                icon={Home}
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                error={showCustomCategory && !customCategory.trim() ? "Custom category is required" : ""}
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TextField
@@ -173,29 +215,8 @@ const GenericStep = ({ onClose }) => {
                 },
               })}
             />
-
-            <TimeField
-              label="Opening Time *"
-              name="openingTime"
-              icon={Clock}
-              error={errors.openingTime?.message}
-              {...register("openingTime", {
-                required: "Opening time is required",
-              })}
-            />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <TimeField
-              label="Closing Time *"
-              name="closingTime"
-              icon={Clock}
-              error={errors.closingTime?.message}
-              {...register("closingTime", {
-                required: "Closing time is required",
-              })}
-            />
-          </div>
 
           <div className="border-t pt-8">
             <div className="flex items-center mb-6">

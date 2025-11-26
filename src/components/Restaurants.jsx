@@ -13,8 +13,6 @@ import {
 import { restaurantService } from "../services/restaurantService";
 import { businessService } from "../services/businessService";
 import Users from "./Users";
-import BarberForm from "./SetupBusiness/BarberForm";
-import CarDealershipForm from "./SetupBusiness/CarDealershipForm";
 import DeleteBusinessModal from "./DeleteBusinessModal";
 import VoiceControl from "../pages/VoicePage";
 import GenericStep from "./RestaurantSetup/GenericStep";

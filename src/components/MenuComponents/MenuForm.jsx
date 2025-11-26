@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Menu, Plus, ArrowLeft, ChevronRight, Trash2 } from "lucide-react";
+import {
+  Menu,
+  Plus,
+  ArrowLeft,
+  ChevronRight,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import styles from "./styles/RestaurantSetup.module.scss";
 import InputField from "../InputField";
 import SelectField from "../SelectField";
@@ -10,6 +17,7 @@ import Button from "../Button";
 import UploadImageField from "./UploadImageField";
 import MenuModal from "./menuModel/index";
 import DeleteModal from "./deleteModal/index";
+import UploadMenuModal from "./UploadMenuModal/index";
 import {
   createMenuItems,
   getMenuItems,
@@ -17,7 +25,14 @@ import {
 } from "../../services/restaurantDashboardService";
 import { useToast } from "../../contexts/ToastContext";
 
-const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevious, bussinessType }) => {
+const MenuForm = ({
+  menuItems,
+  restaurantId,
+  onMenuItemsChange,
+  onNext,
+  onPrevious,
+  bussinessType,
+}) => {
   const [restaurant_id, setRestaurantId] = useState(null);
   const [currentItem, setCurrentItem] = React.useState({
     name: "",
@@ -38,6 +53,7 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const CATEGORY_MAP = {
     restaurant: [
@@ -48,7 +64,7 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
       { value: "Desserts", label: "Desserts" },
       { value: "Beverages", label: "Beverages" },
       { value: "Side Dishes", label: "Side Dishes" },
-      { value: "Other", label: "Other" }
+      { value: "Other", label: "Other" },
     ],
 
     car_dealership: [
@@ -61,7 +77,7 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
       { value: "Van", label: "Van" },
       { value: "Electric", label: "Electric" },
       { value: "Hybrid", label: "Hybrid" },
-      { value: "Other", label: "Other" }
+      { value: "Other", label: "Other" },
     ],
 
     barber: [
@@ -72,15 +88,15 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
       { value: "Hair Color", label: "Hair Color" },
       { value: "Facial", label: "Facial" },
       { value: "Packages", label: "Packages" },
-      { value: "Other", label: "Other" }
-    ]
+      { value: "Other", label: "Other" },
+    ],
   };
-  const categoryOptions = CATEGORY_MAP[bussinessType] || CATEGORY_MAP["restaurant"];
-
+  const categoryOptions =
+    CATEGORY_MAP[bussinessType] || CATEGORY_MAP["restaurant"];
 
   const handleCurrentItemChange = async (eOrFiles) => {
     if (eOrFiles.length === 0 && imageId) {
-      const storedId = restaurantId
+      const storedId = restaurantId;
       const response = await deleteMenuItemImage(imageId);
       if (response.success) {
         showSuccess("Image deleted successfully");
@@ -210,7 +226,7 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
   };
 
   const handleGetMenuItems = async () => {
-    const storedId = restaurantId
+    const storedId = restaurantId;
     if (storedId) {
       const response = await getMenuItems(storedId);
       if (response.success) {
@@ -222,7 +238,7 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
   };
 
   useEffect(() => {
-    const storedId = restaurantId
+    const storedId = restaurantId;
     if (storedId) {
       setRestaurantId(storedId);
       handleGetMenuItems();
@@ -345,8 +361,8 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
                     ? "Updating..."
                     : "Adding..."
                   : editingItemId
-                    ? "Update Menu Item"
-                    : "Add to Menu"}
+                  ? "Update Menu Item"
+                  : "Add to Menu"}
               </Button>
               <Button
                 variant="secondary"
@@ -361,16 +377,29 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
           </div>
         )}
 
-        <Button
-          variant="primary"
-          onClick={handleAddNew}
-          disabled={showForm}
-          icon={<Plus size={16} />}
-          iconPosition="start"
-          className={styles.addButton}
-        >
-          Add New Menu Item
-        </Button>
+        <div className="flex gap-3 flex-wrap justify-between">
+          <Button
+            variant="primary"
+            onClick={handleAddNew}
+            disabled={showForm}
+            icon={<Plus size={16} />}
+            iconPosition="start"
+            className={styles.addButton}
+          >
+            Add New Menu Item
+          </Button>
+
+          <Button
+            variant="secondary"
+            onClick={() => setIsUploadModalOpen(true)}
+            disabled={showForm}
+            icon={<Upload size={16} />}
+            iconPosition="start"
+            className={styles.addButton}
+          >
+            Upload Menu File
+          </Button>
+        </div>
 
         <div className={styles.buttonContainer}>
           {onPrevious && (
@@ -394,6 +423,14 @@ const MenuForm = ({ menuItems, restaurantId, onMenuItemsChange, onNext, onPrevio
             </Button>
           )}
         </div>
+
+        {/* Upload Menu Modal */}
+        <UploadMenuModal
+          isOpen={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          restaurantId={restaurant_id}
+          onUploadSuccess={handleGetMenuItems}
+        />
 
         {/* ✅ Delete Modal integrated here */}
         <DeleteModal

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Plus, Clock, DollarSign, ArrowLeft, ChevronRight, X, Utensils } from 'lucide-react';
+import { Plus, Clock, DollarSign, ArrowLeft, ChevronRight, X, Utensils, Upload } from 'lucide-react';
 import { restaurantService } from '../../services/restaurantService';
 import TextField from '../TextField';
 import TextAreaField from '../TextAreaField';
 import SelectField from '../SelectField';
 import NumberField from '../NumberField';
 import MenuItemsList from './MenuItemsList';
+import UploadMenuModal from '../MenuComponents/UploadMenuModal/index';
 import { useToast } from '../../contexts/ToastContext';
 
 const CATEGORY_MAP = {
@@ -54,6 +55,7 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [uploadedImage, setUploadedImage] = useState(null);
     const [menuItems, setMenuItems] = useState([]);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
     const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm({
         defaultValues: {
@@ -190,14 +192,32 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
                         onDelete={handleDeleteItem}
                     />
                 )}
-                <button
-                    onClick={() => setShowAddForm(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 cursor-pointer mt-6"
-                >
-                    <Plus className="h-4 w-4" />
-                    <span>Add New Menu Item</span>
-                </button>
+                <div className="flex gap-3 flex-wrap mt-6">
+                    <button
+                        onClick={() => setShowAddForm(true)}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 cursor-pointer"
+                    >
+                        <Plus className="h-4 w-4" />
+                        <span>Add New Menu Item</span>
+                    </button>
+                    
+                    <button
+                        onClick={() => setIsUploadModalOpen(true)}
+                        className="bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center space-x-2 cursor-pointer"
+                    >
+                        <Upload className="h-4 w-4" />
+                        <span>Upload Menu File</span>
+                    </button>
+                </div>
             </div>
+
+            {/* Upload Menu Modal */}
+            <UploadMenuModal
+                isOpen={isUploadModalOpen}
+                onClose={() => setIsUploadModalOpen(false)}
+                restaurantId={localStorage.getItem('restaurant_id')}
+                onUploadSuccess={getMenuItems}
+            />
 
             {/* Add Menu Item Form */}
             {showAddForm && (

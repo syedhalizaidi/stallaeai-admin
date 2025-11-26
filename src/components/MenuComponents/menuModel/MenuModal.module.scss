@@ -4,7 +4,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(15, 15, 15, 0.6);
+  background: rgba(20, 20, 20, 0.45);
+  backdrop-filter: blur(3px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -13,277 +14,183 @@
 
 .modal {
   background: #fff;
-  width: 40%;
-  max-width: 800px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 520px;
+  border-radius: 18px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+  animation: fadeIn 0.25s ease-out;
   overflow: hidden;
-  animation: fadeIn 0.3s ease;
 }
 
 .modalHeader {
+  padding: 18px 22px;
+  background: #fafafa;
+  border-bottom: 1px solid #e5e5e5;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f8f8f8;
-  padding: 0px 20px;
-  border-bottom: 1px solid #e5e5e5;
 
   h3 {
-    font-size: 1.3rem;
-    color: #222;
+    font-size: 1.35rem;
     font-weight: 600;
+    color: #1f1f1f;
   }
 
   .closeBtn {
     background: none;
     border: none;
     cursor: pointer;
-    color: #555;
-    transition: color 0.2s ease;
+    padding: 6px;
+    border-radius: 8px;
 
     &:hover {
-      color: #000;
+      background: rgba(0, 0, 0, 0.06);
     }
   }
-}
-
-.modalContent {
-  padding: 20px;
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-.menuItem {
-  background: #fafafa;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.2s ease-in-out;
-
-  &:hover {
-    background: #f5f5f5;
-  }
-
-  .itemInfo {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-
-    h4 {
-      font-size: 1.1rem;
-      color: #222;
-      font-weight: 600;
-    }
-
-    p {
-      font-size: 0.95rem;
-      color: #666;
-      margin: 0;
-    }
-  }
-
-  .editButtons {
-    margin-top: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-}
-
-/* 🔵 Edit Modal Styles */
-.editModalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(15, 15, 15, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.editModal {
-  background: #fff;
-  width: 90%;
-  max-width: 500px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  padding: 20px;
-  animation: fadeInUp 0.3s ease;
 }
 
 .editForm {
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
-  padding: 20px;
+  gap: 18px;
+
+  label {
+    font-size: 0.9rem;
+    color: #333;
+    font-weight: 500;
+  }
 
   input,
   textarea {
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d5d5d5;
+    border-radius: 10px;
     font-size: 0.95rem;
-    resize: none;
-    outline: none;
+    transition: 0.2s ease;
+    background: #fcfcfc;
 
     &:focus {
       border-color: #4f46e5;
-      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+      background: #fff;
     }
   }
 
   textarea {
-    min-height: 90px;
+    min-height: 100px;
+  }
+}
+
+.imageSection {
+  label {
+    margin-bottom: 6px;
+  }
+}
+
+.imagePreviewContainer {
+  position: relative;
+
+  img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  }
+
+  .deleteImageBtn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(255, 255, 255, 0.85);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 6px;
+
+    &:hover {
+      background: rgba(255, 200, 200, 0.95);
+    }
+  }
+}
+
+.imageUpload {
+  width: 150px;
+  height: 150px;
+  border: 2px dashed #c9c9c9;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.25s ease;
+
+  &:hover {
+    border-color: #4f46e5;
+    background: rgba(79, 70, 229, 0.05);
+  }
+
+  .uploadLabel {
+    font-size: 0.9rem;
+    color: #555;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    svg {
+      opacity: 0.8;
+    }
   }
 }
 
 .editActions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-/* 🌐 Responsive Design */
-@media (max-width: 768px) {
-  .modal {
-    width: 95%;
-  }
-
-  .menuItem {
-    padding: 12px;
-  }
-
-  .editButtons {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .editModal {
-    width: 95%;
-    padding: 16px;
-  }
+  gap: 12px;
+  margin-top: 10px;
 }
 
 @media (max-width: 480px) {
-  .modalHeader h3 {
-    font-size: 1.1rem;
+  .modal {
+    width: 96%;
   }
 
-  .menuItem h4 {
-    font-size: 1rem;
-  }
-
-  .editButtons button {
-    width: 100%;
+  .imageUpload,
+  .imagePreviewContainer img {
+    width: 130px;
+    height: 130px;
   }
 }
 
-/* ✨ Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-.loaderIcon {
-  width: 18px;
-  height: 18px;
-  animation: spin 1s linear infinite;
-}
-.imageSection {
-  margin-top: 10px;
 
-  label {
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 6px;
-    display: block;
+.inputError {
+  border-color: #e53935 !important;
+  background: #fff6f6 !important;
+  box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.15);
+
+  &:focus {
+    border-color: #d32f2f !important;
+    box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.25);
   }
 }
 
-.imagePreviewContainer {
-  position: relative;
-  display: inline-block;
-  margin-top: 6px;
-
-  img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  .deleteImageBtn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: rgba(255, 255, 255, 0.8);
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    padding: 4px;
-    transition: background 0.2s ease;
-    color: #d00;
-
-    &:hover {
-      background: rgba(255, 220, 220, 0.9);
-    }
-  }
-}
-
-.imageUpload {
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px dashed #ccc;
-  border-radius: 10px;
-  height: 120px;
-  width: 120px;
-  cursor: pointer;
-  transition: 0.2s ease;
-
-  &:hover {
-    border-color: #888;
-    background: #f9f9f9;
-  }
-
-  .uploadLabel {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    font-size: 0.9rem;
-    color: #555;
-    cursor: pointer;
-
-    svg {
-      opacity: 0.7;
-    }
-  }
+.errorText {
+  color: #d32f2f;
+  font-size: 0.8rem;
+  margin-top: -6px;
+  margin-bottom: 6px;
 }

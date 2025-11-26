@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://api.stellaeai.com',
+  baseURL: 'http://192.168.3.81:8000',
   headers: {
     'Content-Type': 'application/json',
   },

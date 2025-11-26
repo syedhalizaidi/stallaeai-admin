@@ -810,3 +810,38 @@ export const deleteNote = async (restaurant_id) => {
     };
   }
 };
+
+export const uploadMenuFile = async (businessId, file) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await apiClient.post(
+      `/upload/menu-file/${businessId}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return {
+      success: true,
+      data: response.data,
+      message: "Menu file uploaded successfully!",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error,
+      message:
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to upload menu file",
+    };
+  }
+};

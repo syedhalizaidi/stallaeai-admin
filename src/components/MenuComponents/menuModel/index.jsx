@@ -17,6 +17,10 @@ const MenuModal = ({
     price: "",
     description: "",
   });
+  const [errors, setErrors] = useState({
+    name: "",
+    price: "",
+  });
 
   const [imagePreview, setImagePreview] = useState(null);
   const [newImage, setNewImage] = useState(null);
@@ -56,20 +60,41 @@ const MenuModal = ({
   };
 
   const handleUpdate = async () => {
-    try {
-      if (!menu?.id) return showError("No item selected");
+    const newErrors = { name: "", price: "" };
+    let hasError = false;
 
+    if (!formData.name.trim()) {
+      newErrors.name = "Item name is required.";
+      hasError = true;
+    }
+
+    if (!formData.price || Number(formData.price) <= 0) {
+      newErrors.price = "Price must be greater than 0.";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      showError("Please correct the highlighted fields.");
+      return;
+    }
+
+    setErrors({ name: "", price: "" });
+
+    try {
       setUpdating(true);
 
       const payload = new FormData();
       payload.append("name", formData.name);
       payload.append("price", formData.price);
       payload.append("description", formData.description);
+
       if (newImage) {
         payload.append("images", newImage);
       } else if (!imagePreview && menu.images.length > 0) {
         payload.append("delete_image", true);
       }
+
       const res = await updateMenuItem(menu.id, payload);
 
       if (res.success) {
@@ -138,20 +163,28 @@ const MenuModal = ({
           <label>Item Name</label>
           <input
             type="text"
+            className={errors.name ? styles.inputError : ""}
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, name: e.target.value });
+              if (errors.name) setErrors({ ...errors, name: "" });
+            }}
             placeholder="Item Name"
           />
-
+          {errors.name && <p className={styles.errorText}>{errors.name}</p>}
+         
           <label>Price</label>
           <input
             type="number"
+            className={errors.price ? styles.inputError : ""}
             value={formData.price}
-            onChange={(e) =>
-              setFormData({ ...formData, price: e.target.value })
-            }
+            onChange={(e) => {
+              setFormData({ ...formData, price: e.target.value });
+              if (errors.price) setErrors({ ...errors, price: "" });
+            }}
             placeholder="Price"
           />
+          {errors.price && <p className={styles.errorText}>{errors.price}</p>}
 
           <label>Description</label>
           <textarea

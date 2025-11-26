@@ -6,10 +6,8 @@ import TextField from "../TextField";
 import TextAreaField from "../TextAreaField";
 import SelectField from "../SelectField";
 import NumberField from "../NumberField";
-import TimeField from "../TimeField";
 import CheckboxField from "../CheckboxField";
 import { restaurantService } from "../../services/restaurantService";
-import { useToast } from "../../contexts/ToastContext";
 
 const BUSINESS_CONFIG = {
   restaurant: {
@@ -46,7 +44,6 @@ const cuisineOptions = [
 
 const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const config = BUSINESS_CONFIG[businessType] || {};
-  const { showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [availableCountries, setAvailableCountries] = useState([]);
@@ -63,8 +60,6 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       cuisineType: "",
       description: "",
       email: "",
-      openingTime: "",
-      closingTime: "",
       minDeliveryTime: "",
       maxDeliveryTime: "",
       streetAddress: "",
@@ -125,8 +120,6 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             setValue("cuisineType", data.cuisine_type || "");
             setValue("description", data.description || "");
             setValue("email", data.email || "");
-            setValue("openingTime", data.opening_time || "");
-            setValue("closingTime", data.closing_time || "");
             setValue("minDeliveryTime", data.delivery_minimum || "");
             setValue("maxDeliveryTime", data.delivery_maximum || "");
             setValue("streetAddress", location.street_address || "");
@@ -198,8 +191,6 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
         name: data.businessName,
         email: data.email.trim().toLowerCase(),
         description: data.description,
-        opening_time: data.openingTime,
-        closing_time: data.closingTime,
         cuisine_type: config.showCuisine ? data.cuisineType : null,
         delivery_minimum: config.showDeliveryTime
           ? data.minDeliveryTime?.toString()
@@ -306,7 +297,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {config.showCuisine && (
               <SelectField
-                label="Cuisine Type *"
+                label="Cuisine Type"
                 name="cuisineType"
                 value={watch("cuisineType")}
                 options={cuisineOptions}
@@ -325,26 +316,6 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                 {...register("minDeliveryTime")}
               />
             )}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <TimeField
-              label="Opening Time *"
-              name="openingTime"
-              icon={Clock}
-              error={errors.openingTime?.message}
-              {...register("openingTime", {
-                required: "Opening time is required",
-              })}
-            />
-            <TimeField
-              label="Closing Time *"
-              name="closingTime"
-              icon={Clock}
-              error={errors.closingTime?.message}
-              {...register("closingTime", {
-                required: "Closing time is required",
-              })}
-            />
           </div>
           {config.showDeliveryTime && (
             <NumberField

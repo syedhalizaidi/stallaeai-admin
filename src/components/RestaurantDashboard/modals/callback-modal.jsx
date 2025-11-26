@@ -3,45 +3,12 @@
 import { useState } from "react"
 import "./callback-modal.css"
 
-export default function CallbackModal({ onClose }) {
+export default function CallbackModal({ onClose, orders = [] }) {
   const [search, setSearch] = useState("")
 
-  const callRequests = [
-    {
-      id: 1,
-      customer: "Ahmed",
-      phone: "+923001234567",
-      requestedTime: "19:00",
-      status: "pending",
-      requestDate: "2025-11-10",
-    },
-    {
-      id: 2,
-      customer: "Layla",
-      phone: "+923009876543",
-      requestedTime: "18:30",
-      status: "pending",
-      requestDate: "2025-11-10",
-    },
-    {
-      id: 3,
-      customer: "Omar",
-      phone: "+923005555555",
-      requestedTime: "20:00",
-      status: "completed",
-      requestDate: "2025-11-09",
-    },
-    {
-      id: 4,
-      customer: "Zainab",
-      phone: "+923003333333",
-      requestedTime: "17:30",
-      status: "pending",
-      requestDate: "2025-11-10",
-    },
-  ]
-
-  const filteredRequests = callRequests.filter((req) => req.customer.toLowerCase().includes(search.toLowerCase()))
+  const filteredRequests = orders.filter((req) =>
+    req.customer_name.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
     <div className="modal-overlay">
@@ -69,47 +36,33 @@ export default function CallbackModal({ onClose }) {
           </div>
 
           <div className="requests-list">
+            {filteredRequests.length === 0 && <p>No call back requests found</p>}
+
             {filteredRequests.map((req) => (
               <div key={req.id} className="request-card">
                 <div className="req-header">
-                  <div className="req-avatar">{req.customer.charAt(0)}</div>
+                  <div className="req-avatar">{req.customer_name.charAt(0)}</div>
                   <div className="req-info">
-                    <h4 className="req-customer">{req.customer}</h4>
-                    <p className="req-phone">{req.phone}</p>
+                    <h4 className="req-customer">{req.customer_name}</h4>
+                    <p className="req-phone">{req.callback_number}</p>
                   </div>
-                  <span className={`req-status ${req.status}`}>
-                    {req.status === "pending" ? "⏳ Pending" : "✓ Completed"}
-                  </span>
+                  <span className={`req-status pending`}>⏳ Pending</span>
                 </div>
 
                 <div className="req-details">
                   <div className="detail-item">
-                    <p className="detail-label">Requested Time</p>
-                    <p className="detail-value">{req.requestedTime}</p>
-                  </div>
-                  <div className="detail-item">
-                    <p className="detail-label">Request Date</p>
-                    <p className="detail-value">{req.requestDate}</p>
+                    <p className="detail-label">Requested At</p>
+                    <p className="detail-value">{new Date(req.requested_at).toLocaleString()}</p>
                   </div>
                 </div>
 
                 <div className="req-actions">
-                  {req.status === "pending" && (
-                    <>
-                      <button className="action-button primary">Call Now</button>
-                      <button className="action-button secondary">Reschedule</button>
-                    </>
-                  )}
+                  <button className="action-button primary">Call Now</button>
+                  <button className="action-button secondary">Reschedule</button>
                 </div>
               </div>
             ))}
           </div>
-
-          {filteredRequests.length === 0 && (
-            <div className="no-results">
-              <p>No call back requests found</p>
-            </div>
-          )}
         </div>
       </div>
     </div>

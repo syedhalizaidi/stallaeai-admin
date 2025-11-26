@@ -1,0 +1,52 @@
+{
+  "categories": [
+    {
+      "category_name": "Manicures",
+      "items": [
+        {
+          "name": "Classic Manicure",
+          "price": 30,
+          "duration": "30 min",
+          "description": "Basic manicure service"
+        },
+        {
+          "name": "Gel Manicure",
+          "price": 48,
+          "duration": "40 min",
+          "description": "Long-lasting gel polish"
+        }
+      ]
+    },
+    {
+      "category_name": "Pedicures",
+      "items": [
+        {
+          "name": "Classic Pedicure",
+          "price": 45,
+          "duration": "40 min"
+        },
+        {
+          "name": "Luxe Spa Pedicure",
+          "price": 85,
+          "duration": "60 min",
+          "description": "With mask & hot stones"
+        }
+      ]
+    },
+    {
+      "category_name": "Add-Ons",
+      "items": [
+        {
+          "name": "Chrome Finish",
+          "price": 12,
+          "duration": "5 min"
+        },
+        {
+          "name": "French",
+          "price": 15,
+          "duration": "10 min"
+        }
+      ]
+    }
+  ]
+}

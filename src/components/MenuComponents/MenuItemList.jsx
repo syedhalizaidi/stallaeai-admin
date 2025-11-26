@@ -20,16 +20,30 @@ const MenuItemList = ({ menuItems, onDeleteItem, onUpdateItem }) => {
     return acc;
   }, {});
 
+  // Sort categories alphabetically, but keep "Uncategorized" at the end
+  const sortedCategories = Object.keys(groupedItems).sort((a, b) => {
+    if (a === "Uncategorized") return 1;
+    if (b === "Uncategorized") return -1;
+    return a.localeCompare(b);
+  });
+
+  // Sort items within each category by name
+  sortedCategories.forEach(category => {
+    groupedItems[category].sort((a, b) => a.name.localeCompare(b.name));
+  });
+
   return (
     <div className={styles.menuItemsSection}>
       <h3 className={styles.menuItemsTitle}>Menu Items ({menuItems.length})</h3>
 
-      {Object.entries(groupedItems).map(([category, items]) => (
-        <div key={category} className={styles.categoryGroup}>
-          <div className={styles.categoryHeader}>
-            <span className={styles.categoryName}>{category}</span>
-            <span className={styles.itemCount}>{items.length}</span>
-          </div>
+      {sortedCategories.map((category) => {
+        const items = groupedItems[category];
+        return (
+          <div key={category} className={styles.categoryGroup}>
+            <div className={styles.categoryHeader}>
+              <span className={styles.categoryName}>{category}</span>
+              <span className={styles.itemCount}>{items.length}</span>
+            </div>
 
           <div className={styles.menuItemsList}>
             {items.map((item, index) => (
@@ -106,7 +120,8 @@ const MenuItemList = ({ menuItems, onDeleteItem, onUpdateItem }) => {
             ))}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
