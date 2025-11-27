@@ -357,6 +357,35 @@ export const getMenuItems = async (restaurant_id) => {
   }
 };
 
+export const getMenuCategories = async (businessType) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    const response = await apiClient.get(
+      `/menu-items/business-type/${businessType}/menu-categories`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return {
+      success: true,
+      data: response.data,
+      message: "Menu categories retrieved successfully!",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error,
+      message:
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to retrieve menu categories",
+    };
+  }
+};
+
 export const saveImages = async (menuData) => {
   try {
     const token = localStorage.getItem("access_token");

@@ -1,66 +1,56 @@
 import React, { useEffect, useState } from "react";
 import styles from "./MenuModal.module.scss";
 import { X, Loader2, Trash2, ImagePlus } from "lucide-react";
-import { updateMenuItem } from "../../../services/restaurantDashboardService";
+import { updateMenuItem, getMenuCategories } from "../../../services/restaurantDashboardService";
 import Button from "../../Button";
 import { useToast } from "../../../contexts/ToastContext";
-
-const CATEGORY_MAP = {
-  restaurant: [
-    { value: "Appetizers", label: "Appetizers" },
-    { value: "Soups", label: "Soups" },
-    { value: "Salad", label: "Salad" },
-    { value: "Main Courses", label: "Main Courses" },
-    { value: "Desserts", label: "Desserts" },
-    { value: "Beverages", label: "Beverages" },
-    { value: "Side Dishes", label: "Side Dishes" },
-    { value: "Other", label: "Other" },
-  ],
-  car_dealership: [
-    { value: "Sedan", label: "Sedan" },
-    { value: "SUV", label: "SUV" },
-    { value: "Truck", label: "Truck" },
-    { value: "Coupe", label: "Coupe" },
-    { value: "Convertible", label: "Convertible" },
-    { value: "Hatchback", label: "Hatchback" },
-    { value: "Van", label: "Van" },
-    { value: "Electric", label: "Electric" },
-    { value: "Hybrid", label: "Hybrid" },
-    { value: "Other", label: "Other" },
-  ],
-  barber: [
-    { value: "Haircut", label: "Haircut" },
-    { value: "Beard", label: "Beard" },
-    { value: "Shave", label: "Shave" },
-    { value: "Kids Cut", label: "Kids Cut" },
-    { value: "Hair Color", label: "Hair Color" },
-    { value: "Facial", label: "Facial" },
-    { value: "Packages", label: "Packages" },
-    { value: "Other", label: "Other" },
-  ],
-};
 
 const MenuModal = ({
   isOpen,
   onClose,
-  restaurantId,
   menu,
   handleGetMenuItems,
   businessType,
 }) => {
-  const hasPredefinedCategories = CATEGORY_MAP.hasOwnProperty(businessType);
-  const categoryOptions = CATEGORY_MAP[businessType] || [];
+  const [fetchedCategories, setFetchedCategories] = useState([]);
+  const hasPredefinedCategories = fetchedCategories.length > 0;
+  const categoryOptions = fetchedCategories;
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (businessType) {
+        const response = await getMenuCategories(businessType);
+        const apiData = response.data?.data;
+        
+        if (response.success && Array.isArray(apiData)) {
+          const formattedCategories = apiData.map((cat) => {
+            if (typeof cat === "string") {
+              return { value: cat, label: cat };
+            }
+            return {
+              value: cat.name || cat.value || cat,
+              label: cat.name || cat.label || cat,
+            };
+          });
+          setFetchedCategories(formattedCategories);
+        }
+      }
+    };
+    fetchCategories();
+  }, [businessType]);
 
   const [formData, setFormData] = useState({
     name: "",
     price: "",
     description: "",
     category: "",
+    prep_time: "",
   });
   const [errors, setErrors] = useState({
     name: "",
     price: "",
     category: "",
+    prep_time: "",
   });
   const [customCategory, setCustomCategory] = useState("");
 
@@ -78,6 +68,7 @@ const MenuModal = ({
         price: menu?.price || "",
         description: menu?.description || "",
         category: menuCategory,
+        prep_time: menu?.prep_time || "",
       });
 
       // Check if category is custom (not in predefined list)
@@ -115,7 +106,7 @@ const MenuModal = ({
   };
 
   const handleUpdate = async () => {
-    const newErrors = { name: "", price: "", category: "" };
+    const newErrors = { name: "", price: "", category: "", prep_time: "" };
     let hasError = false;
 
     if (!formData.name.trim()) {
@@ -125,6 +116,11 @@ const MenuModal = ({
 
     if (!formData.price || Number(formData.price) <= 0) {
       newErrors.price = "Price must be greater than 0.";
+      hasError = true;
+    }
+
+    if (!formData.prep_time || Number(formData.prep_time) <= 0) {
+      newErrors.prep_time = "Duration must be greater than 0.";
       hasError = true;
     }
 
@@ -144,7 +140,7 @@ const MenuModal = ({
       return;
     }
 
-    setErrors({ name: "", price: "", category: "" });
+    setErrors({ name: "", price: "", category: "", prep_time: "" });
 
     try {
       setUpdating(true);
@@ -153,6 +149,7 @@ const MenuModal = ({
       payload.append("name", formData.name);
       payload.append("price", formData.price);
       payload.append("description", formData.description);
+      payload.append("prep_time", formData.prep_time);
       payload.append(
         "category",
         hasPredefinedCategories && formData.category === "Other"
@@ -304,6 +301,19 @@ const MenuModal = ({
             placeholder="Price"
           />
           {errors.price && <p className={styles.errorText}>{errors.price}</p>}
+
+          <label>Duration (minutes)</label>
+          <input
+            type="number"
+            className={errors.prep_time ? styles.inputError : ""}
+            value={formData.prep_time}
+            onChange={(e) => {
+              setFormData({ ...formData, prep_time: e.target.value });
+              if (errors.prep_time) setErrors({ ...errors, prep_time: "" });
+            }}
+            placeholder="15"
+          />
+          {errors.prep_time && <p className={styles.errorText}>{errors.prep_time}</p>}
 
           <label>Description</label>
           <textarea

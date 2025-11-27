@@ -284,8 +284,12 @@ const RestaurantsModule = () => {
                           {BUSINESS_TYPES[
                             restaurant?.business_type?.toLowerCase()
                           ] ||
-                            restaurant?.business_type ||
-                            "N/A"}
+                            (restaurant?.business_type
+                              ? restaurant.business_type
+                                  .split('_')
+                                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                  .join(' ')
+                              : "N/A")}
                         </div>
                       </div>
                     </td>
@@ -455,8 +459,12 @@ const RestaurantsModule = () => {
                           {BUSINESS_TYPES[
                             restaurant?.business_type?.toLowerCase()
                           ] ||
-                            restaurant?.business_type ||
-                            "N/A"}
+                            (restaurant?.business_type
+                              ? restaurant.business_type
+                                  .split('_')
+                                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                  .join(' ')
+                              : "N/A")}
                         </div>
                       </div>
                     </td>

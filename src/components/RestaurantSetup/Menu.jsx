@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Plus, Clock, DollarSign, ArrowLeft, ChevronRight, X, Utensils, Upload } from 'lucide-react';
+import { getMenuCategories } from '../../services/restaurantDashboardService';
 import { restaurantService } from '../../services/restaurantService';
 import TextField from '../TextField';
 import TextAreaField from '../TextAreaField';
@@ -10,47 +11,34 @@ import MenuItemsList from './MenuItemsList';
 import UploadMenuModal from '../MenuComponents/UploadMenuModal/index';
 import { useToast } from '../../contexts/ToastContext';
 
-const CATEGORY_MAP = {
-    restaurant: [
-        { value: "Appetizers", label: "Appetizers" },
-        { value: "Soups", label: "Soups" },
-        { value: "Salad", label: "Salad" },
-        { value: "Main Courses", label: "Main Courses" },
-        { value: "Desserts", label: "Desserts" },
-        { value: "Beverages", label: "Beverages" },
-        { value: "Side Dishes", label: "Side Dishes" },
-        { value: "Other", label: "Other" }
-    ],
-
-    car_dealership: [
-        { value: "Sedan", label: "Sedan" },
-        { value: "SUV", label: "SUV" },
-        { value: "Truck", label: "Truck" },
-        { value: "Coupe", label: "Coupe" },
-        { value: "Convertible", label: "Convertible" },
-        { value: "Hatchback", label: "Hatchback" },
-        { value: "Van", label: "Van" },
-        { value: "Electric", label: "Electric" },
-        { value: "Hybrid", label: "Hybrid" },
-        { value: "Other", label: "Other" }
-    ],
-
-    barber: [
-        { value: "Haircut", label: "Haircut" },
-        { value: "Beard", label: "Beard" },
-        { value: "Shave", label: "Shave" },
-        { value: "Kids Cut", label: "Kids Cut" },
-        { value: "Hair Color", label: "Hair Color" },
-        { value: "Facial", label: "Facial" },
-        { value: "Packages", label: "Packages" },
-        { value: "Other", label: "Other" }
-    ]
-};
-
-
 const Menu = ({ onNext, onPrevious, businessType }) => {
-    const hasPredefinedCategories = CATEGORY_MAP.hasOwnProperty(businessType);
-    const categories = CATEGORY_MAP[businessType] || [];
+    const [fetchedCategories, setFetchedCategories] = useState([]);
+    const hasPredefinedCategories = fetchedCategories.length > 0;
+    const categories = fetchedCategories;
+    console.log({businessType});
+    useEffect(() => {
+        const fetchCategories = async () => {
+            if (businessType) {
+                const response = await getMenuCategories(businessType);
+                const apiData = response.data?.data;
+                
+                if (response.success && Array.isArray(apiData)) {
+                    const formattedCategories = apiData.map((cat) => {
+                        if (typeof cat === "string") {
+                            return { value: cat, label: cat };
+                        }
+                        return {
+                            value: cat.name || cat.value || cat,
+                            label: cat.name || cat.label || cat,
+                        };
+                    });
+                    setFetchedCategories(formattedCategories);
+                }
+            }
+        };
+        fetchCategories();
+    }, [businessType]);
+
     const { showError } = useToast();
     const [showAddForm, setShowAddForm] = useState(false);
     const [isLoading, setIsLoading] = useState(false);

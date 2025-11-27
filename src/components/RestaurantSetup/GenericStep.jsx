@@ -7,6 +7,7 @@ import SelectField from "../SelectField";
 import { useToast } from "../../contexts/ToastContext";
 import { BUSINESS_TYPES } from "../Restaurants";
 import { restaurantService } from "../../services/restaurantService";
+import { businessService } from "../../services/businessService";
 
 const GenericStep = ({ onClose }) => {
   const { showError } = useToast();
@@ -15,6 +16,34 @@ const GenericStep = ({ onClose }) => {
   const [isLoadingCountries, setIsLoadingCountries] = useState(false);
   const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [customCategory, setCustomCategory] = useState("");
+  const [categories, setCategories] = useState([]);
+
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const result = await businessService.getBusinessCategories();
+        if (result.success) {
+          const formattedCategories = (result.data || []).map(cat => ({
+            value: cat.key,
+            label: cat.value.charAt(0).toUpperCase() + cat.value.slice(1).replace(/_/g, ' ')
+          }));
+          
+          // Add 'Other' option if it doesn't exist
+          if (!formattedCategories.some(c => c.value === 'other')) {
+            formattedCategories.push({ value: 'other', label: 'Other' });
+          }
+          
+          setCategories(formattedCategories);
+        } else {
+          showError("Failed to load business categories");
+        }
+      } catch {
+        showError("Error loading business categories");
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const {
     register,
@@ -166,13 +195,7 @@ const GenericStep = ({ onClose }) => {
               label="Business Category"
               name="businessType"
               value={watch("businessType")}
-              options={[
-                ...Object.entries(BUSINESS_TYPES).map(([key, label]) => ({
-                  value: key,
-                  label,
-                })),
-                { value: "other", label: "Other" },
-              ]}
+              options={categories}
               placeholder="Select Category"
               error={errors.businessType?.message}
               required

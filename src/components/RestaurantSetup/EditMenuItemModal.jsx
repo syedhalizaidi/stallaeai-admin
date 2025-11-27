@@ -6,50 +6,40 @@ import TextAreaField from '../TextAreaField';
 import SelectField from '../SelectField';
 import NumberField from '../NumberField';
 
-const CATEGORY_MAP = {
-    restaurant: [
-        { value: 'Appetizers', label: 'Appetizers' },
-        { value: 'Main Courses', label: 'Main Courses' },
-        { value: 'Desserts', label: 'Desserts' },
-        { value: 'Beverages', label: 'Beverages' },
-        { value: 'Salads', label: 'Salads' },
-        { value: 'Soups', label: 'Soups' },
-        { value: 'Sides', label: 'Sides' },
-        { value: 'Side Dishes', label: 'Side Dishes' },
-        { value: 'Other', label: 'Other' }
-    ],
-    car_dealership: [
-        { value: 'Sedan', label: 'Sedan' },
-        { value: 'SUV', label: 'SUV' },
-        { value: 'Truck', label: 'Truck' },
-        { value: 'Coupe', label: 'Coupe' },
-        { value: 'Convertible', label: 'Convertible' },
-        { value: 'Hatchback', label: 'Hatchback' },
-        { value: 'Van', label: 'Van' },
-        { value: 'Electric', label: 'Electric' },
-        { value: 'Hybrid', label: 'Hybrid' },
-        { value: 'Other', label: 'Other' }
-    ],
-    barber: [
-        { value: 'Haircut', label: 'Haircut' },
-        { value: 'Beard', label: 'Beard' },
-        { value: 'Shave', label: 'Shave' },
-        { value: 'Kids Cut', label: 'Kids Cut' },
-        { value: 'Hair Color', label: 'Hair Color' },
-        { value: 'Facial', label: 'Facial' },
-        { value: 'Packages', label: 'Packages' },
-        { value: 'Other', label: 'Other' }
-    ]
-};
+import { getMenuCategories } from '../../services/restaurantDashboardService';
 
 const EditMenuItemModal = ({ isOpen, onClose, onUpdate, item, businessType }) => {
-    const hasPredefinedCategories = CATEGORY_MAP.hasOwnProperty(businessType);
-    const categoryOptions = CATEGORY_MAP[businessType] || [];
+    const [fetchedCategories, setFetchedCategories] = useState([]);
+    const hasPredefinedCategories = fetchedCategories.length > 0;
+    const categoryOptions = fetchedCategories;
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            if (businessType) {
+                const response = await getMenuCategories(businessType);
+                const apiData = response.data?.data;
+                
+                if (response.success && Array.isArray(apiData)) {
+                    const formattedCategories = apiData.map((cat) => {
+                        if (typeof cat === "string") {
+                            return { value: cat, label: cat };
+                        }
+                        return {
+                            value: cat.name || cat.value || cat,
+                            label: cat.name || cat.label || cat,
+                        };
+                    });
+                    setFetchedCategories(formattedCategories);
+                }
+            }
+        };
+        fetchCategories();
+    }, [businessType]);
     
     const [isLoading, setIsLoading] = useState(false);
     const [customCategory, setCustomCategory] = useState('');
 
-    const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm({
+    const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm({
         defaultValues: {
             name: '',
             category: '',
