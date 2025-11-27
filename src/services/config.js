@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = "http://192.168.3.81:8000";
+const API_BASE_URL = "https://api.stellaeai.com";
 const CHAT_BASE_URL = import.meta.env.VITE_CHATBOT_API_URL || "https://restaurant.stellaeai.com"
 
 export const apiClient = axios.create({
