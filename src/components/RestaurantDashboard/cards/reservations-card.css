@@ -9,7 +9,7 @@
   display: flex;
   background: linear-gradient(135deg, #557ebf 0%, #667eea 100%);
   border-radius: 12px;
-  z-index: 1;
+
 }
 
 .notes-input {
@@ -45,6 +45,7 @@
   transition: all 0.3s ease;
   cursor: default;
 }
+
 
 /* .card:hover {
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
@@ -135,4 +136,35 @@
 
 .card-button:hover {
   box-shadow: 0 4px 12px rgba(85, 126, 191, 0.4);
+}
+.reservation-scroll-container {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+  padding-right: 0.5rem;
+  scroll-behavior: smooth;
+}
+
+.reservation-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reservation-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.reservation-scroll-container::-webkit-scrollbar-thumb {
+  background: #557ebf;
+  border-radius: 10px;
+}
+
+.reservation-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #4469a3;
+}
+
+.reservation-block {
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }

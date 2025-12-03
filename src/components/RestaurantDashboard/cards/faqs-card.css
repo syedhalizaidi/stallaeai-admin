@@ -125,3 +125,23 @@
 .card-button:hover {
   box-shadow: 0 4px 12px rgba(85, 126, 191, 0.4);
 }
+.faq-scroll-container {
+  max-height: 180px;  
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-top: 8px;
+}
+
+.faq-block {
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 8px;
+}
+
+.order-item {
+  background: linear-gradient(135deg, #dbe7fa 0%, #c6dbf8 100%);
+  padding: 12px;
+  border-radius: 0.75rem;
+  width: 100%;
+  border: 1px solid rgba(85, 126, 191, 0.3);
+}

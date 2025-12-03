@@ -14,7 +14,23 @@ export default function FAQsCard({
   isNoteEnabled,
   setIsNoteEnabled,
 }) {
-  const topOrders = orders.slice(0, 3)
+
+  const groupedFAQs = Object.entries(
+    orders.reduce((acc, item) => {
+      const phone = item.customer_number || "Unknown"
+      if (!acc[phone]) acc[phone] = []
+      acc[phone].push(item)
+      return acc
+    }, {})
+  )
+
+  const sortedGroups = groupedFAQs.sort((a, b) => {
+    const latestA = Math.max(...a[1].map(f => new Date(f.timestamp).getTime()))
+    const latestB = Math.max(...b[1].map(f => new Date(f.timestamp).getTime()))
+    return latestB - latestA
+  })
+
+  const topGroups = sortedGroups.slice(0, 3)
 
   return (
     <div className="card-container">
@@ -38,15 +54,28 @@ export default function FAQsCard({
           </div>
 
           <div className="orders-list">
-            {topOrders.map((faq) => (
-              <div key={faq.id} className="order-item">
-                <p className="order-customer">{faq.customer_name}</p>
-                <p className="order-details"><strong>Q:</strong> {faq.question}</p>
-                <p className="order-details"><strong>A:</strong> {faq.answer}</p>
-                <p className="order-time">{new Date(faq.timestamp).toLocaleString()}</p>
+            {topGroups.map(([phoneNumber, faqs]) => (
+              <div key={phoneNumber} className="order-item">
+
+                <p className="order-customer">{phoneNumber}</p>
+                <div className="faq-scroll-container">
+                  {faqs.map((faq) => (
+                    <div key={faq.id} className="faq-block">
+                      <p className="order-details"><strong>Q:</strong> {faq.question}</p>
+                      <p className="order-details"><strong>A:</strong> {faq.answer}</p>
+                      <p className="order-time">
+                        {new Date(faq.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
               </div>
             ))}
-            {topOrders.length === 0 && <p className="no-orders">No FAQs available</p>}
+
+            {topGroups.length === 0 && (
+              <p className="no-orders">No FAQs available</p>
+            )}
           </div>
 
           <button className="card-button" onClick={onOpen}>

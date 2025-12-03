@@ -2,7 +2,7 @@ import { apiClient, apiClient2 } from "./config";
 
 export const registerRestaurant = async (restaurantData) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.post(
       "/restaurant/register-restaurant",
@@ -34,7 +34,7 @@ export const registerRestaurant = async (restaurantData) => {
 
 export const getRestaurants = async () => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.get("/business/my", {
       headers: {
@@ -80,7 +80,7 @@ export const getAllRestaurants = async () => {
 };
 export const updateRestaurant = async (restaurantId, restaurantData) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.put(
       `/restaurant/update-restaurant/${restaurantId}`,
@@ -137,7 +137,7 @@ export const getRestaurantById = async (restaurantId) => {
 // Location API functions
 export const getLocation = async (restaurantId) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.get(
       `/location/restaurant-location/${restaurantId}`,
@@ -167,7 +167,7 @@ export const getLocation = async (restaurantId) => {
 
 export const createLocation = async (restaurantId, locationData) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.post(
       `/location/restaurant-location/${restaurantId}`,
@@ -198,7 +198,7 @@ export const createLocation = async (restaurantId, locationData) => {
 
 export const updateLocation = async (locationId, locationData) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.put(
       `/location/update-location/${locationId}`,
@@ -229,7 +229,7 @@ export const updateLocation = async (locationId, locationData) => {
 
 export const createMenuItems = async (menuData) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.post("/upload/menu-item", menuData, {
       headers: {
@@ -266,7 +266,7 @@ export const createMenuItems = async (menuData) => {
 
 export const updateMenuItem = async (menu_item_id, menuData) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.put(
       `/upload/menu-item/${menu_item_id}`,
@@ -299,7 +299,7 @@ export const updateMenuItem = async (menu_item_id, menuData) => {
 
 export const deleteMenuItem = async (menu_item_id) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.delete(
       `/upload/menu-item/${menu_item_id}`,
@@ -329,7 +329,7 @@ export const deleteMenuItem = async (menu_item_id) => {
 
 export const getMenuItems = async (restaurant_id) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.get(
       `/upload/menu-items/restaurant/${restaurant_id}`,
@@ -388,7 +388,7 @@ export const getMenuCategories = async (businessType) => {
 
 export const saveImages = async (menuData) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.post("/upload/images", menuData, {
       headers: {
@@ -417,7 +417,7 @@ export const saveImages = async (menuData) => {
 
 export const deleteMenuItemImage = async (imageId) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.delete(
       `/upload/menu-item/images/${imageId}`,
@@ -439,7 +439,7 @@ export const deleteMenuItemImage = async (imageId) => {
 
 export const uploadRestaurantImages = async (formData) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.post(
       `/upload/restaurant-images`,
@@ -471,7 +471,7 @@ export const uploadRestaurantImages = async (formData) => {
 
 export const getRestaurantImages = async (restaurant_id) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.get(
       `/upload/restaurant-images/${restaurant_id}`,
@@ -500,7 +500,7 @@ export const getRestaurantImages = async (restaurant_id) => {
 
 export const deleteRestaurantLogo = async (restaurant_id) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.delete(
       `/upload/restaurant-images/logo/${restaurant_id}`,
@@ -530,7 +530,7 @@ export const deleteRestaurantLogo = async (restaurant_id) => {
 
 export const deleteRestaurantExteriorImage = async (image_id) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.delete(
       `/upload/restaurant-images/exterior/${image_id}`,
@@ -560,7 +560,7 @@ export const deleteRestaurantExteriorImage = async (image_id) => {
 
 export const updateRestaurantImage = async (restaurant_id, formData) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
 
     const response = await apiClient.put(
       `/upload/restaurant-images/${restaurant_id}`,

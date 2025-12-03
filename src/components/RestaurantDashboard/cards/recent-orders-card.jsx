@@ -2,8 +2,36 @@
 import Notes from "../Notes/Notes.jsx" 
 import "./recent-orders-card.css"
 
-export default function RecentOrdersCard({ onOpen, orders = [], noteText, setNoteText, handleSubmitNote, handleDeleteNote, noteLoading }) {
-  const topOrders = orders.slice(0, 3)
+export default function RecentOrdersCard({
+  onOpen,
+  orders = [],
+  noteText,
+  setNoteText,
+  handleSubmitNote,
+  handleDeleteNote,
+  noteLoading
+}) {
+  const groupedOrders = orders.reduce((acc, item) => {
+    const phone = item.phone_number || "Unknown";
+    if (!acc[phone]) acc[phone] = [];
+    acc[phone].push(item);
+    return acc;
+  }, {});
+
+  const groupedArray = Object.entries(groupedOrders).map(([phone, list]) => {
+    const sortedList = list.slice().sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    return [phone, sortedList];
+  });
+
+  groupedArray.sort((a, b) => {
+    const latestA = new Date(a[1][0]?.timestamp).getTime() || 0;
+    const latestB = new Date(b[1][0]?.timestamp).getTime() || 0;
+    return latestB - latestA;
+  });
+
+  const topGroups = groupedArray.slice(0, 3);
 
   return (
     <div className="card-container">
@@ -25,13 +53,20 @@ export default function RecentOrdersCard({ onOpen, orders = [], noteText, setNot
             <h3 className="card-title">Recent Orders</h3>
           </div>
           <div className="orders-list">
-            {topOrders.map((order) => (
-              <div key={order.id} className="order-item">
-                <p className="order-customer">{order.customer_name}</p>
-                <p className="order-details">
-                  {Object.keys(order.order_details || {}).length} items · ${order.total_amount}
-                </p>
-                <p className="order-time">{order.relativeTime}</p>
+            {topGroups.map(([phone, list]) => (
+              <div key={phone} className="order-item">
+                <p className="order-customer">{phone}</p>
+
+                <div className="order-scroll-container">
+                  {list.map((order) => (
+                    <div key={order.id} className="order-block">
+                      <p className="order-details">
+                        {Object.keys(order.order_details || {}).length} items · ${order.total_amount}
+                      </p>
+                      <p className="order-time">{order.relativeTime}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -41,6 +76,6 @@ export default function RecentOrdersCard({ onOpen, orders = [], noteText, setNot
           </button>
         </div>
       </div>
-    </div >
-  )
+    </div>
+  );
 }

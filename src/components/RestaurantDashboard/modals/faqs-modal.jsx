@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import "./faqs-modal.css"
+import { useState } from "react";
+import "./faqs-modal.css";
 
 export default function FAQsModal({ onClose, orders = [] }) {
-  const [expandedIndex, setExpandedIndex] = useState(null)
+  const [expandedIndex, setExpandedIndex] = useState(null);
 
   return (
     <div className="modal-overlay">
@@ -26,18 +26,28 @@ export default function FAQsModal({ onClose, orders = [] }) {
             {orders.map((faq, idx) => (
               <div key={faq.id} className="faq-item">
                 <button
-                  onClick={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
+                  onClick={() =>
+                    setExpandedIndex(expandedIndex === idx ? null : idx)
+                  }
                   className="faq-question"
                 >
                   <h3>{faq.question}</h3>
-                  <span className={`chevron ${expandedIndex === idx ? "rotated" : ""}`}>▼</span>
+                  <span
+                    className={`chevron ${
+                      expandedIndex === idx ? "rotated" : ""
+                    }`}
+                  >
+                    ▼
+                  </span>
                 </button>
 
                 {expandedIndex === idx && (
                   <div className="faq-answer">
                     <p>{faq.answer}</p>
                     <p className="faq-meta">
-                      Asked by: {faq.customer_name} | Number: {faq.customer_number} | {new Date(faq.timestamp).toLocaleString()}
+                      Asked by: {faq.customer_name} | Number:{" "}
+                      {faq.customer_number} |{" "}
+                      {new Date(faq.timestamp).toLocaleString()}
                     </p>
                   </div>
                 )}
@@ -47,5 +57,5 @@ export default function FAQsModal({ onClose, orders = [] }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -34,7 +34,6 @@ const RestaurantDashboard = ({ restaurant }) => {
     const [reservations, setReservations] = useState([]);
     const [activeModal, setActiveModal] = useState(false);
 
-
     const getRelativeTime = (timestamp) => {
         if (!timestamp) return "Unknown time";
 
@@ -67,20 +66,18 @@ const RestaurantDashboard = ({ restaurant }) => {
             const res = restaurant;
             if (!res) return;
 
-
             const phone = res?.twilio_number?.phone_number;
             if (!phone) {
                 console.warn("No Twilio number found for this restaurant");
                 return;
             }
-            const businessID = localStorage.getItem("businessId")
+            const businessID = localStorage.getItem("businessId");
             const reservationss = await getReservations(businessID);
-            console.log("ress: ", reservationss);
             const cleanDate = (str) =>
                 str?.replace("+00:00Z", "Z").replace("+00:00", "Z");
 
             if (reservationss?.success) {
-                const mappedReservations = (reservationss.data?.data || []).map(r => {
+                const mappedReservations = (reservationss.data?.data || []).map((r) => {
                     const start = new Date(cleanDate(r.start_time));
                     const end = new Date(cleanDate(r.end_time));
 
@@ -92,7 +89,7 @@ const RestaurantDashboard = ({ restaurant }) => {
                         end_time: end.toISOString().split("T")[1].substring(0, 5),
                         contact_info: r.phone_number,
                         party_size: r.party_size,
-                        timestamp: r.created_at
+                        timestamp: r.created_at,
                     };
                 });
 
@@ -138,7 +135,6 @@ const RestaurantDashboard = ({ restaurant }) => {
                     if (parsedDetails?.type === "callback_request") {
                         orderType = "callback";
                     }
-
                 } catch (e) {
                     console.error("Failed to parse order_details for:", order.id, e);
                 }
@@ -147,7 +143,7 @@ const RestaurantDashboard = ({ restaurant }) => {
                     ...order,
                     order_details: parsedDetails,
                     order_type: orderType,
-                    relativeTime: getRelativeTime(order.timestamp.replace('Z', '')),
+                    relativeTime: getRelativeTime(order.timestamp.replace("Z", "")),
                 };
 
                 // Separate orders into categories
@@ -166,35 +162,43 @@ const RestaurantDashboard = ({ restaurant }) => {
 
                         reservationOrders.push({
                             id: order.id,
-                            customer_name: parsedDetails.customer_name || order.customer_name || "Unknown",
+                            customer_name:
+                                parsedDetails.customer_name || order.customer_name || "Unknown",
                             booking_date: bookingDate,
                             start_time: startTime,
                             end_time: parsedDetails.end_time || null,
                             contact_info: order.phone_number,
                             party_size: parsedDetails.party_size || null,
-                            timestamp: order.timestamp.replace('Z', ''),
+                            timestamp: order.timestamp.replace("Z", ""),
                         });
                         break;
 
                     case "faq":
                         faqOrders.push({
                             id: order.id,
-                            customer_name: parsedDetails.customer_name || order.customer_name || order.phone_number || "Unknown",
+                            customer_name:
+                                parsedDetails.customer_name ||
+                                order.customer_name ||
+                                order.phone_number ||
+                                "Unknown",
                             question: parsedDetails.question,
                             answer: parsedDetails.answer,
                             asked_at: parsedDetails.asked_at,
-                            customer_number: parsedDetails.customer_number || order.phone_number,
-                            timestamp: order.timestamp.replace('Z', ''),
+                            customer_number:
+                                parsedDetails.customer_number || order.phone_number,
+                            timestamp: order.timestamp.replace("Z", ""),
                         });
                         break;
 
                     case "callback":
                         callbackOrders.push({
                             id: order.id,
-                            customer_name: parsedDetails.customer_name || order.customer_name || "Unknown",
-                            callback_number: parsedDetails.callback_number || order.phone_number,
+                            customer_name:
+                                parsedDetails.customer_name || order.customer_name || "Unknown",
+                            callback_number:
+                                parsedDetails.callback_number || order.phone_number,
                             requested_at: parsedDetails.requested_at,
-                            timestamp: order.timestamp.replace('Z', ''),
+                            timestamp: order.timestamp.replace("Z", ""),
                         });
                         break;
 
@@ -204,7 +208,8 @@ const RestaurantDashboard = ({ restaurant }) => {
                 }
             });
 
-            const sortByTimestamp = (a, b) => new Date(b.timestamp) - new Date(a.timestamp);
+            const sortByTimestamp = (a, b) =>
+                new Date(b.timestamp) - new Date(a.timestamp);
             foodOrders.sort(sortByTimestamp);
             reservationOrders.sort(sortByTimestamp);
             faqOrders.sort(sortByTimestamp);
@@ -213,14 +218,11 @@ const RestaurantDashboard = ({ restaurant }) => {
             setOrderData({ ...orderResponse.data.data, data: foodOrders });
             setFaqOrders(faqOrders);
             setCallbackOrders(callbackOrders);
-
         } catch (err) {
             console.error("Error fetching orders:", err);
             showError("Error fetching orders");
         }
     };
-
-
 
     useEffect(() => {
         fetchOrders();
@@ -351,7 +353,6 @@ const RestaurantDashboard = ({ restaurant }) => {
 
     return (
         <div className="dashboard-container">
-
             {/* Dashboard Cards Grid */}
             <div className="dashboard-grid">
                 <div className="dashboard-card-wrapper">
@@ -410,8 +411,6 @@ const RestaurantDashboard = ({ restaurant }) => {
                     />
                 </div>
             </div>
-
-
 
             {/* Modals */}
             {/* Modals */}

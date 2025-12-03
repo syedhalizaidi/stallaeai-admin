@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import "./callback-modal.css"
+import { useState } from "react";
+import "./callback-modal.css";
 
 export default function CallbackModal({ onClose, orders = [] }) {
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState("");
 
   const filteredRequests = orders.filter((req) =>
     req.customer_name.toLowerCase().includes(search.toLowerCase())
-  )
+  );
 
   return (
     <div className="modal-overlay">
@@ -36,12 +36,16 @@ export default function CallbackModal({ onClose, orders = [] }) {
           </div>
 
           <div className="requests-list">
-            {filteredRequests.length === 0 && <p>No call back requests found</p>}
+            {filteredRequests.length === 0 && (
+              <p>No call back requests found</p>
+            )}
 
             {filteredRequests.map((req) => (
               <div key={req.id} className="request-card">
                 <div className="req-header">
-                  <div className="req-avatar">{req.customer_name.charAt(0)}</div>
+                  <div className="req-avatar">
+                    {req.customer_name.charAt(0)}
+                  </div>
                   <div className="req-info">
                     <h4 className="req-customer">{req.customer_name}</h4>
                     <p className="req-phone">{req.callback_number}</p>
@@ -52,13 +56,17 @@ export default function CallbackModal({ onClose, orders = [] }) {
                 <div className="req-details">
                   <div className="detail-item">
                     <p className="detail-label">Requested At</p>
-                    <p className="detail-value">{new Date(req.requested_at).toLocaleString()}</p>
+                    <p className="detail-value">
+                      {new Date(req.requested_at).toLocaleString()}
+                    </p>
                   </div>
                 </div>
 
                 <div className="req-actions">
                   <button className="action-button primary">Call Now</button>
-                  <button className="action-button secondary">Reschedule</button>
+                  <button className="action-button secondary">
+                    Reschedule
+                  </button>
                 </div>
               </div>
             ))}
@@ -66,5 +74,5 @@ export default function CallbackModal({ onClose, orders = [] }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

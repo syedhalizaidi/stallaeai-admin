@@ -1,6 +1,7 @@
 /* Added background gradient to dashboard container */
 .dashboard-container {
-  padding: 2rem 1rem;
+  min-height: 100vh;
+  background: white;
 }
 
 .dashboard-grid {
@@ -15,6 +16,13 @@
 
 .dashboard-card-wrapper {
   cursor: pointer;
+}
+.heading,
+.sub-heading {
+  padding: 0rem 0rem 0rem 2rem;
+}
+.sub-heading {
+  color: gray;
 }
 
 @media (max-width: 768px) {
