@@ -359,7 +359,7 @@ export const getMenuItems = async (restaurant_id) => {
 
 export const getMenuCategories = async (businessType) => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("authToken");
     const response = await apiClient.get(
       `/menu-items/business-type/${businessType}/menu-categories`,
       {
