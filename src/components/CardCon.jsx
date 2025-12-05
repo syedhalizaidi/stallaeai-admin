@@ -498,7 +498,7 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
 
         <div className="dashboard-card-wrapper">
           <CallbackCard
-            onOpen={() => setActiveModal("callback")}
+            onOpen={() => setActiveModal("callbacks")}
             orders={filteredCallbackOrders}
             noteText={callBackNote}
             setNoteText={setCallBackNote}
