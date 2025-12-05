@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import "./callback-modal.css";
+import StatusDropdown from "../common/StatusDropdown.jsx";
 
-export default function CallbackModal({ onClose, orders = [] }) {
+export default function CallbackModal({ onClose, orders = [], onStatusUpdate }) {
   const [search, setSearch] = useState("");
 
   const filteredRequests = orders.filter((req) =>
@@ -50,7 +51,12 @@ export default function CallbackModal({ onClose, orders = [] }) {
                     <h4 className="req-customer">{req.customer_name}</h4>
                     <p className="req-phone">{req.callback_number}</p>
                   </div>
-                  <span className={`req-status pending`}>⏳ Pending</span>
+                  <StatusDropdown 
+                    currentStatus={req.order_status} 
+                    orderId={req.id} 
+                    onUpdate={onStatusUpdate}
+                    allowedStatuses={['pending', 'completed']}
+                  />
                 </div>
 
                 <div className="req-details">

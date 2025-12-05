@@ -1,6 +1,7 @@
 "use client"
 import Notes from "../Notes/Notes.jsx" 
 import "./recent-orders-card.css"
+import StatusDropdown from "../common/StatusDropdown.jsx";
 
 export default function RecentOrdersCard({
   onOpen,
@@ -9,8 +10,31 @@ export default function RecentOrdersCard({
   setNoteText,
   handleSubmitNote,
   handleDeleteNote,
-  noteLoading
+  noteLoading,
+  onItemClick,
+  onStatusUpdate
 }) {
+  // Helper function to get order items summary
+  const getOrderItemsSummary = (orderDetails) => {
+    if (!orderDetails || typeof orderDetails !== 'object') {
+      return { count: 0, text: 'No items' };
+    }
+
+    // Check if it's a food order with items array
+    if (orderDetails.items && Array.isArray(orderDetails.items)) {
+      const totalItems = orderDetails.items.reduce((sum, item) => sum + (item.qty || 1), 0);
+      const itemNames = orderDetails.items.map(item => 
+        `${item.name}${item.qty > 1 ? ` (x${item.qty})` : ''}`
+      ).join(', ');
+      return { count: totalItems, text: itemNames };
+    }
+
+    // Fallback: count object keys (excluding metadata fields)
+    const excludeKeys = ['type', 'subtotal', 'tax', 'total', 'special_instructions'];
+    const itemKeys = Object.keys(orderDetails).filter(key => !excludeKeys.includes(key));
+    return { count: itemKeys.length, text: `${itemKeys.length} items` };
+  };
+
   const groupedOrders = orders.reduce((acc, item) => {
     const phone = item.phone_number || "Unknown";
     if (!acc[phone]) acc[phone] = [];
@@ -54,18 +78,36 @@ export default function RecentOrdersCard({
           </div>
           <div className="orders-list">
             {topGroups.map(([phone, list]) => (
-              <div key={phone} className="order-item">
+              <div 
+                key={phone} 
+                className="order-item clickable-item"
+                onClick={() => onItemClick && onItemClick(phone)}
+                style={{ cursor: onItemClick ? 'pointer' : 'default' }}
+              >
                 <p className="order-customer">{phone}</p>
 
                 <div className="order-scroll-container">
-                  {list.map((order) => (
-                    <div key={order.id} className="order-block">
-                      <p className="order-details">
-                        {Object.keys(order.order_details || {}).length} items · ${order.total_amount}
-                      </p>
-                      <p className="order-time">{order.relativeTime}</p>
-                    </div>
-                  ))}
+                  {list.map((order) => {
+                    const itemsSummary = getOrderItemsSummary(order.order_details);
+                    return (
+                      <div key={order.id} className="order-block">
+                        <div className="flex justify-between items-start mb-1">
+                          <p className="order-details flex-1 mr-2" title={itemsSummary.text}>
+                            {itemsSummary.count} item{itemsSummary.count !== 1 ? 's' : ''} · ${order.total_amount}
+                          </p>
+                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${
+                            order.order_status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                            order.order_status === 'completed' ? 'bg-green-100 text-green-800 border-green-200' :
+                            order.order_status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-200' :
+                            'bg-gray-100 text-gray-800 border-gray-200'
+                          }`}>
+                            {order.order_status ? order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1) : 'Pending'}
+                          </span>
+                        </div>
+                        <p className="order-time">{order.relativeTime}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}

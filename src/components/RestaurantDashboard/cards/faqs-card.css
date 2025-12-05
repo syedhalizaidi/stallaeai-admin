@@ -132,6 +132,25 @@
   margin-top: 8px;
 }
 
+/* Custom Scrollbar Styling */
+.faq-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.faq-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.faq-scroll-container::-webkit-scrollbar-thumb {
+  background: #557ebf;
+  border-radius: 10px;
+}
+
+.faq-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #4469a3;
+}
+
 .faq-block {
   margin-bottom: 12px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);

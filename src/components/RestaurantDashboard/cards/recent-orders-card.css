@@ -142,6 +142,25 @@
   margin-top: 6px;
 }
 
+/* Custom Scrollbar Styling */
+.order-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.order-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.order-scroll-container::-webkit-scrollbar-thumb {
+  background: #557ebf;
+  border-radius: 10px;
+}
+
+.order-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #4469a3;
+}
+
 .order-block {
   margin-bottom: 10px;
   padding-bottom: 6px;

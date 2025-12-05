@@ -2,6 +2,7 @@
 
 import Notes from "../Notes/Notes.jsx" 
 import "./callback-card.css"
+import StatusDropdown from "../common/StatusDropdown.jsx";
 
 export default function CallbackCard({
   onOpen,
@@ -13,6 +14,8 @@ export default function CallbackCard({
   noteLoading,
   isNoteEnabled,
   setIsNoteEnabled,
+  onItemClick,
+  onStatusUpdate
 }) {
   const grouped = Object.entries(
     orders.reduce((acc, item) => {
@@ -61,7 +64,12 @@ export default function CallbackCard({
 
           <div className="orders-list">
             {topGroups.map(([phone, items]) => (
-              <div key={phone} className="order-item">
+              <div 
+                key={phone} 
+                className="order-item clickable-item"
+                onClick={() => onItemClick && onItemClick(items[0].callback_number)}
+                style={{ cursor: onItemClick ? 'pointer' : 'default' }}
+              >
                 <p className="order-customer">{items[0].callback_number}</p>
 
                 <div className="callback-scroll-container">

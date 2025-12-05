@@ -2,6 +2,7 @@
 
 import Notes from "../Notes/Notes.jsx";
 import "./faqs-card.css"
+import StatusDropdown from "../common/StatusDropdown.jsx";
 
 export default function FAQsCard({
   onOpen,
@@ -13,6 +14,8 @@ export default function FAQsCard({
   noteLoading,
   isNoteEnabled,
   setIsNoteEnabled,
+  onItemClick,
+  onStatusUpdate
 }) {
 
   const groupedFAQs = Object.entries(
@@ -55,7 +58,12 @@ export default function FAQsCard({
 
           <div className="orders-list">
             {topGroups.map(([phoneNumber, faqs]) => (
-              <div key={phoneNumber} className="order-item">
+              <div 
+                key={phoneNumber} 
+                className="order-item clickable-item"
+                onClick={() => onItemClick && onItemClick(phoneNumber)}
+                style={{ cursor: onItemClick ? 'pointer' : 'default' }}
+              >
 
                 <p className="order-customer">{phoneNumber}</p>
                 <div className="faq-scroll-container">

@@ -2,18 +2,34 @@
 
 import { useState } from "react"
 import "./recent-orders-modal.css"
+import StatusDropdown from "../common/StatusDropdown.jsx";
 
-export default function RecentOrdersModal({ onClose, orders = [] }) {
+export default function RecentOrdersModal({ onClose, orders = [], onStatusUpdate }) {
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("all")
+
+  // Helper function to get order items
+  const getOrderItems = (orderDetails) => {
+    if (!orderDetails || typeof orderDetails !== 'object') {
+      return [];
+    }
+
+    // Check if it's a food order with items array
+    if (orderDetails.items && Array.isArray(orderDetails.items)) {
+      return orderDetails.items.map(item => 
+        `${item.name}${item.qty > 1 ? ` (x${item.qty})` : ''}`
+      );
+    }
+
+    // Fallback: return object keys (excluding metadata fields)
+    const excludeKeys = ['type', 'subtotal', 'tax', 'total', 'special_instructions'];
+    return Object.keys(orderDetails).filter(key => !excludeKeys.includes(key));
+  };
 
   const mappedOrders = orders.map((order) => ({
     id: order.id,
     customer: order.customer_name || order.customer_info || "Unknown",
-    items:
-      order.order_type === "food"
-        ? Object.keys(order.order_details || {})
-        : ["Reservation"],
+    items: getOrderItems(order.order_details),
     price: order.total_amount || 0,
     status: order.order_status || "Pending",
   }))
@@ -90,9 +106,11 @@ export default function RecentOrdersModal({ onClose, orders = [] }) {
                       <span>${order.price.toFixed(2)}</span>
                     </td>
                     <td className="status-cell">
-                      <span className={`status-badge ${order.status.toLowerCase()}`}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </span>
+                      <StatusDropdown 
+                        currentStatus={order.status} 
+                        orderId={order.id} 
+                        onUpdate={onStatusUpdate}
+                      />
                     </td>
                   </tr>
                 ))}

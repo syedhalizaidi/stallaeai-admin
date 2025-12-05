@@ -2,6 +2,7 @@
 
 import Notes from "../Notes/Notes.jsx";
 import "./reservations-card.css";
+import StatusDropdown from "../common/StatusDropdown.jsx";
 
 export default function ReservationsCard({
   onOpen,
@@ -13,6 +14,8 @@ export default function ReservationsCard({
   noteLoading,
   isNoteEnabled,
   setIsNoteEnabled,
+  onItemClick,
+  onStatusUpdate
 }) {
   const grouped = Object.entries(
     reservations.reduce((acc, res) => {
@@ -65,7 +68,12 @@ export default function ReservationsCard({
           <div className="orders-list">
             {topGroups.length > 0 ? (
               topGroups.map(([phone, items]) => (
-                <div key={phone} className="order-item">
+                <div 
+                  key={phone} 
+                  className="order-item clickable-item"
+                  onClick={() => onItemClick && onItemClick(phone)}
+                  style={{ cursor: onItemClick ? 'pointer' : 'default' }}
+                >
                   <p className="order-customer">{phone}</p>
                   <div className="reservation-scroll-container">
                     {items.map((res) => (
