@@ -12,7 +12,7 @@ export default function CustomerDetailsSidebar({
   reservations = [],
   faqs = [],
   callbacks = [],
-  onStatusUpdate
+  onStatusUpdate,
 }) {
   // Close on ESC key
   useEffect(() => {
@@ -54,26 +54,37 @@ export default function CustomerDetailsSidebar({
 
   // Helper function to get order items details
   const getOrderItemsDetails = (orderDetails) => {
-    if (!orderDetails || typeof orderDetails !== 'object') {
+    if (!orderDetails || typeof orderDetails !== "object") {
       return { count: 0, items: [] };
     }
 
     // Check if it's a food order with items array
     if (orderDetails.items && Array.isArray(orderDetails.items)) {
-      const totalItems = orderDetails.items.reduce((sum, item) => sum + (item.qty || 1), 0);
-      return { 
-        count: totalItems, 
-        items: orderDetails.items.map(item => ({
+      const totalItems = orderDetails.items.reduce(
+        (sum, item) => sum + (item.qty || 1),
+        0
+      );
+      return {
+        count: totalItems,
+        items: orderDetails.items.map((item) => ({
           name: item.name,
           qty: item.qty || 1,
-          price: item.price || 0
-        }))
+          price: item.price || 0,
+        })),
       };
     }
 
     // Fallback: count object keys (excluding metadata fields)
-    const excludeKeys = ['type', 'subtotal', 'tax', 'total', 'special_instructions'];
-    const itemKeys = Object.keys(orderDetails).filter(key => !excludeKeys.includes(key));
+    const excludeKeys = [
+      "type",
+      "subtotal",
+      "tax",
+      "total",
+      "special_instructions",
+    ];
+    const itemKeys = Object.keys(orderDetails).filter(
+      (key) => !excludeKeys.includes(key)
+    );
     return { count: itemKeys.length, items: [] };
   };
 
@@ -101,7 +112,9 @@ export default function CustomerDetailsSidebar({
             {orders.length > 0 ? (
               <div className="section-items">
                 {orders.map((order) => {
-                  const itemsDetails = getOrderItemsDetails(order.order_details);
+                  const itemsDetails = getOrderItemsDetails(
+                    order.order_details
+                  );
                   return (
                     <div key={order.id} className="sidebar-item">
                       <div className="item-header">
@@ -109,7 +122,8 @@ export default function CustomerDetailsSidebar({
                           Order #{order.id.substring(0, 8)}...
                         </span>
                         <span className="item-time">
-                          {order.relativeTime || getRelativeTime(order.timestamp)}
+                          {order.relativeTime ||
+                            getRelativeTime(order.timestamp)}
                         </span>
                       </div>
                       <div className="item-details">
@@ -117,26 +131,32 @@ export default function CustomerDetailsSidebar({
                           <div className="order-items-list">
                             {itemsDetails.items.map((item, idx) => (
                               <p key={idx} className="item-info">
-                                • {item.name} {item.qty > 1 ? `(x${item.qty})` : ''} - ${(item.price * item.qty).toFixed(2)}
+                                • {item.name}{" "}
+                                {item.qty > 1 ? `(x${item.qty})` : ""} - $
+                                {(item.price * item.qty).toFixed(2)}
                               </p>
                             ))}
-                            <p className="item-price" style={{ marginTop: '8px', fontWeight: 'bold' }}>
+                            <p
+                              className="item-price"
+                              style={{ marginTop: "8px", fontWeight: "bold" }}
+                            >
                               Total: ${order.total_amount}
                             </p>
                           </div>
                         ) : (
                           <>
                             <p className="item-info">
-                              {itemsDetails.count} item{itemsDetails.count !== 1 ? 's' : ''}
+                              {itemsDetails.count} item
+                              {itemsDetails.count !== 1 ? "s" : ""}
                             </p>
                             <p className="item-price">${order.total_amount}</p>
                           </>
                         )}
                       </div>
                       <div className="mt-2 flex justify-end">
-                        <StatusDropdown 
-                          currentStatus={order.order_status} 
-                          orderId={order.id} 
+                        <StatusDropdown
+                          currentStatus={order.order_status}
+                          orderId={order.id}
                           onUpdate={onStatusUpdate}
                         />
                       </div>
@@ -160,24 +180,31 @@ export default function CustomerDetailsSidebar({
                 {reservations.map((reservation) => (
                   <div key={reservation.id} className="sidebar-item">
                     <div className="item-header">
-                      <span className="item-name">{reservation.customer_name}</span>
+                      <span className="item-name">
+                        {reservation.customer_name}
+                      </span>
                       <span className="item-time">
                         {getRelativeTime(reservation.timestamp)}
                       </span>
                     </div>
                     <div className="item-details">
                       <p className="item-info">
-                        📍 {reservation.booking_date} at {reservation.start_time || "-"}
+                        📍 {reservation.booking_date} at{" "}
+                        {reservation.start_time || "-"}
                       </p>
                       <p className="item-info">
                         👥 Party of {reservation.party_size || "N/A"}
                       </p>
                       <div className="mt-2 flex justify-end">
-                        <StatusDropdown 
-                          currentStatus={reservation.order_status} 
-                          orderId={reservation.id} 
+                        <StatusDropdown
+                          currentStatus={reservation.order_status}
+                          orderId={reservation.id}
                           onUpdate={onStatusUpdate}
-                          allowedStatuses={['pending', 'completed', 'cancelled']}
+                          allowedStatuses={[
+                            "pending",
+                            "completed",
+                            "cancelled",
+                          ]}
                         />
                       </div>
                     </div>
@@ -186,6 +213,49 @@ export default function CustomerDetailsSidebar({
               </div>
             ) : (
               <p className="section-empty">No reservations found</p>
+            )}
+          </div>
+
+          {/* Callbacks Section */}
+          <div className="sidebar-section">
+            <h3 className="section-title">
+              ☎️ Callback Requests
+              <span className="section-count">{callbacks.length}</span>
+            </h3>
+            {callbacks.length > 0 ? (
+              <div className="section-items">
+                {callbacks.map((callback) => (
+                  <div key={callback.id} className="sidebar-item">
+                    <div className="item-header">
+                      <span className="item-name">
+                        {callback.customer_name}
+                      </span>
+                      <span className="item-time">
+                        {getRelativeTime(callback.timestamp)}
+                      </span>
+                    </div>
+                    <div className="item-details">
+                      <p className="item-info">📞 {callback.callback_number}</p>
+                      {callback.requested_at && (
+                        <p className="item-info">
+                          Requested:{" "}
+                          {new Date(callback.requested_at).toLocaleString()}
+                        </p>
+                      )}
+                      <div className="mt-2 flex justify-end">
+                        <StatusDropdown
+                          currentStatus={callback.order_status}
+                          orderId={callback.id}
+                          onUpdate={onStatusUpdate}
+                          allowedStatuses={["pending", "completed"]}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="section-empty">No callback requests found</p>
             )}
           </div>
 
@@ -219,48 +289,6 @@ export default function CustomerDetailsSidebar({
               </div>
             ) : (
               <p className="section-empty">No FAQs found</p>
-            )}
-          </div>
-
-          {/* Callbacks Section */}
-          <div className="sidebar-section">
-            <h3 className="section-title">
-              ☎️ Callback Requests
-              <span className="section-count">{callbacks.length}</span>
-            </h3>
-            {callbacks.length > 0 ? (
-              <div className="section-items">
-                {callbacks.map((callback) => (
-                  <div key={callback.id} className="sidebar-item">
-                    <div className="item-header">
-                      <span className="item-name">{callback.customer_name}</span>
-                      <span className="item-time">
-                        {getRelativeTime(callback.timestamp)}
-                      </span>
-                    </div>
-                    <div className="item-details">
-                      <p className="item-info">
-                        📞 {callback.callback_number}
-                      </p>
-                      {callback.requested_at && (
-                        <p className="item-info">
-                          Requested: {new Date(callback.requested_at).toLocaleString()}
-                        </p>
-                      )}
-                      <div className="mt-2 flex justify-end">
-                        <StatusDropdown 
-                          currentStatus={callback.order_status} 
-                          orderId={callback.id} 
-                          onUpdate={onStatusUpdate}
-                          allowedStatuses={['pending', 'completed']}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="section-empty">No callback requests found</p>
             )}
           </div>
         </div>
