@@ -15,21 +15,21 @@ const BUSINESS_CONFIG = {
     showDeliveryTime: true,
     showServiceOptions: true,
     showAccessibility: true,
-
+    tableRequired: true,
   },
   barber: {
     showCuisine: false,
     showDeliveryTime: false,
     showServiceOptions: false,
     showAccessibility: true,
-
+    tableRequired: true,
   },
   car_dealership: {
     showCuisine: false,
     showDeliveryTime: false,
     showServiceOptions: false,
     showAccessibility: false,
-  
+    tableRequired: false,
   },
 };
 
@@ -74,6 +74,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       enableReservations: false,
       wheelchairAccessible: false,
       parkingAvailable: false,
+      tableRequired: config.tableRequired,
       slots:
         businessType === "restaurant"
           ? [{ tableSize: "", customCapacity: "", quantity: "" }]
@@ -140,16 +141,21 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               "parkingAvailable",
               location.is_parking_available || false
             );
+            setValue(
+              "tableRequired",
+              data.table_required ?? config.tableRequired
+            );
+
             if (data.slots && data.slots.length) {
               setValue(
                 "slots",
                 data.slots.map((s) =>
                   businessType === "restaurant"
                     ? {
-                      tableSize: s.capacity,
-                      quantity: s.quantity,
-                      customCapacity: s.capacity,
-                    }
+                        tableSize: s.capacity,
+                        quantity: s.quantity,
+                        customCapacity: s.capacity,
+                      }
                     : { slotName: "chair", capacity: 1, quantity: s.quantity }
                 )
               );
@@ -161,7 +167,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       };
       load();
     }
-  }, [isEditMode, editId, setValue]);
+  }, [isEditMode, editId, setValue, config.tableRequired]);
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -362,8 +368,9 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                   country={selectedCountry}
                   value={watch("state")}
                   onChange={(val) => selectRegion(val)}
-                  className={`w-full px-4 py-3 border rounded-lg ${errors.state ? "border-red-500" : "border-gray-300"
-                    }`}
+                  className={`w-full px-4 py-3 border rounded-lg ${
+                    errors.state ? "border-red-500" : "border-gray-300"
+                  }`}
                 />
                 <input
                   type="hidden"
@@ -387,8 +394,9 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                 <select
                   value={selectedCountry}
                   onChange={(e) => selectCountry(e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg ${errors.country ? "border-red-500" : "border-gray-300"
-                    }`}
+                  className={`w-full px-4 py-3 border rounded-lg ${
+                    errors.country ? "border-red-500" : "border-gray-300"
+                  }`}
                 >
                   <option value="">Select Country</option>
                   {availableCountries.map((c) => (
@@ -469,15 +477,15 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               </div>
             )}
           </div>
-          
-            <CheckboxField
-              label="Enable Reservations"
-              name="enableReservations"
-              checked={watch("enableReservations")}
-              onChange={(e) => setValue("enableReservations", e.target.checked)}
-              {...register("enableReservations")}
-            />
-          
+
+          <CheckboxField
+            label="Enable Reservations"
+            name="enableReservations"
+            checked={watch("enableReservations")}
+            onChange={(e) => setValue("enableReservations", e.target.checked)}
+            {...register("enableReservations")}
+          />
+
           {watch("enableReservations") && (
             <div className="border-t pt-8 mt-8">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
@@ -488,43 +496,39 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                   key={item.id}
                   className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 items-end"
                 >
-                 
-                    <>
-
-                      <NumberField
-                        label="Reservation Size"
-                        placeholder="Person Count"
-                        name={`slots[${index}].tableSize`}
-                        {...register(`slots.${index}.tableSize`)}
-                      />
-                      <NumberField
-                        label="Quantity"
-                        placeholder="Number of such reservations"
-                        name={`slots[${index}].quantity`}
-                        {...register(`slots.${index}.quantity`)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => remove(index)}
-                        className="text-red-500 font-medium ml-2 border-border-red-500 border px-3 py-3 rounded-lg"
-                      >
-                        Remove
-                      </button>
-                    </>
-                  
+                  <NumberField
+                    label={!watch("tableRequired") ? "Reservation Slots":"Reservation Size"}
+                    placeholder={!watch("tableRequired") ? "No. of Reservations":"Person Count"}
+                    name={`slots[${index}].tableSize`}
+                    {...register(`slots.${index}.tableSize`)}
+                  />
+                  {watch("tableRequired") && (
+                    <NumberField
+                      label="Quantity"
+                      placeholder="Number of such reservations"
+                      name={`slots[${index}].quantity`}
+                      {...register(`slots.${index}.quantity`)}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="text-red-500 font-medium ml-2 border-border-red-500 border px-3 py-3 rounded-lg"
+                  >
+                    Remove
+                  </button>
                 </div>
               ))}
-              
-                <button
-                  type="button"
-                  onClick={() =>
-                    append({ tableSize: "", customCapacity: "", quantity: "" })
-                  }
-                  className="text-blue-600 font-medium mt-2 border border-blue-600 px-4 py-2 rounded-lg"
-                >
-                  Add Table Slot
-                </button>
-              
+
+              <button
+                type="button"
+                onClick={() =>
+                  append({ tableSize: "", customCapacity: "", quantity: "" })
+                }
+                className="text-blue-600 font-medium mt-2 border border-blue-600 px-4 py-2 rounded-lg"
+              >
+                Add new reservation
+              </button>
             </div>
           )}
         </div>
@@ -532,10 +536,11 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center ${isLoading
-              ? "bg-gray-400"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
-              }`}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center ${
+              isLoading
+                ? "bg-gray-400"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
           >
             {isLoading ? (
               <>

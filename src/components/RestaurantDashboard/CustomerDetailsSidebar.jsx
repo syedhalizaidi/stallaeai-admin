@@ -95,7 +95,7 @@ export default function CustomerDetailsSidebar({
         <div className="sidebar-header">
           <div>
             <h2 className="sidebar-title">Customer Details</h2>
-            <p className="sidebar-phone">{phoneNumber}</p>
+            <p className="sidebar-phone">Phone Number: {phoneNumber}</p>
           </div>
           <button className="sidebar-close" onClick={onClose}>
             ✕
@@ -118,9 +118,7 @@ export default function CustomerDetailsSidebar({
                   return (
                     <div key={order.id} className="sidebar-item">
                       <div className="item-header">
-                        <span className="item-id">
-                          Order #{order.id.substring(0, 8)}...
-                        </span>
+                        <span className="item-id">{order.customer_name}</span>
                         <span className="item-time">
                           {order.relativeTime ||
                             getRelativeTime(order.timestamp)}
@@ -181,7 +179,8 @@ export default function CustomerDetailsSidebar({
                   <div key={reservation.id} className="sidebar-item">
                     <div className="item-header">
                       <span className="item-name">
-                        {reservation.customer_name}
+                        {reservation.customer_name?.charAt(0).toUpperCase() +
+                          reservation.customer_name?.slice(1)}
                       </span>
                       <span className="item-time">
                         {getRelativeTime(reservation.timestamp)}
@@ -273,6 +272,11 @@ export default function CustomerDetailsSidebar({
                       <span className="item-time">
                         {getRelativeTime(faq.timestamp)}
                       </span>
+                    </div>
+                    <div className="item-details">
+                      <p className="item-question">
+                        <strong>{faq.customer_name}</strong>
+                      </p>
                     </div>
                     <div className="item-details">
                       <p className="item-question">

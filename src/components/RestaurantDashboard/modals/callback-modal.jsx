@@ -48,7 +48,7 @@ export default function CallbackModal({ onClose, orders = [], onStatusUpdate }) 
                     {req.customer_name.charAt(0)}
                   </div>
                   <div className="req-info">
-                    <h4 className="req-customer">{req.customer_name}</h4>
+                    <h4 className="req-customer">{`${req.customer_name} - ${req.callback_number}` || req.phone_number || "Unknown"}</h4>
                     <p className="req-phone">{req.callback_number}</p>
                   </div>
                   <StatusDropdown 

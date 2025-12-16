@@ -19,14 +19,15 @@ export default function CallbackCard({
 }) {
   const grouped = Object.entries(
     orders.reduce((acc, item) => {
-      const phone = item.phone_number || "Unknown";
-      if (!acc[phone]) acc[phone] = [];
-      acc[phone].push(item);
+      // Use customer_name if available, otherwise fallback to callback_number or phone_number
+      const identifier = `${item.customer_name} - ${item.callback_number || item.phone_number}` || "Unknown";
+      if (!acc[identifier]) acc[identifier] = [];
+      acc[identifier].push(item);
       return acc;
     }, {})
   );
 
-  grouped.forEach(([phone, items]) => {
+  grouped.forEach(([identifier, items]) => {
     items.sort(
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -63,14 +64,14 @@ export default function CallbackCard({
           </div>
 
           <div className="orders-list">
-            {topGroups.map(([phone, items]) => (
+            {topGroups.map(([identifier, items]) => (
               <div 
-                key={phone} 
+                key={identifier} 
                 className="order-item clickable-item"
                 onClick={() => onItemClick && onItemClick(items[0].callback_number)}
                 style={{ cursor: onItemClick ? 'pointer' : 'default' }}
               >
-                <p className="order-customer">{items[0].callback_number}</p>
+                <p className="order-customer">{identifier}</p>
 
                 <div className="callback-scroll-container">
                   {items.map((item) => (

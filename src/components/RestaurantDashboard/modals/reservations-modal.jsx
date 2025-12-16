@@ -217,7 +217,7 @@ export default function ReservationsModal({
                     <div key={res.id} className="reservation-card">
                       <div className="res-header">
                         <div>
-                          <h4 className="res-customer">{res.customer_name}</h4>
+                          <h4 className="res-customer">{`${res.customer_name} - ${res.phone_number || res.contact_info}` || "Unknown"}</h4>
                           <p className="res-party">Party of {res.party_size}</p>
                         </div>
                         <span className="res-time">{res.start_time}</span>

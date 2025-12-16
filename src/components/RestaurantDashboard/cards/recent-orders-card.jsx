@@ -36,17 +36,18 @@ export default function RecentOrdersCard({
   };
 
   const groupedOrders = orders.reduce((acc, item) => {
-    const phone = item.phone_number || "Unknown";
-    if (!acc[phone]) acc[phone] = [];
-    acc[phone].push(item);
+    // Use customer_name if available, otherwise fallback to phone_number
+    const identifier = `${item.customer_name} - ${item.customer_number || item.phone_number}` || "Unknown";
+    if (!acc[identifier]) acc[identifier] = [];
+    acc[identifier].push(item);
     return acc;
   }, {});
 
-  const groupedArray = Object.entries(groupedOrders).map(([phone, list]) => {
+  const groupedArray = Object.entries(groupedOrders).map(([identifier, list]) => {
     const sortedList = list.slice().sort(
       (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
-    return [phone, sortedList];
+    return [identifier, sortedList];
   });
 
   groupedArray.sort((a, b) => {
@@ -77,14 +78,14 @@ export default function RecentOrdersCard({
             <h3 className="card-title">Recent Orders</h3>
           </div>
           <div className="orders-list">
-            {topGroups.map(([phone, list]) => (
+            {topGroups.map(([identifier, list]) => (
               <div 
-                key={phone} 
+                key={identifier} 
                 className="order-item clickable-item"
-                onClick={() => onItemClick && onItemClick(phone)}
+                onClick={() => onItemClick && onItemClick(list[0]?.phone_number)}
                 style={{ cursor: onItemClick ? 'pointer' : 'default' }}
               >
-                <p className="order-customer">{phone}</p>
+                <p className="order-customer">{identifier}</p>
 
                 <div className="order-scroll-container">
                   {list.map((order) => {

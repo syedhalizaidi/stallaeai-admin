@@ -28,7 +28,7 @@ export default function RecentOrdersModal({ onClose, orders = [], onStatusUpdate
 
   const mappedOrders = orders.map((order) => ({
     id: order.id,
-    customer: order.customer_name || order.customer_info || "Unknown",
+    customer: `${order.customer_name} - ${order.phone_number || order.customer_info}` || "Unknown",
     items: getOrderItems(order.order_details),
     price: order.total_amount || 0,
     status: order.order_status || "Pending",

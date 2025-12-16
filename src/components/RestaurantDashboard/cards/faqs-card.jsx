@@ -20,9 +20,10 @@ export default function FAQsCard({
 
   const groupedFAQs = Object.entries(
     orders.reduce((acc, item) => {
-      const phone = item.customer_number || "Unknown"
-      if (!acc[phone]) acc[phone] = []
-      acc[phone].push(item)
+      // Use customer_name if available, otherwise fallback to customer_number or phone_number
+      const identifier = `${item.customer_name} - ${item.customer_number || item.phone_number}` || "Unknown";
+      if (!acc[identifier]) acc[identifier] = []
+      acc[identifier].push(item)
       return acc
     }, {})
   )
@@ -57,15 +58,15 @@ export default function FAQsCard({
           </div>
 
           <div className="orders-list">
-            {topGroups.map(([phoneNumber, faqs]) => (
+            {topGroups.map(([identifier, faqs]) => (
               <div 
-                key={phoneNumber} 
+                key={identifier} 
                 className="order-item clickable-item"
-                onClick={() => onItemClick && onItemClick(phoneNumber)}
+                onClick={() => onItemClick && onItemClick(faqs[0]?.customer_number || faqs[0]?.phone_number)}
                 style={{ cursor: onItemClick ? 'pointer' : 'default' }}
               >
 
-                <p className="order-customer">{phoneNumber}</p>
+                <p className="order-customer">{identifier}</p>
                 <div className="faq-scroll-container">
                   {faqs.map((faq) => (
                     <div key={faq.id} className="faq-block">

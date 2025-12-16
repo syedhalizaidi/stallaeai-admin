@@ -19,14 +19,15 @@ export default function ReservationsCard({
 }) {
   const grouped = Object.entries(
     reservations.reduce((acc, res) => {
-      const phone = res.contact_info || "Unknown";
-      if (!acc[phone]) acc[phone] = [];
-      acc[phone].push(res);
+      // Use customer_name if available, otherwise fallback to contact_info
+      const identifier = `${res.customer_name} - ${res.contact_info || res.phone_number}` || "Unknown";
+      if (!acc[identifier]) acc[identifier] = [];
+      acc[identifier].push(res);
       return acc;
     }, {})
   );
 
-  grouped.forEach(([phone, items]) => {
+  grouped.forEach(([identifier, items]) => {
     items.sort(
       (a, b) =>
         new Date(`${b.booking_date}T${b.start_time || "00:00"}`).getTime() -
@@ -67,14 +68,14 @@ export default function ReservationsCard({
 
           <div className="orders-list">
             {topGroups.length > 0 ? (
-              topGroups.map(([phone, items]) => (
+              topGroups.map(([identifier, items]) => (
                 <div 
-                  key={phone} 
+                  key={identifier} 
                   className="order-item clickable-item"
-                  onClick={() => onItemClick && onItemClick(phone)}
+                  onClick={() => onItemClick && onItemClick(items[0]?.contact_info)}
                   style={{ cursor: onItemClick ? 'pointer' : 'default' }}
                 >
-                  <p className="order-customer">{phone}</p>
+                  <p className="order-customer">{identifier}</p>
                   <div className="reservation-scroll-container">
                     {items.map((res) => (
                       <div key={res.id} className="reservation-block">
