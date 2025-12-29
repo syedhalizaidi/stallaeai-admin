@@ -67,7 +67,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       state: "",
       zipCode: "",
       country: "United States",
-      countryCode: "US",
+      countryCode: "",
       dineIn: false,
       delivery: false,
       pickup: false,
@@ -88,11 +88,6 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const selectCountry = (val) => {
     setValue("country", val);
     setValue("state", "");
-    const selectedCountryData = availableCountries.find(
-      (c) => c.country === val
-    );
-    if (selectedCountryData)
-      setValue("countryCode", selectedCountryData.country_code);
   };
   const selectRegion = (val) => setValue("state", val);
 
@@ -129,7 +124,6 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             setValue("state", location.state || "");
             setValue("zipCode", location.zip_code || "");
             setValue("country", location.country || "United States");
-            setValue("countryCode", data.country_code || "US");
             setValue("dineIn", location.is_dine_in_available || false);
             setValue("delivery", location.is_delivery_available || false);
             setValue("pickup", location.is_pickup_available || false);
@@ -168,6 +162,15 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       load();
     }
   }, [isEditMode, editId, setValue, config.tableRequired]);
+
+  useEffect(() => {
+    const selectedCountryData = availableCountries.find(
+      (c) => c.country === selectedCountry
+    );
+    if (selectedCountryData) {
+      setValue("countryCode", selectedCountryData.country_code);
+    }
+  }, [selectedCountry, availableCountries, setValue]);
 
   const onSubmit = async (data) => {
     setIsLoading(true);
