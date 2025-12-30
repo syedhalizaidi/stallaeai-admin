@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import "./CustomerDetailsSidebar.css";
 import StatusDropdown from "./common/StatusDropdown.jsx";
+import { getOrderTotal, getOrderBreakdown } from "../../utils/orderUtils";
 
 export default function CustomerDetailsSidebar({
   isOpen,
@@ -134,12 +135,45 @@ export default function CustomerDetailsSidebar({
                                 {(item.price * item.qty).toFixed(2)}
                               </p>
                             ))}
-                            <p
-                              className="item-price"
-                              style={{ marginTop: "8px", fontWeight: "bold" }}
-                            >
-                              Total: ${order.total_amount}
-                            </p>
+                            {(() => {
+                              const breakdown = getOrderBreakdown(order);
+                              return (
+                                <>
+                                  {breakdown.subtotal !== null && (
+                                    <p
+                                      className="item-price"
+                                      style={{
+                                        marginTop: "8px",
+                                        fontSize: "0.9em",
+                                        color: "#666",
+                                      }}
+                                    >
+                                      Subtotal: ${breakdown.subtotal.toFixed(2)}
+                                    </p>
+                                  )}
+                                  {breakdown.tax !== null && (
+                                    <p
+                                      className="item-price"
+                                      style={{
+                                        fontSize: "0.9em",
+                                        color: "#666",
+                                      }}
+                                    >
+                                      Tax: ${breakdown.tax.toFixed(2)}
+                                    </p>
+                                  )}
+                                  <p
+                                    className="item-price"
+                                    style={{
+                                      marginTop: "4px",
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    Total: ${breakdown.total.toFixed(2)}
+                                  </p>
+                                </>
+                              );
+                            })()}
                           </div>
                         ) : (
                           <>
@@ -147,7 +181,9 @@ export default function CustomerDetailsSidebar({
                               {itemsDetails.count} item
                               {itemsDetails.count !== 1 ? "s" : ""}
                             </p>
-                            <p className="item-price">${order.total_amount}</p>
+                            <p className="item-price">
+                              ${getOrderTotal(order)}
+                            </p>
                           </>
                         )}
                       </div>
@@ -235,12 +271,55 @@ export default function CustomerDetailsSidebar({
                     </div>
                     <div className="item-details">
                       <p className="item-info">📞 {callback.callback_number}</p>
-                      {callback.requested_at && (
-                        <p className="item-info">
-                          Requested:{" "}
-                          {new Date(callback.requested_at).toLocaleString()}
-                        </p>
-                      )}
+
+                      {/* Detailed Callback Info */}
+                      <div className="mt-2 text-sm text-gray-600">
+                        <div className="mb-1">
+                          <span className="font-semibold">Callback: </span>
+                          {callback.asap ? (
+                            <span
+                              style={{ color: "#ef4444", fontWeight: "bold" }}
+                            >
+                              ASAP
+                            </span>
+                          ) : callback.date && callback.time ? (
+                            <span
+                              style={{ color: "#2563eb", fontWeight: "500" }}
+                            >
+                              {new Date(
+                                `${callback.date}T${callback.time}`
+                              ).toLocaleString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">Not specified</span>
+                          )}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Rec'd: </span>
+                          {callback.requested_at
+                            ? new Date(callback.requested_at).toLocaleString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )
+                            : new Date(callback.timestamp).toLocaleString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )}
+                        </div>
+                      </div>
                       <div className="mt-2 flex justify-end">
                         <StatusDropdown
                           currentStatus={callback.order_status}

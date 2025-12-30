@@ -13,13 +13,19 @@ export default function ReservationsModal({
   const [selectedDate, setSelectedDate] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
 
-  // Convert reservations array into a map keyed by day of month for quick lookup
   const reservationsMap = useMemo(() => {
     const map = {};
     reservations.forEach((res) => {
-      const day = new Date(res.booking_date).getDate();
-      if (!map[day]) map[day] = [];
-      map[day].push(res);
+      // Ensure we get YYYY-MM-DD part
+      let dateKey = res.booking_date; 
+      if (dateKey && dateKey.includes("T")) {
+        dateKey = dateKey.split("T")[0];
+      }
+      
+      if (dateKey) {
+        if (!map[dateKey]) map[dateKey] = [];
+        map[dateKey].push(res);
+      }
     });
     return map;
   }, [reservations]);
@@ -40,6 +46,13 @@ export default function ReservationsModal({
   const getDayName = (date) =>
     date.toLocaleString("default", { weekday: "short" });
 
+  const getISODateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const getDisplayReservations = () => {
     if (selectedDate !== null) {
       return reservationsMap[selectedDate] || [];
@@ -48,9 +61,9 @@ export default function ReservationsModal({
     const weekDates = getWeekDates();
     const weekReservations = [];
     weekDates.forEach((date) => {
-      const day = date.getDate();
-      if (reservationsMap[day]) {
-        weekReservations.push(...reservationsMap[day]);
+      const dateKey = getISODateString(date);
+      if (reservationsMap[dateKey]) {
+        weekReservations.push(...reservationsMap[dateKey]);
       }
     });
     return weekReservations;
@@ -87,14 +100,15 @@ export default function ReservationsModal({
 
   const getDisplayTitle = () => {
     if (selectedDate !== null) {
-      const dayName = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        selectedDate
-      ).toLocaleString("default", { weekday: "long" });
-      return `Reservations for ${dayName} ${selectedDate} ${
-        monthName.split(" ")[0]
-      }`;
+      // selectedDate is "YYYY-MM-DD"
+      // Create date object (append time to avoid timezone shift if parsed as UTC)
+      const [y, m, d] = selectedDate.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      
+      const dayName = dateObj.toLocaleString("default", { weekday: "long" });
+      const monthStr = dateObj.toLocaleString("default", { month: "long" });
+      
+      return `Reservations for ${dayName} ${d} ${monthStr}`;
     }
     return "Reservations for This Week";
   };
@@ -129,13 +143,14 @@ export default function ReservationsModal({
               <div className="week-grid">
                 {weekDates.map((date, idx) => {
                   const dayNum = date.getDate();
-                  const hasReservations = reservationsMap[dayNum]?.length > 0;
-                  const isSelected = selectedDate === dayNum;
+                  const dateKey = getISODateString(date);
+                  const hasReservations = reservationsMap[dateKey]?.length > 0;
+                  const isSelected = selectedDate === dateKey;
 
                   return (
                     <button
                       key={idx}
-                      onClick={() => setSelectedDate(dayNum)}
+                      onClick={() => setSelectedDate(dateKey)}
                       className={`week-day-card ${
                         isSelected ? "selected" : ""
                       } ${hasReservations ? "has-reservations" : ""}`}
@@ -148,8 +163,8 @@ export default function ReservationsModal({
                             isSelected ? "selected-text" : ""
                           }`}
                         >
-                          {reservationsMap[dayNum].length} booking
-                          {reservationsMap[dayNum].length > 1 ? "s" : ""}
+                          {reservationsMap[dateKey].length} booking
+                          {reservationsMap[dateKey].length > 1 ? "s" : ""}
                         </div>
                       )}
                     </button>
@@ -188,16 +203,20 @@ export default function ReservationsModal({
                     <div key={`empty-${idx}`} className="empty-day"></div>
                   ))}
                   {days.map((day) => {
-                    const hasReservations = reservationsMap[day]?.length > 0;
+                    // Construct date key for this day in the current month view
+                    const currentMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                    const dateKey = getISODateString(currentMonthDate);
+                    
+                    const hasReservations = reservationsMap[dateKey]?.length > 0;
                     return (
                       <button
                         key={day}
                         onClick={() => {
-                          setSelectedDate(day);
+                          setSelectedDate(dateKey);
                           setShowCalendar(false);
                         }}
                         className={`calendar-day ${
-                          selectedDate === day ? "selected" : ""
+                          selectedDate === dateKey ? "selected" : ""
                         } ${hasReservations ? "has-reservations" : ""}`}
                       >
                         {day}

@@ -33,10 +33,18 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
   const [noteText, setNoteText] = useState(null);
   const [reservations, setReservations] = useState([]);
   const [activeModal, setActiveModal] = useState(false);
-  // const [searchQuery, setSearchQuery] = useState(""); // Removed local state
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedPhoneNumber, setSelectedPhoneNumber] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [readOrders, setReadOrders] = useState(new Set());
+
+  const handleMarkAsRead = (phoneNumber) => {
+    setReadOrders((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(phoneNumber);
+      return newSet;
+    });
+  };
 
   const getRelativeTime = (timestamp) => {
     if (!timestamp) return "Unknown time";
@@ -198,6 +206,9 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
               callback_number:
                 parsedDetails.callback_number || order.phone_number,
               requested_at: parsedDetails.requested_at,
+              date: parsedDetails.date,
+              time: parsedDetails.time,
+              asap: parsedDetails.asap,
               timestamp: order.timestamp.replace("Z", ""),
             });
             break;
@@ -215,7 +226,7 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
       faqOrders.sort(sortByTimestamp);
       callbackOrders.sort(sortByTimestamp);
 
-      setOrderData({ ...orderResponse.data.data, data: foodOrders });
+      setOrderData({ ...orderResponse.data, data: foodOrders });
       setReservations(reservationOrders);
       setFaqOrders(faqOrders);
       setCallbackOrders(callbackOrders);
@@ -431,7 +442,6 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
   return (
     <div className="dashboard-container">
       {/* Search Field */}
-
 
       {/* Dashboard Cards Grid */}
       <div className="dashboard-grid" style={{ position: "relative" }}>

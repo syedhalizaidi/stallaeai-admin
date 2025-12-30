@@ -2,7 +2,6 @@
 
 import Notes from "../Notes/Notes.jsx" 
 import "./callback-card.css"
-import StatusDropdown from "../common/StatusDropdown.jsx";
 
 export default function CallbackCard({
   onOpen,
@@ -15,19 +14,21 @@ export default function CallbackCard({
   isNoteEnabled,
   setIsNoteEnabled,
   onItemClick,
-  onStatusUpdate
+  onStatusUpdate,
 }) {
   const grouped = Object.entries(
     orders.reduce((acc, item) => {
-      // Use customer_name if available, otherwise fallback to callback_number or phone_number
-      const identifier = `${item.customer_name} - ${item.callback_number || item.phone_number}` || "Unknown";
-      if (!acc[identifier]) acc[identifier] = [];
-      acc[identifier].push(item);
+      const phone =
+        `${item.customer_name} - ${
+          item.callback_number || item.phone_number
+        }` || "Unknown";
+      if (!acc[phone]) acc[phone] = [];
+      acc[phone].push(item);
       return acc;
     }, {})
   );
 
-  grouped.forEach(([identifier, items]) => {
+  grouped.forEach(([phone, items]) => {
     items.sort(
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -64,22 +65,66 @@ export default function CallbackCard({
           </div>
 
           <div className="orders-list">
-            {topGroups.map(([identifier, items]) => (
-              <div 
-                key={identifier} 
+            {topGroups.map(([phone, items]) => (
+              <div
+                key={phone}
                 className="order-item clickable-item"
-                onClick={() => onItemClick && onItemClick(items[0].callback_number)}
-                style={{ cursor: onItemClick ? 'pointer' : 'default' }}
+                onClick={() =>
+                  onItemClick && onItemClick(items[0].callback_number)
+                }
+                style={{ cursor: onItemClick ? "pointer" : "default" }}
               >
-                <p className="order-customer">{identifier}</p>
+                <p className="order-customer">{items[0].customer_name} - {items[0].callback_number}</p>
 
                 <div className="callback-scroll-container">
                   {items.map((item) => (
                     <div key={item.id} className="callback-block">
                       <p className="order-details">{item.callback_number}</p>
-                      <p className="order-time">
-                        {new Date(item.timestamp).toLocaleString()}
-                      </p>
+                      <div className="order-time flex flex-col text-xs text-gray-500">
+                        {/* Callback Target Time */}
+                        <div className="mb-0.5">
+                          <span className="font-medium text-gray-600">
+                            Callback:{" "}
+                          </span>
+                          {item.asap ? (
+                            <span className="text-red-500 font-bold">ASAP</span>
+                          ) : item.date && item.time ? (
+                            <span className="text-blue-600 font-medium">
+                              {new Date(
+                                `${item.date}T${item.time}`
+                              ).toLocaleString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">Not specified</span>
+                          )}
+                        </div>
+
+                        {/* Request Received Time */}
+                        <div>
+                          <span className="font-medium text-gray-600">
+                            Rec'd:{" "}
+                          </span>
+                          {item.requested_at
+                            ? new Date(item.requested_at).toLocaleString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )
+                            : new Date(item.timestamp).toLocaleString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

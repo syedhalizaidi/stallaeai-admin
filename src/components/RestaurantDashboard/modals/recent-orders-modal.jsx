@@ -1,45 +1,60 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import "./recent-orders-modal.css"
-import StatusDropdown from "../common/StatusDropdown.jsx";
+import { useState } from "react";
+import "./recent-orders-modal.css";
+import StatusDropdown from "../common/StatusDropdown";
+import { getOrderTotal, getOrderBreakdown } from "../../../utils/orderUtils";
 
-export default function RecentOrdersModal({ onClose, orders = [], onStatusUpdate }) {
-  const [search, setSearch] = useState("")
-  const [filter, setFilter] = useState("all")
+export default function RecentOrdersModal({
+  onClose,
+  orders = [],
+  onStatusUpdate,
+}) {
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
 
-  // Helper function to get order items
   const getOrderItems = (orderDetails) => {
-    if (!orderDetails || typeof orderDetails !== 'object') {
+    if (!orderDetails || typeof orderDetails !== "object") {
       return [];
     }
 
-    // Check if it's a food order with items array
     if (orderDetails.items && Array.isArray(orderDetails.items)) {
-      return orderDetails.items.map(item => 
-        `${item.name}${item.qty > 1 ? ` (x${item.qty})` : ''}`
+      return orderDetails.items.map(
+        (item) => `${item.name}${item.qty > 1 ? ` (x${item.qty})` : ""}`
       );
     }
 
-    // Fallback: return object keys (excluding metadata fields)
-    const excludeKeys = ['type', 'subtotal', 'tax', 'total', 'special_instructions'];
-    return Object.keys(orderDetails).filter(key => !excludeKeys.includes(key));
+    const excludeKeys = [
+      "type",
+      "subtotal",
+      "tax",
+      "total",
+      "special_instructions",
+    ];
+    return Object.keys(orderDetails).filter(
+      (key) => !excludeKeys.includes(key)
+    );
   };
 
   const mappedOrders = orders.map((order) => ({
     id: order.id,
     customer: `${order.customer_name} - ${order.phone_number || order.customer_info}` || "Unknown",
     items: getOrderItems(order.order_details),
-    price: order.total_amount || 0,
-    status: order.order_status || "Pending",
-  }))
+    price: getOrderTotal(order),
+    status: order.order_status === 'pending' ? 'In Progress' :
+           order.order_status === 'cancelled' ? 'Declined' :
+           order.order_status === 'completed' ? 'Completed' : 
+           (order.order_status || "Pending"),
+  }));
 
   const filteredOrders = mappedOrders.filter((order) => {
-    const matchesSearch = order.customer.toLowerCase().includes(search.toLowerCase())
+    const matchesSearch = order.customer
+      .toLowerCase()
+      .includes(search.toLowerCase());
     const matchesFilter =
-      filter === "all" || order.status.toLowerCase() === filter.toLowerCase()
-    return matchesSearch && matchesFilter
-  })
+      filter === "all" || order.status.toLowerCase() === filter.toLowerCase();
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="modal-overlay">
@@ -47,7 +62,9 @@ export default function RecentOrdersModal({ onClose, orders = [], onStatusUpdate
         <div className="modal-header">
           <div>
             <h2 className="modal-title">Recent Orders</h2>
-            <p className="modal-subtitle">Manage and track all customer orders</p>
+            <p className="modal-subtitle">
+              Manage and track all customer orders
+            </p>
           </div>
           <button onClick={onClose} className="modal-close">
             ✕
@@ -66,7 +83,11 @@ export default function RecentOrdersModal({ onClose, orders = [], onStatusUpdate
               />
               <span className="search-icon">🔍</span>
             </div>
-            <select value={filter} onChange={(e) => setFilter(e.target.value)} className="filter-select">
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="filter-select"
+            >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
               <option value="completed">Completed</option>
@@ -106,9 +127,9 @@ export default function RecentOrdersModal({ onClose, orders = [], onStatusUpdate
                       <span>${order.price.toFixed(2)}</span>
                     </td>
                     <td className="status-cell">
-                      <StatusDropdown 
-                        currentStatus={order.status} 
-                        orderId={order.id} 
+                      <StatusDropdown
+                        currentStatus={order.status}
+                        orderId={order.id}
                         onUpdate={onStatusUpdate}
                       />
                     </td>
@@ -130,5 +151,5 @@ export default function RecentOrdersModal({ onClose, orders = [], onStatusUpdate
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -2,9 +2,13 @@
 
 import { useState } from "react";
 import "./callback-modal.css";
-import StatusDropdown from "../common/StatusDropdown.jsx";
+import StatusDropdown from "../common/StatusDropdown";
 
-export default function CallbackModal({ onClose, orders = [], onStatusUpdate }) {
+export default function CallbackModal({
+  onClose,
+  orders = [],
+  onStatusUpdate,
+}) {
   const [search, setSearch] = useState("");
 
   const filteredRequests = orders.filter((req) =>
@@ -51,19 +55,42 @@ export default function CallbackModal({ onClose, orders = [], onStatusUpdate }) 
                     <h4 className="req-customer">{`${req.customer_name} - ${req.callback_number}` || req.phone_number || "Unknown"}</h4>
                     <p className="req-phone">{req.callback_number}</p>
                   </div>
-                  <StatusDropdown 
-                    currentStatus={req.order_status} 
-                    orderId={req.id} 
+                  <StatusDropdown
+                    currentStatus={req.order_status}
+                    orderId={req.id}
                     onUpdate={onStatusUpdate}
-                    allowedStatuses={['pending', 'completed']}
+                    allowedStatuses={["pending", "completed"]}
                   />
                 </div>
 
-                <div className="req-details">
+                <div className="req-details" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div className="detail-item">
-                    <p className="detail-label">Requested At</p>
+                    <p className="detail-label">Callback Target</p>
                     <p className="detail-value">
-                      {new Date(req.requested_at).toLocaleString()}
+                      {req.asap ? (
+                        <span style={{ color: "#ef4444", fontWeight: "bold" }}>ASAP</span>
+                      ) : req.date && req.time ? (
+                        <span style={{ color: "#2563eb", fontWeight: "500" }}>
+                           {new Date(`${req.date}T${req.time}`).toLocaleString("en-US", {
+                              month: "short", day: "numeric", year: "numeric",
+                           })}
+                        </span>
+                      ) : (
+                        <span style={{ color: "#9ca3af" }}>Not specified</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="detail-item">
+                    <p className="detail-label">Received At</p>
+                    <p className="detail-value">
+                      {req.requested_at 
+                        ? new Date(req.requested_at).toLocaleString("en-US", {
+                            month: "short", day: "numeric", year: "numeric",
+                          })
+                        : new Date(req.timestamp).toLocaleString("en-US", {
+                            month: "short", day: "numeric", year: "numeric",
+                          })
+                      }
                     </p>
                   </div>
                 </div>
