@@ -8,6 +8,9 @@ import SelectField from "../SelectField";
 import NumberField from "../NumberField";
 import CheckboxField from "../CheckboxField";
 import { restaurantService } from "../../services/restaurantService";
+import { userService } from "../../services/userService";
+import { ROUTES } from "../../constants/routes";
+import { User, Shield, Lock, Phone } from "lucide-react";
 
 const BUSINESS_CONFIG = {
   restaurant: {
@@ -79,6 +82,10 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
         businessType === "restaurant"
           ? [{ tableSize: "", customCapacity: "", quantity: "" }]
           : [{ slotName: "chair", capacity: 1, quantity: "" }],
+      staffFullName: "",
+      staffEmail: "",
+      staffPassword: "",
+      staffPhoneNumber: "",
     },
   });
 
@@ -213,7 +220,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
         slots,
         chair_count:
           businessType === "barber" ? Number(data.slots[0].quantity) : 0,
-        location: [
+        locations: [
           {
             street_address: data.streetAddress,
             city: data.city,
@@ -241,12 +248,42 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       let result;
       if (isEditMode && editId) {
         result = await restaurantService.updateRestaurant(editId, payload);
+        if (result.success) {
+          localStorage.setItem("restaurant_id", result.restaurantId);
+          onNext();
+        }
       } else {
         result = await restaurantService.registerRestaurant(payload);
-      }
-      if (result.success) {
-        localStorage.setItem("restaurant_id", result.restaurantId);
-        onNext();
+        if (result.success) {
+          const businessId = result.restaurantId;
+          localStorage.setItem("restaurant_id", businessId);
+          localStorage.setItem("business_id", businessId);
+
+          const staffPayload = {
+            full_name: data.staffFullName,
+            email: data.staffEmail,
+            password: data.staffPassword,
+            phone_number: data.staffPhoneNumber,
+            role: "Proprietor",
+            business_id: businessId,
+            business_ids: [businessId],
+            permissions: ROUTES.map((r) => r.value),
+            businesses: [
+              {
+                ...payload,
+                id: businessId,
+              },
+            ],
+          };
+
+          const staffResult = await userService.createUser(staffPayload);
+          if (!staffResult.success) {
+            console.error("Staff registration failed:", staffResult.error);
+          }
+          onNext();
+        } else {
+          console.error("Registration failed:", result.error);
+        }
       }
     } finally {
       setIsLoading(false);
@@ -532,6 +569,73 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               >
                 Add new reservation
               </button>
+            </div>
+          )}
+
+          {!isEditMode && (
+            <div className="border-t pt-8 mt-8">
+              <div className="flex items-center mb-6">
+                <User className="h-6 w-6 text-blue-600 mr-3" />
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Primary Staff Member
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <TextField
+                  label="Full Name *"
+                  type="text"
+                  placeholder="Enter full name"
+                  icon={User}
+                  error={errors.staffFullName?.message}
+                  {...register("staffFullName", {
+                    required: !isEditMode ? "Full name is required" : false,
+                  })}
+                />
+                <TextField
+                  label="Email *"
+                  type="email"
+                  placeholder="Enter email address"
+                  icon={Mail}
+                  error={errors.staffEmail?.message}
+                  {...register("staffEmail", {
+                    required: !isEditMode ? "Email is required" : false,
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Invalid email address",
+                    },
+                  })}
+                />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <TextField
+                  label="Password *"
+                  type="password"
+                  placeholder="Enter password"
+                  icon={Lock}
+                  error={errors.staffPassword?.message}
+                  {...register("staffPassword", {
+                    required: !isEditMode ? "Password is required" : false,
+                    minLength: {
+                      value: 8,
+                      message: "Password must be at least 8 characters",
+                    },
+                  })}
+                />
+                <TextField
+                  label="Phone Number *"
+                  type="tel"
+                  placeholder="1234567890"
+                  icon={Phone}
+                  error={errors.staffPhoneNumber?.message}
+                  {...register("staffPhoneNumber", {
+                    required: !isEditMode ? "Phone number is required" : false,
+                    minLength: {
+                      value: 8,
+                      message: "Phone number must be at least 8 digits",
+                    },
+                  })}
+                />
+              </div>
             </div>
           )}
         </div>

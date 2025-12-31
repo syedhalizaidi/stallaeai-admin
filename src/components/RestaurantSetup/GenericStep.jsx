@@ -8,6 +8,9 @@ import { useToast } from "../../contexts/ToastContext";
 import { BUSINESS_TYPES } from "../Restaurants";
 import { restaurantService } from "../../services/restaurantService";
 import { businessService } from "../../services/businessService";
+import { userService } from "../../services/userService";
+import { ROUTES } from "../../constants/routes";
+import { User, Shield, Lock, Phone } from "lucide-react";
 
 const GenericStep = ({ onClose }) => {
   const { showError } = useToast();
@@ -66,6 +69,10 @@ const GenericStep = ({ onClose }) => {
       serviceAvailable: true,
       wheelchairAccessible: false,
       parkingAvailable: false,
+      staffFullName: "",
+      staffEmail: "",
+      staffPassword: "",
+      staffPhoneNumber: "",
     },
   });
 
@@ -143,7 +150,7 @@ const GenericStep = ({ onClose }) => {
         email: data.email.trim().toLowerCase(),
         business_type: businessTypeToSend,
         country_code: data.countryCode,
-        location: [
+        locations: [
           {
             street_address: data.streetAddress,
             city: data.city,
@@ -154,13 +161,39 @@ const GenericStep = ({ onClose }) => {
         ],
       };
 
-      const result = await restaurantService.registerRestaurant(payload);
+      const businessResult = await restaurantService.registerRestaurant(payload);
 
-      if (result.success) {
-        localStorage.setItem("business_id", result.businessId);
+      if (businessResult.success) {
+        const businessId = businessResult.restaurantId; // Fixed: was businessId
+        localStorage.setItem("business_id", businessId);
+        localStorage.setItem("restaurant_id", businessId);
+
+        const staffPayload = {
+          full_name: data.staffFullName,
+          email: data.staffEmail,
+          password: data.staffPassword,
+          phone_number: data.staffPhoneNumber,
+          role: "Proprietor",
+          business_id: businessId,
+          business_ids: [businessId], // Added plural for robustness
+          permissions: ROUTES.map((r) => r.value),
+          businesses: [
+            {
+              ...payload,
+              id: businessId,
+            },
+          ],
+        };
+
+        const staffResult = await userService.createUser(staffPayload);
+        
+        if (!staffResult.success) {
+          console.error("Staff registration failed:", staffResult.error);
+        }
+
         onClose();
       } else {
-        showError(result.error);
+        showError(businessResult.error);
       }
     } catch (error) {
       console.error("Business registration error:", error);
@@ -379,6 +412,71 @@ const GenericStep = ({ onClose }) => {
                 placeholder="US"
                 error={errors.countryCode?.message}
                 {...register("countryCode")}
+              />
+            </div>
+          </div>
+
+          <div className="border-t pt-8">
+            <div className="flex items-center mb-6">
+              <User className="h-6 w-6 text-blue-600 mr-3" />
+              <h3 className="text-xl font-semibold text-gray-900">
+                Primary Staff Member
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TextField
+                label="Full Name *"
+                type="text"
+                placeholder="Enter full name"
+                icon={User}
+                error={errors.staffFullName?.message}
+                {...register("staffFullName", {
+                  required: "Full name is required",
+                })}
+              />
+              <TextField
+                label="Email *"
+                type="email"
+                placeholder="Enter email address"
+                icon={Mail}
+                error={errors.staffEmail?.message}
+                {...register("staffEmail", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: "Enter a valid email",
+                  },
+                })}
+              />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              <TextField
+                label="Password *"
+                type="password"
+                placeholder="Enter password"
+                icon={Lock}
+                error={errors.staffPassword?.message}
+                {...register("staffPassword", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 8,
+                    message: "Password must be at least 8 characters",
+                  },
+                })}
+              />
+              <TextField
+                label="Phone Number *"
+                type="tel"
+                placeholder="1234567890"
+                icon={Phone}
+                error={errors.staffPhoneNumber?.message}
+                {...register("staffPhoneNumber", {
+                  required: "Phone number is required",
+                  minLength: {
+                    value: 8,
+                    message: "Phone number must be at least 8 digits",
+                  },
+                })}
               />
             </div>
           </div>

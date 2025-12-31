@@ -7,6 +7,9 @@ import TimeField from '../TimeField';
 import SelectField from '../SelectField';
 import LocationSection from './LocationSection';
 import { businessService } from '../../services/businessService';
+import { userService } from "../../services/userService";
+import { ROUTES } from "../../constants/routes";
+import { User, Shield, Lock, Phone as PhoneIcon, Mail } from "lucide-react";
 import { useToast } from '../../contexts/ToastContext';
 
 const daysOptions = [
@@ -49,7 +52,11 @@ const BarberForm = ({ onNext, isEditMode = false, editId = null }) => {
       closing_time: '21:00',
       days_open: 'Mon, Tue, Wed, Thu, Fri, Sat, Sun',
       has_waiting_area: true,
-      offers_home_service: false
+      offers_home_service: false,
+      staffFullName: "",
+      staffEmail: "",
+      staffPassword: "",
+      staffPhoneNumber: "",
     }
   });
 
@@ -73,7 +80,7 @@ const BarberForm = ({ onNext, isEditMode = false, editId = null }) => {
       has_waiting_area: data.has_waiting_area,
       offers_home_service: data.offers_home_service,
       country_code: data.country_code,
-      location: [
+      locations: [
         {
           street_address: data.street_address,
           city: data.city,
@@ -90,15 +97,43 @@ const BarberForm = ({ onNext, isEditMode = false, editId = null }) => {
       let response;
       if (isEditMode && editId) {
         response = await businessService.updateBusiness(editId, payload);
+        if (response.success) {
+          onNext();
+        } else {
+          showError(response.error);
+        }
       } else {
         response = await businessService.addBarberBusiness(payload);
-      }
+        if (response.success) {
+          const businessId = response.data?.id || response.businessId;
+          localStorage.setItem("restaurant_id", businessId);
+          localStorage.setItem("business_id", businessId);
 
-      if (response.success) {
-        onNext();
-      } else {
-        showError(response.error)
-        console.error(`Error ${isEditMode ? 'updating' : 'adding'} barber business:`, response.error);
+          const staffPayload = {
+            full_name: data.staffFullName,
+            email: data.staffEmail,
+            password: data.staffPassword,
+            phone_number: data.staffPhoneNumber,
+            role: "Proprietor",
+            business_id: businessId,
+            business_ids: [businessId],
+            permissions: ROUTES.map((r) => r.value),
+            businesses: [
+              {
+                ...payload,
+                id: businessId,
+              },
+            ],
+          };
+
+          const staffResult = await userService.createUser(staffPayload);
+          if (!staffResult.success) {
+            console.error("Staff registration failed:", staffResult.error);
+          }
+          onNext();
+        } else {
+          showError(response.error);
+        }
       }
     }
     catch (error) {
@@ -367,6 +402,73 @@ const BarberForm = ({ onNext, isEditMode = false, editId = null }) => {
               />
             </div>
           </div>
+
+          {!isEditMode && (
+            <div className="border-t pt-8 mt-8">
+              <div className="flex items-center mb-6">
+                <User className="h-6 w-6 text-purple-600 mr-3" />
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Primary Staff Member
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <TextField
+                  label="Full Name *"
+                  type="text"
+                  placeholder="Enter full name"
+                  icon={User}
+                  error={errors.staffFullName?.message}
+                  {...register("staffFullName", {
+                    required: !isEditMode ? "Full name is required" : false,
+                  })}
+                />
+                <TextField
+                  label="Email *"
+                  type="email"
+                  placeholder="Enter email address"
+                  icon={Mail}
+                  error={errors.staffEmail?.message}
+                  {...register("staffEmail", {
+                    required: !isEditMode ? "Email is required" : false,
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Invalid email address",
+                    },
+                  })}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <TextField
+                  label="Password *"
+                  type="password"
+                  placeholder="Enter password"
+                  icon={Lock}
+                  error={errors.staffPassword?.message}
+                  {...register("staffPassword", {
+                    required: !isEditMode ? "Password is required" : false,
+                    minLength: {
+                      value: 8,
+                      message: "Password must be at least 8 characters",
+                    },
+                  })}
+                />
+                <TextField
+                  label="Phone Number *"
+                  type="tel"
+                  placeholder="1234567890"
+                  icon={PhoneIcon}
+                  error={errors.staffPhoneNumber?.message}
+                  {...register("staffPhoneNumber", {
+                    required: !isEditMode ? "Phone number is required" : false,
+                    minLength: {
+                      value: 8,
+                      message: "Phone number must be at least 8 digits",
+                    },
+                  })}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex space-x-3 pt-6 border-t border-gray-200">
