@@ -21,16 +21,7 @@ import { useToast } from "../contexts/ToastContext.jsx";
 const RestaurantDashboard = ({ restaurant, searchQuery }) => {
   const { showSuccess, showError } = useToast();
   const [orderData, setOrderData] = useState([]);
-  const [noteLoading, setNoteLoading] = useState(false);
-  const [uploadNote, setUploadNote] = useState("");
-  const [reservationNote, setReservationNote] = useState("");
-  const [callBackNote, setCallBackNote] = useState("");
-  const [faqNote, setFaqNote] = useState("");
-  const [isNoteEnabled, setIsNoteEnabled] = useState(true);
-  const [isReservationEnabled, setIsReservationEnabled] = useState(true);
-  const [isCallBackEnabled, setIsCallBackEnabled] = useState(true);
-  const [isFaqEnabled, setIsFaqEnabled] = useState(true);
-  const [noteText, setNoteText] = useState(null);
+
   const [reservations, setReservations] = useState([]);
   const [activeModal, setActiveModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -244,126 +235,9 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
     return () => clearInterval(interval);
   }, [restaurant]);
 
-  const fetchNotes = async () => {
-    try {
-      const response = await getNote(restaurant.id);
 
-      if (response.success && response.data) {
-        setUploadNote(response.data.message || "");
-      } else {
-        setUploadNote("");
-      }
-    } catch (err) {
-      console.error("Error fetching notes:", err);
-      setUploadNote("");
-    }
-  };
 
-  useEffect(() => {
-    fetchNotes();
-  }, [restaurant]);
 
-  const handleSubmitNote = async () => {
-    setNoteLoading(true);
-    try {
-      const payload = {
-        business_id: restaurant.id,
-        message: uploadNote,
-      };
-      const response = await createNote(payload);
-      if (response.success) {
-        showSuccess("Note submitted successfully");
-        fetchNotes();
-        setNoteText(uploadNote);
-      } else {
-        showError("Failed to submit note: " + response.message);
-      }
-    } catch (error) {
-      showError("Failed to submit note: " + error);
-    } finally {
-      setNoteLoading(false);
-    }
-  };
-
-  const handleReservationSubmitNote = async () => {
-    setNoteLoading(true);
-    try {
-      const payload = {
-        business_id: restaurant.id,
-        message: reservationNote,
-      };
-      const response = await createReservationSubmitNote(payload);
-      if (response.success) {
-        showSuccess("Note submitted successfully");
-        fetchNotes();
-        setNoteText(reservationNote);
-      } else {
-        showError("Failed to submit note: " + response.message);
-      }
-    } catch (error) {
-      showError("Failed to submit note: " + error);
-    } finally {
-      setNoteLoading(false);
-    }
-  };
-
-  const handleCallBackSubmitNote = async () => {
-    setNoteLoading(true);
-    try {
-      const payload = {
-        business_id: restaurant.id,
-        message: callBackNote,
-      };
-      const response = await createCallBackSubmitNote(payload);
-      if (response.success) {
-        showSuccess("Note submitted successfully");
-        fetchNotes();
-        setNoteText(uploadNote);
-      } else {
-        showError("Failed to submit note: " + response.message);
-      }
-    } catch (error) {
-      showError("Failed to submit note: " + error);
-    } finally {
-      setNoteLoading(false);
-    }
-  };
-
-  const handleFaqSubmitNote = async () => {
-    setNoteLoading(true);
-    try {
-      const payload = {
-        business_id: restaurant.id,
-        message: faqNote,
-      };
-      const response = await createFaqSubmitNote(payload);
-      if (response.success) {
-        showSuccess("Note submitted successfully");
-        fetchNotes();
-        setNoteText(uploadNote);
-      } else {
-        showError("Failed to submit note: " + response.message);
-      }
-    } catch (error) {
-      showError("Failed to submit note: " + error);
-    } finally {
-      setNoteLoading(false);
-    }
-  };
-
-  const handleDeleteNote = async () => {
-    try {
-      const response = await deleteNote(restaurant.id);
-      if (response.success) {
-        showSuccess("Note deleted successfully");
-        setUploadNote("");
-      } else {
-        showError("Failed to delete note: " + response.message);
-      }
-    } catch (error) {
-      showError("Failed to delete note");
-    }
-  };
 
   // Filter data based on search query
   const filterBySearch = (items, searchFields) => {
@@ -478,13 +352,6 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
           <RecentOrdersCard
             onOpen={() => setActiveModal("orders")}
             orders={filteredOrders}
-            noteText={uploadNote}
-            setNoteText={setUploadNote}
-            handleSubmitNote={handleSubmitNote}
-            handleDeleteNote={handleDeleteNote}
-            noteLoading={noteLoading}
-            isNoteEnabled={isNoteEnabled}
-            setIsNoteEnabled={setIsNoteEnabled}
             onItemClick={handleItemClick}
             onStatusUpdate={fetchOrders}
           />
@@ -494,13 +361,6 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
           <ReservationsCard
             onOpen={() => setActiveModal("reservations")}
             reservations={filteredReservations}
-            noteText={reservationNote}
-            setNoteText={setReservationNote}
-            handleSubmitNote={handleReservationSubmitNote}
-            handleDeleteNote={handleDeleteNote}
-            noteLoading={noteLoading}
-            isNoteEnabled={isReservationEnabled}
-            setIsNoteEnabled={setIsReservationEnabled}
             onItemClick={handleItemClick}
             onStatusUpdate={fetchOrders}
           />
@@ -510,13 +370,6 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
           <CallbackCard
             onOpen={() => setActiveModal("callbacks")}
             orders={filteredCallbackOrders}
-            noteText={callBackNote}
-            setNoteText={setCallBackNote}
-            handleSubmitNote={handleCallBackSubmitNote}
-            handleDeleteNote={handleDeleteNote}
-            noteLoading={noteLoading}
-            isNoteEnabled={isCallBackEnabled}
-            setIsNoteEnabled={setIsCallBackEnabled}
             onItemClick={handleItemClick}
             onStatusUpdate={fetchOrders}
           />
@@ -526,13 +379,6 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
           <FAQsCard
             onOpen={() => setActiveModal("faqs")}
             orders={filteredFaqOrders}
-            noteText={faqNote}
-            setNoteText={setFaqNote}
-            handleSubmitNote={handleFaqSubmitNote}
-            handleDeleteNote={handleDeleteNote}
-            noteLoading={noteLoading}
-            isNoteEnabled={isFaqEnabled}
-            setIsNoteEnabled={setIsFaqEnabled}
             onItemClick={handleItemClick}
             onStatusUpdate={fetchOrders}
           />

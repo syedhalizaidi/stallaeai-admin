@@ -1,19 +1,11 @@
 "use client"
 
-import Notes from "../Notes/Notes.jsx";
 import "./faqs-card.css"
 import StatusDropdown from "../common/StatusDropdown.jsx";
 
 export default function FAQsCard({
   onOpen,
   orders = [],
-  noteText,
-  setNoteText,
-  handleSubmitNote,
-  handleDeleteNote,
-  noteLoading,
-  isNoteEnabled,
-  setIsNoteEnabled,
   onItemClick,
   onStatusUpdate
 }) {
@@ -38,16 +30,6 @@ export default function FAQsCard({
 
   return (
     <div className="card-container">
-      <Notes
-        noteText={noteText}
-        setNoteText={setNoteText}
-        handleSubmitNote={handleSubmitNote}
-        handleDeleteNote={handleDeleteNote}
-        noteLoading={noteLoading}
-        isNoteEnabled={isNoteEnabled}
-        setIsNoteEnabled={setIsNoteEnabled}
-      />
-
       <div className="card">
         <div className="card-content">
           <div className="card-header">

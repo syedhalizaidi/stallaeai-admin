@@ -499,7 +499,7 @@ const RestaurantsModule = () => {
       )}
 
       {isAddBusinessModalOpen && (
-        <div className="absolute top-0 left-0 right-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity flex items-center justify-center z-50 p-4">
           <GenericStep onClose={() => setIsAddBusinessModalOpen(false)} />
         </div>
       )}

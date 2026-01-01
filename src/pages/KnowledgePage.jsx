@@ -1,33 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "../contexts/ToastContext";
 import { knowledgeBaseService } from "../services/knowledgeBaseService";
-import { restaurantService } from "../services/restaurantService";
-import { Loader2, Trash2, Upload, FileText, Building2 } from "lucide-react";
+import { useBusinessContext } from "../contexts/BusinessContext";
+import { Loader2, Trash2, Upload, FileText } from "lucide-react";
 
 const KnowledgePage = () => {
   const { showSuccess, showError } = useToast();
+  const { selectedBusiness } = useBusinessContext();
 
-  const [restaurants, setRestaurants] = useState([]);
-  const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [faqFiles, setFaqFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchBusinesses = async () => {
-    const result = await restaurantService.getRestaurants();
-    if (result.success) {
-      setRestaurants(result.data);
-      if (result.data.length > 0) {
-        setSelectedRestaurant(result.data[0].id);
-        fetchFAQFiles(result.data[0].id);
-      }
-    } else showError(result.error || "Failed to fetch restaurants.");
-  };
 
-  const fetchFAQFiles = async (businessId) => {
-    if (!businessId) return;
+
+  const fetchFAQFiles = async () => {
+    if (!selectedBusiness) return;
     setLoading(true);
-    const result = await knowledgeBaseService.getFAQFiles(businessId);
+    const result = await knowledgeBaseService.getFAQFiles(selectedBusiness.id);
     setLoading(false);
     if (result.success) setFaqFiles(result.data);
     else showError(result.error || "Failed to fetch FAQ files.");
@@ -57,19 +47,19 @@ const KnowledgePage = () => {
   };
 
   const handleUpload = async () => {
-    if (!selectedRestaurant) return showError("Please select a business first.");
+    if (!selectedBusiness) return showError("Please select a business first.");
     if (selectedFiles.length === 0) return showError("Please select at least one file to upload.");
     try {
       setLoading(true);
       for (const file of selectedFiles) {
         const formData = new FormData();
         formData.append("file", file);
-        const result = await knowledgeBaseService.uploadFAQ(selectedRestaurant, formData);
+        const result = await knowledgeBaseService.uploadFAQ(selectedBusiness.id, formData);
         if (!result.success) showError(result.error || `Failed to upload ${file.name}`);
       }
       showSuccess("Files uploaded successfully!");
       setSelectedFiles([]);
-      fetchFAQFiles(selectedRestaurant);
+      fetchFAQFiles();
     } catch {
       showError("Upload failed.");
     } finally {
@@ -78,14 +68,14 @@ const KnowledgePage = () => {
   };
 
   const handleDelete = async (fileId) => {
-    if (!selectedRestaurant) return;
+    if (!selectedBusiness) return;
     try {
       setLoading(true);
-      const result = await knowledgeBaseService.deleteFAQFile(selectedRestaurant, fileId);
+      const result = await knowledgeBaseService.deleteFAQFile(selectedBusiness.id, fileId);
       setLoading(false);
       if (result.success) {
         showSuccess("File deleted successfully!");
-        fetchFAQFiles(selectedRestaurant);
+        fetchFAQFiles();
       } else showError(result.error);
     } catch {
       setLoading(false);
@@ -93,15 +83,9 @@ const KnowledgePage = () => {
     }
   };
 
-  const handleRestaurantChange = (e) => {
-    const id = e.target.value;
-    setSelectedRestaurant(id);
-    if (id) fetchFAQFiles(id);
-  };
-
   useEffect(() => {
-    fetchBusinesses();
-  }, []);
+    fetchFAQFiles();
+  }, [selectedBusiness]);
 
   return (
     <div className="flex-1 p-4 sm:p-6 lg:p-8">
@@ -110,25 +94,7 @@ const KnowledgePage = () => {
             <h1 className="text-2xl font-semibold mb-1">Knowledge Base</h1>
             <p className="text-sm opacity-80">Upload and manage proposal or FAQ documents for each business.</p>
           </div>
-          {restaurants.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border p-5 mb-6">
-              <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-purple-600" />
-                Select Business
-              </label>
-              <select
-                value={selectedRestaurant}
-                onChange={handleRestaurantChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:ring-2 focus:ring-purple-500 focus:outline-none"
-              >
-                {restaurants.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+
           <div className="bg-white rounded-xl shadow-sm border p-5 mb-8 space-y-4">
             <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <Upload className="w-5 h-5 text-purple-600" />

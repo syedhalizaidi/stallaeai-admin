@@ -1,19 +1,11 @@
 "use client";
 
-import Notes from "../Notes/Notes.jsx";
 import "./reservations-card.css";
 import StatusDropdown from "../common/StatusDropdown.jsx";
 
 export default function ReservationsCard({
   onOpen,
   reservations = [],
-  noteText,
-  setNoteText,
-  handleSubmitNote,
-  handleDeleteNote,
-  noteLoading,
-  isNoteEnabled,
-  setIsNoteEnabled,
   onItemClick,
   onStatusUpdate
 }) {
@@ -47,16 +39,6 @@ export default function ReservationsCard({
 
   return (
     <div className="card-container">
-      <Notes
-        noteText={noteText}
-        setNoteText={setNoteText}
-        handleSubmitNote={handleSubmitNote}
-        handleDeleteNote={handleDeleteNote}
-        noteLoading={noteLoading}
-        isNoteEnabled={isNoteEnabled}
-        setIsNoteEnabled={setIsNoteEnabled}
-      />
-
       <div className="card">
         <div className="card-content">
           <div className="card-header">

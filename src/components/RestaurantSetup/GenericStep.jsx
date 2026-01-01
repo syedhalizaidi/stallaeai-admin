@@ -203,7 +203,7 @@ const GenericStep = ({ onClose }) => {
   };
 
   return (
-    <div className="p-8 bg-white !w-[50vw]">
+    <div className="p-8 bg-white rounded-2xl !w-[50vw] max-h-[90vh] overflow-y-auto">
       <div className="flex items-center mb-6 pb-4 border-b">
         <Home className="h-6 w-6 text-blue-600 mr-3" />
         <h2 className="text-2xl font-semibold text-gray-900">{"Basic Info"}</h2>

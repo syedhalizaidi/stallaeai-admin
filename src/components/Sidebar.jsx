@@ -14,56 +14,7 @@ import { PERMISSION_ROUTE_MAP } from '../constants/permissionRouteMap';
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const userPermissionsStr = localStorage.getItem("userPermissions");
-  const userPermissions = userPermissionsStr ? JSON.parse(userPermissionsStr) : [];
-
-  const allowedAppRoutes = userPermissions
-    .map((perm) => PERMISSION_ROUTE_MAP[perm])
-    .filter(Boolean);
-
-  const menuItems = [
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: LayoutDashboard,
-      path: '/dashboard'
-    },
-    {
-      id: 'restaurants',
-      label: 'Business',
-      icon: Store,
-      path: '/dashboard-businesses'
-    },
-    {
-      id: 'knowledge-base',
-      label: 'Knowledge Base',
-      icon: FileStack,
-      path: '/knowledge-base'
-    },
-    // {
-    //   id: 'notifications',
-    //   label: 'Notifications',
-    //   icon: Bell,
-    //   path: '/notifications'
-    // },
-    {
-      id: 'menu-management',
-      label: 'Manage Menu',
-      icon: Menu,
-      path: '/menu-management'
-    },
-    {
-      id: 'add-staff',
-      label: 'Add staff',
-      icon: UserPlus,
-      path: '/add-staff'
-    }
-  ];
-
-  const handleNavigation = (path) => {
-    navigate(path);
-  };
+  // const location = useLocation(); // Not needed for header if we don't have nav links
 
   const handleLogout = () => {
     clearUserData();
@@ -71,84 +22,27 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-16 md:w-64">
-      <div className='h-screen w-16 md:w-64 bg-white shadow-lg transition-all duration-300 flex flex-col fixed'>
-        <div className="p-3 md:p-6 flex-1">
-          {/* Logo/Brand */}
-          <div className="flex items-center mb-6 md:mb-8">
-            <div className="h-10 w-10 flex items-center justify-center">
-              <img src={Logo} alt="Logo" className="h-8 w-8 md:h-10 md:w-10" />
-            </div>
-            <div className="hidden md:block ml-3">
-              <h1 className="text-lg font-semibold text-gray-900">Admin Panel</h1>
-            </div>
+    <div className="w-full h-16 bg-white shadow-sm z-50 relative">
+      <div className="h-full w-full mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        {/* Logo/Brand */}
+        <div className="flex items-center">
+          <div className="h-8 w-8 flex items-center justify-center mr-2">
+            <img src={Logo} alt="Logo" className="h-full w-full object-contain" />
           </div>
-
-          {/* Navigation Menu */}
-          <nav className="space-y-2">
-            <div className="hidden md:block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-              Modules
-            </div>
-
-            {menuItems.map((item) => {
-              const userRole = getUserRole();
-              
-              // Admin users have access to all menu items
-              if (userRole === 'Admin') {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNavigation(item.path)}
-                    className={`w-full flex items-center px-2 md:px-3 py-2 text-sm cursor-pointer font-medium rounded-lg transition-colors ${isActive
-                      ? 'bg-purple-100 text-purple-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                      }`}
-                    title={item.label}
-                  >
-                    <Icon className="h-5 w-5 md:mr-3" />
-                    <span className="hidden md:block">{item.label}</span>
-                  </button>
-                );
-              }
-              
-              if (userRole !== "Admin") {
-                const isAllowed = allowedAppRoutes.includes(item.path);
-
-                if (!isAllowed) return null;
-              }
-
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavigation(item.path)}
-                  className={`w-full flex items-center px-2 md:px-3 py-2 text-sm cursor-pointer font-medium rounded-lg transition-colors ${isActive
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  title={item.label}
-                >
-                  <Icon className="h-5 w-5 md:mr-3" />
-                  <span className="hidden md:block">{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
+          <h1 className="text-xl font-bold text-gray-900">Stellae AI</h1>
         </div>
 
-        {/* Logout Button */}
-        <div className="p-3 md:p-6 border-t border-gray-200">
-          <button
+        {/* Right Side Actions */}
+        <div className="flex items-center">
+            <button
             onClick={handleLogout}
-            className="w-full flex items-center px-2 md:px-3 py-2 text-sm font-medium rounded-lg transition-colors text-red-600 hover:bg-red-50 cursor-pointer"
+            className="flex items-center text-sm font-medium text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
             title="Logout"
-          >
-            <LogOut className="h-5 w-5 md:mr-3" />
-            <span className="hidden md:block">Logout</span>
-          </button>
+            >
+            <span className="mr-2">Logout</span>
+            {/* Using LogOut icon from existing imports but maybe small/subtle */}
+            {/* <LogOut className="h-4 w-4" /> */} 
+            </button>
         </div>
       </div>
     </div>

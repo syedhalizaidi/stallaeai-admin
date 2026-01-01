@@ -1,17 +1,11 @@
 "use client";
 
-import Notes from "../Notes/Notes.jsx" 
 import "./recent-orders-card.css"
 import { getOrderTotal } from "../../../utils/orderUtils";
 
 export default function RecentOrdersCard({
   onOpen,
   orders = [],
-  noteText,
-  setNoteText,
-  handleSubmitNote,
-  handleDeleteNote,
-  noteLoading,
   onItemClick,
   onStatusUpdate,
   readOrders,
@@ -80,15 +74,6 @@ export default function RecentOrdersCard({
 
   return (
     <div className="card-container">
-      {/* Reusable Notes Component */}
-      <Notes
-        noteText={noteText}
-        setNoteText={setNoteText}
-        handleSubmitNote={handleSubmitNote}
-        handleDeleteNote={handleDeleteNote}
-        noteLoading={noteLoading}
-      />
-
       <div className="card">
         <div className="card-content">
           <div className="card-header">

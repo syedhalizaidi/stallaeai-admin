@@ -1,18 +1,10 @@
 "use client";
 
-import Notes from "../Notes/Notes.jsx" 
 import "./callback-card.css"
 
 export default function CallbackCard({
   onOpen,
   orders = [],
-  noteText,
-  setNoteText,
-  handleSubmitNote,
-  handleDeleteNote,
-  noteLoading,
-  isNoteEnabled,
-  setIsNoteEnabled,
   onItemClick,
   onStatusUpdate,
 }) {
@@ -45,16 +37,6 @@ export default function CallbackCard({
 
   return (
     <div className="card-container">
-      <Notes
-        noteText={noteText}
-        setNoteText={setNoteText}
-        handleSubmitNote={handleSubmitNote}
-        handleDeleteNote={handleDeleteNote}
-        noteLoading={noteLoading}
-        isNoteEnabled={isNoteEnabled}
-        setIsNoteEnabled={setIsNoteEnabled}
-      />
-
       <div className="card">
         <div className="card-content">
           <div className="card-header">

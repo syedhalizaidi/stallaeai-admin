@@ -1,54 +1,57 @@
 import { useEffect, useState } from "react";
-import { Store, MapPin, Loader2, User, ChevronDown, Search } from "lucide-react";
+import {
+  Store,
+  MapPin,
+  Loader2,
+  User,
+  Search,
+  FileStack,
+  Menu as MenuIcon,
+  UserPlus,
+  Grid,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { dashboardService } from "../services/dashboard";
-import { restaurantService } from "../services/restaurantService";
 import RestaurantDashboard from "./CardCon";
+import PageModal from "./PageModal";
+import Restaurants from "./Restaurants";
+import KnowledgePage from "../pages/KnowledgePage";
+import ManageMenu from "../pages/ManageMenu";
+import AddStaffPage from "../pages/AddStaffPage";
+import BusinessSelector from "./BusinessSelector";
+import { useBusinessContext } from "../contexts/BusinessContext";
+import {
+  getNote,
+  createNote,
+  deleteNote,
+} from "../services/restaurantDashboardService";
+import { useToast } from "../contexts/ToastContext";
 
 const DashboardModule = () => {
+  const navigate = useNavigate();
+  const { selectedBusiness } = useBusinessContext();
+  const { showSuccess, showError } = useToast();
   const [stats, setStats] = useState(null);
-  const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Modal states
+  const [activePageModal, setActivePageModal] = useState(null);
+
+  // Notes state
+  const [businessNote, setBusinessNote] = useState("");
+  const [noteLoading, setNoteLoading] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statsResult, businessesResult] = await Promise.all([
-        dashboardService.getDashboardStats(),
-        restaurantService.getRestaurants(),
-      ]);
+      const statsResult = await dashboardService.getDashboardStats();
 
       if (statsResult.success) {
         setStats(statsResult.data);
       } else {
         setError(statsResult.error);
-      }
-
-      if (businessesResult.success) {
-        setRestaurants(businessesResult.data);
-        const savedId = localStorage.getItem("businessId");
-        let businessToSelect = null;
-
-        if (savedId) {
-          businessToSelect = businessesResult.data.find(
-            (biz) => biz.id === savedId
-          );
-        }
-
-        if (!businessToSelect && businessesResult.data.length > 0) {
-          businessToSelect = businessesResult.data[0];
-        }
-
-        setSelectedBusiness(businessToSelect);
-
-        if (businessToSelect) {
-          localStorage.setItem("businessId", businessToSelect.id);
-        }
-      } else {
-        setError(businessesResult.error);
       }
     } catch (err) {
       setError(err.message || "Something went wrong");
@@ -61,10 +64,63 @@ const DashboardModule = () => {
     fetchData();
   }, []);
 
-  const handleSelectBusiness = (business) => {
-    setSelectedBusiness(business);
-     localStorage.setItem("businessId", business.id);
-    setDropdownOpen(false);
+  // Fetch notes when business changes
+  useEffect(() => {
+    const fetchNotes = async () => {
+      if (!selectedBusiness) return;
+
+      try {
+        const response = await getNote(selectedBusiness.id);
+        if (response.success && response.data) {
+          setBusinessNote(response.data.message || "");
+        } else {
+          setBusinessNote("");
+        }
+      } catch (err) {
+        console.error("Error fetching notes:", err);
+        setBusinessNote("");
+      }
+    };
+
+    fetchNotes();
+  }, [selectedBusiness]);
+
+  const handleSubmitNote = async () => {
+    if (!selectedBusiness) return;
+
+    setNoteLoading(true);
+    try {
+      const payload = {
+        business_id: selectedBusiness.id,
+        message: businessNote,
+      };
+      const response = await createNote(payload);
+      if (response.success) {
+        showSuccess("Note saved successfully");
+      } else {
+        showError("Failed to save note: " + response.message);
+      }
+    } catch (error) {
+      showError("Failed to save note");
+    } finally {
+      setNoteLoading(false);
+    }
+  };
+
+  const handleDeleteNote = async () => {
+    if (!selectedBusiness) return;
+
+    try {
+      const response = await deleteNote(selectedBusiness.id);
+      if (response.success) {
+        showSuccess("Note deleted successfully");
+        setBusinessNote("");
+      } else {
+        showError("Failed to delete note: " + response.message);
+      }
+    } catch (error) {
+      showError("Failed to delete note");
+    }
   };
 
   if (loading)
@@ -137,16 +193,51 @@ const DashboardModule = () => {
     },
   ];
 
+  /* Navigation Cards Data */
+  const navigationCards = [
+    {
+      id: "business-details",
+      label: "Business Details",
+      description: "Manage locations & voice settings",
+      icon: Store,
+      modalKey: "business",
+    },
+    {
+      id: "knowledge-base",
+      label: "Knowledge Base",
+      description: "Upload FAQs & training documents",
+      icon: FileStack,
+      modalKey: "knowledge",
+    },
+    {
+      id: "menu-management",
+      label: "Manage Menu",
+      description: "Configure items, prices & categories",
+      icon: MenuIcon,
+      modalKey: "menu",
+    },
+    {
+      id: "add-staff",
+      label: "Add staff",
+      description: "Add a new staff member",
+      icon: UserPlus,
+      modalKey: "staff",
+    },
+  ];
+
   return (
     <div>
-      {/* Header */}
-      <div className="flex sm:flex-row flex-col justify-between items-center mb-6">
+      {/* Header & Business Selector */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">
-            Welcome to your business management dashboard
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Overview</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-gray-500">Manage your AI agent ecosystem.</p>
+          </div>
         </div>
+
+        {/* Business Selector - Moved top right */}
+        <BusinessSelector />
       </div>
 
       {/* Stats Cards */}
@@ -156,108 +247,138 @@ const DashboardModule = () => {
           return (
             <div
               key={index}
-              className={`bg-gradient-to-br ${card.gradient} p-5 sm:p-6 rounded-xl border border-gray-200 
-              shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}
+              className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
             >
-              <div className="flex items-center">
-                <div
-                  className={`h-12 w-12 sm:h-14 sm:w-14 ${card.iconBg} rounded-xl flex items-center justify-center ${card.glow}`}
-                >
-                  <Icon className={`h-6 w-6 sm:h-7 sm:w-7 ${card.iconColor}`} />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
+              <div className="flex flex-col h-full justify-between">
+                <div className="mb-4">
+                  <Icon
+                    className={`h-6 w-6 sm:h-7 sm:w-7 ${card.iconColor} mb-3`}
+                  />
+                  <p className="text-sm font-medium text-gray-500">
                     {card.title}
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {card.value ?? "-"}
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {card.value ?? "0"}
                   </p>
                 </div>
               </div>
-              <div className="mt-4 w-full h-1 bg-gradient-to-r from-purple-200 via-gray-200 to-transparent rounded-full"></div>
             </div>
           );
         })}
       </div>
 
-      {/* Search and Business Selection Layout */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        {/* Search Field (60%) */}
-        <div className="w-full md:w-[60%]">
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400 group-focus-within:text-purple-500 transition-colors duration-200" />
+      {/* Navigation Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {navigationCards.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={item.id}
+              onClick={() => setActivePageModal(item.modalKey)}
+              className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+            >
+              <div className="bg-[linear-gradient(135deg,_#557ebf_0%,_#667eea_100%)] w-12 h-12 rounded-full flex items-center justify-center mb-4 text-white group-hover:scale-110 transition-transform duration-300">
+                <Icon className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                {item.label}
+              </h3>
+              <p className="text-sm text-gray-500">{item.description}</p>
             </div>
-            <input
-              type="text"
-              className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 shadow-sm hover:shadow-md hover:border-gray-300"
-              placeholder="Search orders, customers, phone numbers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
+          );
+        })}
+      </div>
+
+      {/* Main Content Area */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
+        {/* Business Notes Section */}
+        <div className="mb-8 p-6 rounded-2xl bg-gray-50 border border-gray-200">
+          <div className="flex items-center mb-4">
+            <span className="font-bold text-gray-800 text-lg">
+              Business Notes
+            </span>
+          </div>
+          <textarea
+            value={businessNote}
+            onChange={(e) => setBusinessNote(e.target.value)}
+            placeholder="Add notes about this business..."
+            className="w-full p-4 border border-gray-200 bg-white rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent bg-white"
+            rows={4}
+          />
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={handleSubmitNote}
+              disabled={noteLoading || !selectedBusiness}
+              className="px-4 py-2 bg-[linear-gradient(135deg,_#557ebf_0%,_#667eea_100%)] cursor-pointer text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {noteLoading ? "Saving..." : "Save Note"}
+            </button>
+            {businessNote && (
               <button
-                onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                onClick={handleDeleteNote}
+                disabled={noteLoading || !selectedBusiness}
+                className="px-4 py-2 bg-gray-200 cursor-pointer hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span className="sr-only">Clear search</span>
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                Clear
               </button>
             )}
           </div>
         </div>
 
-        {/* Business List Dropdown (40%) */}
-        <div className="w-full md:w-[40%] relative">
-          <button
-            onClick={() => setDropdownOpen((prev) => !prev)}
-            className="flex justify-between items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 group"
-          >
-            <div className="flex items-center overflow-hidden">
-              <Store className="h-5 w-5 text-gray-400 mr-3 group-hover:text-purple-500 transition-colors duration-200" />
-              <span className="font-medium text-gray-700 truncate">
-                {selectedBusiness
-                  ? selectedBusiness.name ||
-                    selectedBusiness.business_name ||
-                    "Unnamed Business"
-                  : `Business List (${restaurants.length})`}
-              </span>
-            </div>
-            <ChevronDown
-              className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
-                dropdownOpen ? "rotate-180 text-purple-500" : ""
-              }`}
-            />
-          </button>
-
-          {dropdownOpen && (
-            <div className="absolute z-20 mt-2 w-full bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto animate-fadeIn ring-1 ring-black ring-opacity-5">
-              {restaurants.length > 0 ? (
-                restaurants.map((biz, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => handleSelectBusiness(biz)}
-                    className="px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-purple-700 cursor-pointer transition-colors border-b border-gray-50 last:border-0 flex items-center"
-                  >
-                    <div className="h-2 w-2 rounded-full bg-purple-400 mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    {biz.name || biz.business_name || `Business ${idx + 1}`}
-                  </div>
-                ))
-              ) : (
-                <div className="px-4 py-3 text-gray-500 text-sm text-center">
-                  No businesses found.
-                </div>
-              )}
-            </div>
-          )}
+        {/* Search Bar - Integrated nicely */}
+        <div className="relative mt-4">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            className="w-full pl-12 pr-4 py-3 bg-white border-none rounded-xl text-gray-900 placeholder-gray-400 focus:ring-0 shadow-sm"
+            placeholder="Search orders, customers, phone numbers..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
+
+        {selectedBusiness && (
+          <RestaurantDashboard
+            restaurant={selectedBusiness}
+            searchQuery={searchQuery}
+          />
+        )}
       </div>
 
-      {selectedBusiness && (
-        <RestaurantDashboard restaurant={selectedBusiness} searchQuery={searchQuery} />
-      )}
+      {/* Page Modals */}
+      <PageModal
+        isOpen={activePageModal === "business"}
+        onClose={() => setActivePageModal(null)}
+        title="Business Details"
+      >
+        <Restaurants />
+      </PageModal>
+
+      <PageModal
+        isOpen={activePageModal === "knowledge"}
+        onClose={() => setActivePageModal(null)}
+        title="Knowledge Base"
+      >
+        <KnowledgePage />
+      </PageModal>
+
+      <PageModal
+        isOpen={activePageModal === "menu"}
+        onClose={() => setActivePageModal(null)}
+        title="Manage Menu"
+      >
+        <ManageMenu />
+      </PageModal>
+
+      <PageModal
+        isOpen={activePageModal === "staff"}
+        onClose={() => setActivePageModal(null)}
+        title="Add Staff"
+      >
+        <AddStaffPage />
+      </PageModal>
     </div>
   );
 };
