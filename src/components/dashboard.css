@@ -127,10 +127,102 @@
 
 /* Loading Spinner Animation */
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border-radius: 12px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #7c3aed;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Pagination Controls */
+.pagination-controls button {
+  transition: all 0.2s ease;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  color: #6d28d9;
+}
+
+.pagination-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f3f4f6;
+  background-color: #fafafa;
+}
+
+.pagination-container button {
+  transition: all 0.2s ease;
+}
+
+.pagination-container button:hover:not(:disabled) {
+  border-color: #7c3aed;
+  color: #7c3aed;
+  z-index: 10;
+}
+
+.pagination-container .active-page {
+  background-color: #f5f3ff;
+  border-color: #7c3aed;
+  color: #7c3aed;
+  z-index: 10;
+}
+
+.unread-item {
+  position: relative;
+}
+
+.unread-item::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 10px;
+  height: 10px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px white;
+  z-index: 2;
+}
+
+/* Ensure modal content can scroll but keep header/footer fixed */
+.modal-content {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.table-wrapper, .requests-list, .faqs-container, .reservations-list {
+  flex: 1;
+  overflow-y: auto !important;
 }

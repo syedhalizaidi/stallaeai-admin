@@ -59,6 +59,7 @@ const GenericStep = ({ onClose }) => {
       businessName: "",
       businessType: "",
       description: "",
+      phoneNumber: "",
       email: "",
       streetAddress: "",
       city: "",
@@ -149,8 +150,9 @@ const GenericStep = ({ onClose }) => {
         name: data.businessName,
         email: data.email.trim().toLowerCase(),
         business_type: businessTypeToSend,
+        phone_number: data.phoneNumber,
         country_code: data.countryCode,
-        locations: [
+        location: [
           {
             street_address: data.streetAddress,
             city: data.city,
@@ -269,6 +271,18 @@ const GenericStep = ({ onClose }) => {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                   message: "Enter a valid email",
                 },
+              })}
+            />
+
+            <TextField
+              label="Contact Number *"
+              name="phoneNumber"
+              type="tel"
+              placeholder="1234567890"
+              icon={Phone}
+              error={errors.phoneNumber?.message}
+              {...register("phoneNumber", {
+                required: "Contact number is required",
               })}
             />
           </div>

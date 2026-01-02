@@ -61,7 +61,6 @@ export const getRestaurants = async () => {
 export const getAllRestaurants = async () => {
   try {
     const response = await apiClient.get("/business/");
-    console.log("All Restaurant:", response);
 
     return {
       success: true,
@@ -741,6 +740,15 @@ export const getOrders = async ({
     };
   }
 };
+
+export const markOrderAsRead = async (order_id) => {
+  try {
+    const response = await apiClient2.put(`/orders/${order_id}/read`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { success: false, error };
+  }
+};
 export const updateOrderStatus = async (order_id, status) => {
   try {
     const response = await apiClient2.put(`/orders/${order_id}`, {
@@ -843,7 +851,7 @@ export const deleteNote = async (restaurant_id) => {
 export const uploadMenuFile = async (businessId, file) => {
   try {
     const token = localStorage.getItem("authToken");
-    
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -871,6 +879,54 @@ export const uploadMenuFile = async (businessId, file) => {
         error.response?.data?.message ||
         error.response?.data?.detail ||
         "Failed to upload menu file",
+    };
+  }
+};
+
+export const updateCustomerName = async (
+  phone_number,
+  name,
+  restaurant_number
+) => {
+  try {
+    const response = await apiClient2.put(`/orders/customer/name`, {
+      phone_number,
+      customer_name: name,
+      restaurant_number: restaurant_number,
+    });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error,
+      message:
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to update customer name",
+    };
+  }
+};
+
+export const updateAiAnsweringMode = async (businessId, mode) => {
+  try {
+    const response = await apiClient.put(`/business/${businessId}/ai-mode`, {
+      ai_answering_mode: mode,
+    });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error,
+      message:
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to update AI mode",
     };
   }
 };

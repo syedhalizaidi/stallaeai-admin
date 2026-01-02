@@ -1,8 +1,9 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import "./callback-modal.css";
 import StatusDropdown from "../common/StatusDropdown";
+import Pagination from "../common/Pagination";
+
+const ITEMS_PER_PAGE = 5;
 
 export default function CallbackModal({
   onClose,
@@ -10,9 +11,22 @@ export default function CallbackModal({
   onStatusUpdate,
 }) {
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredRequests = orders.filter((req) =>
-    req.customer_name.toLowerCase().includes(search.toLowerCase())
+  const filteredRequests = useMemo(() => {
+    return orders.filter((req) =>
+      req.customer_name.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [orders, search]);
+
+  // Reset page when search changes
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const pagedRequests = filteredRequests.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
   return (
@@ -41,11 +55,11 @@ export default function CallbackModal({
           </div>
 
           <div className="requests-list">
-            {filteredRequests.length === 0 && (
-              <p>No call back requests found</p>
+            {pagedRequests.length === 0 && (
+              <p className="no-results" style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>No call back requests found</p>
             )}
 
-            {filteredRequests.map((req) => (
+            {pagedRequests.map((req) => (
               <div key={req.id} className="request-card">
                 <div className="req-header">
                   <div className="req-avatar">
@@ -104,6 +118,13 @@ export default function CallbackModal({
               </div>
             ))}
           </div>
+
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredRequests.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>

@@ -1,12 +1,16 @@
 "use client";
 
 import "./callback-card.css"
+import { formatRelativeTime } from "../../../utils/orderUtils";
 
 export default function CallbackCard({
   onOpen,
   orders = [],
   onItemClick,
   onStatusUpdate,
+  readOrders,
+  onMarkAsRead,
+  totalCount = 0,
 }) {
   const grouped = Object.entries(
     orders.reduce((acc, item) => {
@@ -33,8 +37,6 @@ export default function CallbackCard({
     return latestB - latestA;
   });
 
-  const topGroups = grouped.slice(0, 3);
-
   return (
     <div className="card-container">
       <div className="card">
@@ -47,21 +49,43 @@ export default function CallbackCard({
           </div>
 
           <div className="orders-list">
-            {topGroups.map(([phone, items]) => (
+            {grouped.map(([phone, items]) => {
+              const isRead = items.every(i => i.is_read || readOrders?.has(i.id));
+              
+              return (
               <div
                 key={phone}
-                className="order-item clickable-item"
-                onClick={() =>
-                  onItemClick && onItemClick(items[0].callback_number)
-                }
-                style={{ cursor: onItemClick ? "pointer" : "default" }}
+                className={`order-item clickable-item ${!isRead ? 'unread-item' : ''}`}
+                onClick={() => {
+                  if (onMarkAsRead) {
+                    const idsToMark = items.filter(i => !i.is_read && !readOrders?.has(i.id)).map(i => i.id);
+                    if (idsToMark.length > 0) onMarkAsRead(idsToMark);
+                  }
+                  if (onItemClick) onItemClick(items[0]);
+                }}
+                style={{ 
+                  cursor: onItemClick ? "pointer" : "default",
+                  background: isRead ? 'linear-gradient(135deg, #dbe7fa 0%, #c6dbf8 100%)' : '#ffffff',
+                  position: 'relative'
+                }}
               >
-                <p className="order-customer">{items[0].customer_name} - {items[0].callback_number}</p>
+                {!isRead && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    backgroundColor: '#3b82f6'
+                  }} />
+                )}
+                <p className="order-customer" style={{ fontWeight: !isRead ? 'bold' : 'normal' }}>{items[0].customer_name} - {items[0].callback_number}</p>
 
                 <div className="callback-scroll-container">
                   {items.map((item) => (
                     <div key={item.id} className="callback-block">
-                      <p className="order-details">{item.callback_number}</p>
+                      <p className="order-details" style={{ fontWeight: !isRead ? 'bold' : 'normal' }}>{item.callback_number}</p>
                       <div className="order-time flex flex-col text-xs text-gray-500">
                         {/* Callback Target Time */}
                         <div className="mb-0.5">
@@ -72,13 +96,22 @@ export default function CallbackCard({
                             <span className="text-red-500 font-bold">ASAP</span>
                           ) : item.date && item.time ? (
                             <span className="text-blue-600 font-medium">
-                              {new Date(
-                                `${item.date}T${item.time}`
-                              ).toLocaleString("en-US", {
+                              {new Date(`${item.date}T${item.time}Z`).toLocaleString("en-US", {
                                 month: "short",
                                 day: "numeric",
                                 hour: "numeric",
                                 minute: "2-digit",
+                                timeZone: 'UTC'
+                              })}
+                            </span>
+                          ) : item.requested_at ? (
+                            <span className="text-blue-600 font-medium">
+                              {new Date(item.requested_at.replace(' ', 'T') + (item.requested_at.includes('Z') ? '' : 'Z')).toLocaleString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                timeZone: 'UTC'
                               })}
                             </span>
                           ) : (
@@ -86,40 +119,45 @@ export default function CallbackCard({
                           )}
                         </div>
 
+                        {/* Request Originated At */}
+                        {item.requested_at && (
+                          <div className="mb-0.5">
+                            <span className="font-medium text-gray-600">
+                              Req'd At:{" "}
+                            </span>
+                            <span className="text-gray-500">
+                              {new Date(item.requested_at.replace(' ', 'T') + (item.requested_at.includes('Z') ? '' : 'Z')).toLocaleString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                timeZone: 'UTC'
+                              })}
+                            </span>
+                          </div>
+                        )}
+
                         {/* Request Received Time */}
                         <div>
                           <span className="font-medium text-gray-600">
                             Rec'd:{" "}
                           </span>
-                          {item.requested_at
-                            ? new Date(item.requested_at).toLocaleString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                }
-                              )
-                            : new Date(item.timestamp).toLocaleString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
+                          {formatRelativeTime(item.timestamp)}
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            ))}
+            )})}
 
-            {topGroups.length === 0 && (
-              <p className="no-orders">No pending requests</p>
+            {grouped.length === 0 && (
+              <p className="text-center py-4 text-gray-400">No requests</p>
             )}
           </div>
 
           <button className="card-button" onClick={onOpen}>
-            View Requests
+            View All ({totalCount})
           </button>
         </div>
       </div>

@@ -135,12 +135,10 @@ const Images = ({ onNext, onPrevious }) => {
                 
                 // Only append files that are actual File objects
                 if (hasNewLogo) {
-                    console.log("has new logo", logoFile);
                     formData.append("logo", logoFile);
                 }
                 
                 if (hasNewExterior) {
-                    console.log("has new exterior", exteriorFiles[0]);
                     formData.append("exterior", exteriorFiles[0]);
                 }
                 

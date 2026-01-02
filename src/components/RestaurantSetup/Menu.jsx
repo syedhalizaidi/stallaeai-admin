@@ -15,7 +15,6 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
     const [fetchedCategories, setFetchedCategories] = useState([]);
     const hasPredefinedCategories = fetchedCategories.length > 0;
     const categories = fetchedCategories;
-    console.log({businessType});
     useEffect(() => {
         const fetchCategories = async () => {
             if (businessType) {

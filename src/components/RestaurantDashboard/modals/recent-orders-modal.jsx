@@ -1,9 +1,10 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import "./recent-orders-modal.css";
 import StatusDropdown from "../common/StatusDropdown";
+import Pagination from "../common/Pagination";
 import { getOrderTotal, getOrderBreakdown } from "../../../utils/orderUtils";
+
+const ITEMS_PER_PAGE = 5;
 
 export default function RecentOrdersModal({
   onClose,
@@ -12,6 +13,7 @@ export default function RecentOrdersModal({
 }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const getOrderItems = (orderDetails) => {
     if (!orderDetails || typeof orderDetails !== "object") {
@@ -36,25 +38,39 @@ export default function RecentOrdersModal({
     );
   };
 
-  const mappedOrders = orders.map((order) => ({
-    id: order.id,
-    customer: `${order.customer_name} - ${order.phone_number || order.customer_info}` || "Unknown",
-    items: getOrderItems(order.order_details),
-    price: getOrderTotal(order),
-    status: order.order_status === 'pending' ? 'In Progress' :
-           order.order_status === 'cancelled' ? 'Declined' :
-           order.order_status === 'completed' ? 'Completed' : 
-           (order.order_status || "Pending"),
-  }));
+  const filteredOrders = useMemo(() => {
+    const mapped = orders.map((order) => ({
+      id: order.id,
+      customer: `${order.customer_name} - ${order.phone_number || order.customer_info}` || "Unknown",
+      items: getOrderItems(order.order_details),
+      price: getOrderTotal(order),
+      status: order.order_status === 'pending' ? 'In Progress' :
+             order.order_status === 'cancelled' ? 'Declined' :
+             order.order_status === 'completed' ? 'Completed' : 
+             (order.order_status || "Pending"),
+    }));
 
-  const filteredOrders = mappedOrders.filter((order) => {
-    const matchesSearch = order.customer
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesFilter =
-      filter === "all" || order.status.toLowerCase() === filter.toLowerCase();
-    return matchesSearch && matchesFilter;
-  });
+    const filtered = mapped.filter((order) => {
+      const matchesSearch = order.customer
+        .toLowerCase()
+        .includes(search.toLowerCase());
+      const matchesFilter =
+        filter === "all" || order.status.toLowerCase() === filter.toLowerCase();
+      return matchesSearch && matchesFilter;
+    });
+
+    return filtered;
+  }, [orders, search, filter]);
+
+  // Reset page when search/filter changes
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [search, filter]);
+
+  const pagedOrders = filteredOrders.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div className="modal-overlay">
@@ -106,7 +122,7 @@ export default function RecentOrdersModal({
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map((order) => (
+                {pagedOrders.map((order) => (
                   <tr key={order.id}>
                     <td className="customer-cell">
                       <span>{order.customer}</span>
@@ -137,17 +153,20 @@ export default function RecentOrdersModal({
                 ))}
               </tbody>
             </table>
+
+            {pagedOrders.length === 0 && (
+              <div className="no-results">
+                <p>No orders found</p>
+              </div>
+            )}
           </div>
 
-          {filteredOrders.length === 0 && (
-            <div className="no-results">
-              <p>No orders found</p>
-            </div>
-          )}
-
-          <div className="results-info">
-            Showing {filteredOrders.length} of {mappedOrders.length} orders
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredOrders.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>

@@ -1,18 +1,22 @@
 "use client";
 
 import "./reservations-card.css";
-import StatusDropdown from "../common/StatusDropdown.jsx";
+import { formatRelativeTime } from "../../../utils/orderUtils";
 
 export default function ReservationsCard({
   onOpen,
   reservations = [],
   onItemClick,
-  onStatusUpdate
+  onStatusUpdate,
+  readOrders,
+  onMarkAsRead,
+  totalCount = 0,
 }) {
   const grouped = Object.entries(
     reservations.reduce((acc, res) => {
-      // Use customer_name if available, otherwise fallback to contact_info
-      const identifier = `${res.customer_name} - ${res.contact_info || res.phone_number}` || "Unknown";
+      const identifier =
+        `${res.customer_name} - ${res.contact_info || res.phone_number}` ||
+        "Unknown";
       if (!acc[identifier]) acc[identifier] = [];
       acc[identifier].push(res);
       return acc;
@@ -22,20 +26,14 @@ export default function ReservationsCard({
   grouped.forEach(([identifier, items]) => {
     items.sort(
       (a, b) =>
-        new Date(`${b.booking_date}T${b.start_time || "00:00"}`).getTime() -
-        new Date(`${a.booking_date}T${a.start_time || "00:00"}`).getTime()
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
   });
   grouped.sort((a, b) => {
-    const latestA = new Date(
-      `${a[1][0].booking_date}T${a[1][0].start_time || "00:00"}`
-    ).getTime();
-    const latestB = new Date(
-      `${b[1][0].booking_date}T${b[1][0].start_time || "00:00"}`
-    ).getTime();
+    const latestA = new Date(a[1][0].timestamp).getTime();
+    const latestB = new Date(b[1][0].timestamp).getTime();
     return latestB - latestA;
   });
-  const topGroups = grouped.slice(0, 3);
 
   return (
     <div className="card-container">
@@ -49,38 +47,82 @@ export default function ReservationsCard({
           </div>
 
           <div className="orders-list">
-            {topGroups.length > 0 ? (
-              topGroups.map(([identifier, items]) => (
-                <div 
-                  key={identifier} 
-                  className="order-item clickable-item"
-                  onClick={() => onItemClick && onItemClick(items[0]?.contact_info)}
-                  style={{ cursor: onItemClick ? 'pointer' : 'default' }}
-                >
-                  <p className="order-customer">{identifier}</p>
-                  <div className="reservation-scroll-container">
-                    {items.map((res) => (
-                      <div key={res.id} className="reservation-block">
-                        <p className="info-customer">{res.customer_name}</p>
-                        <p className="info-details">
-                          📍 {res.booking_date} at {res.start_time || "-"}
-                        </p>
-                        <p className="info-details">
-                          📞 {res.contact_info || "-"}
-                        </p>
-                        <hr />
-                      </div>
-                    ))}
+            {grouped.length > 0 ? (
+              grouped.map(([identifier, items]) => {
+                const isRead = items.every(
+                  (i) => i.is_read || readOrders?.has(i.id)
+                );
+
+                return (
+                  <div
+                    key={identifier}
+                    className={`order-item clickable-item ${
+                      !isRead ? "unread-item" : ""
+                    }`}
+                    onClick={() => {
+                      if (onMarkAsRead) {
+                        const unreadIds = items.filter(i => !i.is_read && !readOrders?.has(i.id)).map(i => i.id);
+                        if (unreadIds.length > 0) onMarkAsRead(unreadIds);
+                      }
+                      if (onItemClick) onItemClick(items[0]);
+                    }}
+                    style={{
+                      cursor: onItemClick ? "pointer" : "default",
+                      background: isRead
+                        ? "linear-gradient(135deg, #dbe7fa 0%, #c6dbf8 100%)"
+                        : "#ffffff",
+                      position: 'relative'
+                    }}
+                  >
+                    {!isRead && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        backgroundColor: '#3b82f6'
+                      }} />
+                    )}
+                    <p
+                      className="order-customer"
+                      style={{ fontWeight: !isRead ? "bold" : "normal" }}
+                    >
+                      {identifier}
+                    </p>
+                    <div className="reservation-scroll-container">
+                      {items.map((res) => (
+                        <div key={res.id} className="reservation-block">
+                          <p
+                            className="info-customer"
+                            style={{ fontWeight: !isRead ? "bold" : "normal" }}
+                          >
+                            {res.customer_name}
+                          </p>
+                          <p className="info-details">
+                            📍 {res.booking_date} at {res.start_time || "-"}
+                          </p>
+                          <p className="info-details">
+                            📞 {res.contact_info || res.phone_number || "-"}
+                          </p>
+                          <p className="info-details text-xs text-gray-400">
+                            Rec'd: {formatRelativeTime(res.timestamp)}
+                          </p>
+                          <hr />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
-              <p>No upcoming reservations</p>
+              <p className="text-center py-4 text-gray-400">No reservations</p>
             )}
           </div>
 
           <button className="card-button" onClick={onOpen}>
-            Manage Reservations
+            Manage All ({totalCount})
           </button>
         </div>
       </div>

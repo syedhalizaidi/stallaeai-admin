@@ -4,11 +4,13 @@ import { Mail, Lock, ChevronRight, Loader2 } from 'lucide-react';
 import TextField from './TextField';
 import { authService } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
+import { useBusinessContext } from '../contexts/BusinessContext';
 
 const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const navigate = useNavigate();
+  const { refreshBusinesses } = useBusinessContext();
 
   const {
     register,
@@ -33,6 +35,10 @@ const LoginForm = () => {
       localStorage.setItem('authToken', result.data.tokens.access_token);
       localStorage.setItem('userRole', JSON.stringify(result.data.role));
       localStorage.setItem('userPermissions', JSON.stringify(result.data.permissions || []));
+      
+      // Refresh businesses after setting the token but before navigation
+      await refreshBusinesses();
+      
       navigate('/dashboard');
     } else {
       setIsLoading(false);

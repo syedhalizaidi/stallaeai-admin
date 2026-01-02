@@ -1,8 +1,9 @@
-"use client";
-
 import { useState, useMemo } from "react";
 import "./reservations-modal.css";
 import StatusDropdown from "../common/StatusDropdown.jsx";
+import Pagination from "../common/Pagination";
+
+const ITEMS_PER_PAGE = 5;
 
 export default function ReservationsModal({
   onClose,
@@ -12,6 +13,7 @@ export default function ReservationsModal({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const reservationsMap = useMemo(() => {
     const map = {};
@@ -53,7 +55,7 @@ export default function ReservationsModal({
     return `${year}-${month}-${day}`;
   };
 
-  const getDisplayReservations = () => {
+  const fullDisplayReservations = useMemo(() => {
     if (selectedDate !== null) {
       return reservationsMap[selectedDate] || [];
     }
@@ -67,7 +69,17 @@ export default function ReservationsModal({
       }
     });
     return weekReservations;
-  };
+  }, [selectedDate, currentDate, reservationsMap]);
+
+  // Reset page when selection changes
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [selectedDate, currentDate]);
+
+  const pagedReservations = fullDisplayReservations.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const daysInMonth = new Date(
     currentDate.getFullYear(),
@@ -96,12 +108,10 @@ export default function ReservationsModal({
     );
 
   const weekDates = getWeekDates();
-  const displayReservations = getDisplayReservations();
 
   const getDisplayTitle = () => {
     if (selectedDate !== null) {
       // selectedDate is "YYYY-MM-DD"
-      // Create date object (append time to avoid timezone shift if parsed as UTC)
       const [y, m, d] = selectedDate.split('-').map(Number);
       const dateObj = new Date(y, m - 1, d);
       
@@ -203,7 +213,6 @@ export default function ReservationsModal({
                     <div key={`empty-${idx}`} className="empty-day"></div>
                   ))}
                   {days.map((day) => {
-                    // Construct date key for this day in the current month view
                     const currentMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
                     const dateKey = getISODateString(currentMonthDate);
                     
@@ -228,11 +237,11 @@ export default function ReservationsModal({
             )}
 
             {/* Reservations List */}
-            <div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
               <h3 className="reservations-title">{getDisplayTitle()}</h3>
-              <div className="reservations-list">
-                {displayReservations.length > 0 ? (
-                  displayReservations.map((res) => (
+              <div className="reservations-list" style={{ flex: 1, overflowY: 'auto' }}>
+                {pagedReservations.length > 0 ? (
+                  pagedReservations.map((res) => (
                     <div key={res.id} className="reservation-card">
                       <div className="res-header">
                         <div>
@@ -262,11 +271,17 @@ export default function ReservationsModal({
                     </div>
                   ))
                 ) : (
-                  <div className="no-results">
-                    <p>No reservations for this date</p>
+                  <div className="no-results" style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                    <p>No reservations found</p>
                   </div>
                 )}
               </div>
+              <Pagination
+                currentPage={currentPage}
+                totalItems={fullDisplayReservations.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+              />
             </div>
           </div>
         </div>

@@ -16,38 +16,44 @@ export const BusinessProvider = ({ children }) => {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchBusinesses = async () => {
-      setLoading(true);
-      try {
-        const result = await restaurantService.getRestaurants();
-        if (result.success) {
-          setBusinesses(result.data);
-          
-          // Try to restore from localStorage
-          const savedId = localStorage.getItem('businessId');
-          let businessToSelect = null;
+  const fetchBusinesses = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const result = await restaurantService.getRestaurants();
+      if (result.success) {
+        setBusinesses(result.data);
+        
+        // Try to restore from localStorage
+        const savedId = localStorage.getItem('businessId');
+        let businessToSelect = null;
 
-          if (savedId) {
-            businessToSelect = result.data.find(biz => biz.id === savedId);
-          }
-
-          if (!businessToSelect && result.data.length > 0) {
-            businessToSelect = result.data[0];
-          }
-
-          if (businessToSelect) {
-            setSelectedBusiness(businessToSelect);
-            localStorage.setItem('businessId', businessToSelect.id);
-          }
+        if (savedId) {
+          businessToSelect = result.data.find(biz => biz.id === savedId);
         }
-      } catch (error) {
-        console.error('Error fetching businesses:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
+        if (!businessToSelect && result.data.length > 0) {
+          businessToSelect = result.data[0];
+        }
+
+        if (businessToSelect) {
+          setSelectedBusiness(businessToSelect);
+          localStorage.setItem('businessId', businessToSelect.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching businesses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchBusinesses();
   }, []);
 
@@ -61,7 +67,8 @@ export const BusinessProvider = ({ children }) => {
       selectedBusiness, 
       selectBusiness, 
       businesses, 
-      loading 
+      loading,
+      refreshBusinesses: fetchBusinesses
     }}>
       {children}
     </BusinessContext.Provider>

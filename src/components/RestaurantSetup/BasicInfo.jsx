@@ -10,7 +10,7 @@ import CheckboxField from "../CheckboxField";
 import { restaurantService } from "../../services/restaurantService";
 import { userService } from "../../services/userService";
 import { ROUTES } from "../../constants/routes";
-import { User, Shield, Lock, Phone } from "lucide-react";
+import { User, Lock, Phone } from "lucide-react";
 
 const BUSINESS_CONFIG = {
   restaurant: {
@@ -62,6 +62,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       businessName: "",
       cuisineType: "",
       description: "",
+      phoneNumber: "",
       email: "",
       minDeliveryTime: "",
       maxDeliveryTime: "",
@@ -123,6 +124,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             setValue("businessName", data.name || "");
             setValue("cuisineType", data.cuisine_type || "");
             setValue("description", data.description || "");
+            setValue("phoneNumber", data.phone_number || "");
             setValue("email", data.email || "");
             setValue("minDeliveryTime", data.delivery_minimum || "");
             setValue("maxDeliveryTime", data.delivery_maximum || "");
@@ -208,6 +210,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
         name: data.businessName,
         email: data.email.trim().toLowerCase(),
         description: data.description,
+        phone_number: data.phoneNumber,
         cuisine_type: config.showCuisine ? data.cuisineType : null,
         delivery_minimum: config.showDeliveryTime
           ? data.minDeliveryTime?.toString()
@@ -220,7 +223,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
         slots,
         chair_count:
           businessType === "barber" ? Number(data.slots[0].quantity) : 0,
-        locations: [
+        location: [
           {
             street_address: data.streetAddress,
             city: data.city,
@@ -329,6 +332,15 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               icon={Mail}
               error={errors.email?.message}
               {...register("email", { required: "Email is required" })}
+            />
+            <TextField
+              label="Contact Number *"
+              name="phoneNumber"
+              type="tel"
+              placeholder="1234567890"
+              icon={Phone}
+              error={errors.phoneNumber?.message}
+              {...register("phoneNumber", { required: "Contact number is required" })}
             />
           </div>
           <TextAreaField

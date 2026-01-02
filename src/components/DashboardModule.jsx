@@ -236,7 +236,7 @@ const DashboardModule = () => {
           </div>
         </div>
 
-        {/* Business Selector - Moved top right */}
+        {/* Business Selector */}
         <BusinessSelector />
       </div>
 

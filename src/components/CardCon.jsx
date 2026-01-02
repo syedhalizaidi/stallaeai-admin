@@ -2,9 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import "react-calendar/dist/Calendar.css";
 import {
   getOrders,
-  getNote,
-  createNote,
-  deleteNote,
+  markOrderAsRead as markAsReadService,
 } from "../services/restaurantDashboardService";
 import ReservationsCard from "./RestaurantDashboard/cards/reservations-card.jsx";
 import ReservationsModal from "./RestaurantDashboard/modals/reservations-modal.jsx";
@@ -16,11 +14,12 @@ import CallbackCard from "./RestaurantDashboard/cards/callback-card.jsx";
 import CallbackModal from "./RestaurantDashboard/modals/callback-modal.jsx";
 import CustomerDetailsSidebar from "./RestaurantDashboard/CustomerDetailsSidebar.jsx";
 import "./dashboard.css";
-import { useToast } from "../contexts/ToastContext.jsx";
+import { formatRelativeTime } from "../utils/orderUtils";
+
+const ITEMS_PER_PAGE = 3;
 
 const RestaurantDashboard = ({ restaurant, searchQuery }) => {
-  const { showSuccess, showError } = useToast();
-  const [orderData, setOrderData] = useState([]);
+  const [orderData, setOrderData] = useState({ data: [] });
 
   const [reservations, setReservations] = useState([]);
   const [activeModal, setActiveModal] = useState(false);
@@ -29,45 +28,41 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [readOrders, setReadOrders] = useState(new Set());
 
-  const handleMarkAsRead = (phoneNumber) => {
+  const [pages, setPages] = useState({
+    food: 1,
+    reservation: 1,
+    callback: 1,
+    faq: 1,
+  });
+
+  const handleMarkAsRead = async (orderIds) => {
+    const ids = Array.isArray(orderIds) ? orderIds : [orderIds];
+    const unreadIds = ids.filter((id) => id && !readOrders.has(id));
+
+    if (unreadIds.length === 0) return;
+
     setReadOrders((prev) => {
       const newSet = new Set(prev);
-      newSet.add(phoneNumber);
+      unreadIds.forEach((id) => newSet.add(id));
       return newSet;
     });
+
+    try {
+      await Promise.all(unreadIds.map((id) => markAsReadService(id)));
+    } catch (err) {
+      console.error("Failed to mark orders as read:", err);
+    }
   };
 
-  const getRelativeTime = (timestamp) => {
-    if (!timestamp) return "Unknown time";
-
-    // Clean the timestamp if needed
-    let cleanTimestamp = timestamp.replace("+00:00Z", "Z");
-    const nowUtc = new Date().getTime();
-    const orderUtc = new Date(cleanTimestamp).getTime();
-
-    if (isNaN(orderUtc)) return "Invalid timestamp";
-
-    const diffMs = nowUtc - orderUtc;
-    if (diffMs < 0) return "Just now";
-
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMinutes / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMinutes < 1) return "Just now";
-    if (diffMinutes < 60) return `${diffMinutes} minute(s) ago`;
-    if (diffHours < 24) return `${diffHours} hour(s) ago`;
-    return `${diffDays} day(s) ago`;
-  };
   const [faqOrders, setFaqOrders] = useState([]);
   const [callbackOrders, setCallbackOrders] = useState([]);
   const prevRestaurantId = useRef(null);
 
-  // Set loading state only when restaurant changes
   useEffect(() => {
     if (restaurant?.id && restaurant.id !== prevRestaurantId.current) {
       setIsLoading(true);
       prevRestaurantId.current = restaurant.id;
+      setPages({ food: 1, reservation: 1, callback: 1, faq: 1 });
     }
   }, [restaurant?.id]);
 
@@ -82,7 +77,10 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
         return;
       }
 
-      const orderResponse = await getOrders({ twilio_phone_number: phone });
+      const orderResponse = await getOrders({
+        twilio_phone_number: phone,
+        page_size: 200,
+      });
       if (!orderResponse.success) return;
 
       const allOrders = orderResponse.data?.data || [];
@@ -103,26 +101,18 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
             parsedDetails = order.order_details || {};
           }
 
-          // Detect reservation-type order
           if (
             parsedDetails?.type === "reservation" ||
-            parsedDetails?.date_time ||
             parsedDetails?.date ||
             parsedDetails?.party_size
           ) {
             orderType = "reservation";
-          }
-
-          // Detect FAQ requests (both 'faq' and 'faq_request')
-          if (
+          } else if (
             parsedDetails?.type === "faq" ||
             parsedDetails?.type === "faq_request"
           ) {
             orderType = "faq";
-          }
-
-          // Detect Callback requests (both 'callback' and 'callback_request')
-          if (
+          } else if (
             parsedDetails?.type === "callback" ||
             parsedDetails?.type === "callback_request"
           ) {
@@ -136,76 +126,82 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
           ...order,
           order_details: parsedDetails,
           order_type: orderType,
-          relativeTime: getRelativeTime(order.timestamp.replace("Z", "")),
+          relativeTime: formatRelativeTime(order.timestamp),
+          is_read: order.is_read,
         };
 
-        // Separate orders into categories
         switch (orderType) {
           case "reservation":
-            let bookingDate = null;
-            let startTime = null;
-
-            // Handle new format with separate date and time fields
-            if (parsedDetails.date && parsedDetails.time) {
-              bookingDate = parsedDetails.date;
-              startTime = parsedDetails.time;
+            // Only show pending reservations in cards
+            if (order.order_status === "pending") {
+              let bookingDate = parsedDetails.date || null;
+              let startTime = parsedDetails.time || null;
+              if (!bookingDate && parsedDetails.date_time) {
+                [bookingDate, startTime] = parsedDetails.date_time.split("T");
+              }
+              reservationOrders.push({
+                ...normalizedOrder,
+                customer_name:
+                  parsedDetails.customer_name ||
+                  order.customer_name ||
+                  "Unknown",
+                booking_date: bookingDate,
+                start_time: startTime,
+                contact_info: order.phone_number,
+                party_size: parsedDetails.party_size || null,
+              });
             }
-            // Handle old format with combined date_time field
-            else if (parsedDetails.date_time) {
-              const [datePart, timePart] = parsedDetails.date_time.split("T");
-              const [year, month, day] = datePart.split("-");
-              const fixedYear = parseInt(year) < 2025 ? "2025" : year;
-              bookingDate = `${fixedYear}-${month}-${day}`;
-              startTime = timePart || null;
-            }
-
-            reservationOrders.push({
-              id: order.id,
-              customer_name:
-                parsedDetails.customer_name || order.customer_name || "Unknown",
-              booking_date: bookingDate,
-              start_time: startTime,
-              end_time: parsedDetails.end_time || null,
-              contact_info: order.phone_number,
-              party_size: parsedDetails.party_size || null,
-              timestamp: order.timestamp.replace("Z", ""),
-            });
             break;
-
           case "faq":
-            faqOrders.push({
-              id: order.id,
-              customer_name:
-                parsedDetails.customer_name ||
-                order.customer_name ||
-                order.phone_number ||
-                "Unknown",
-              question: parsedDetails.question,
-              answer: parsedDetails.answer,
-              asked_at: parsedDetails.asked_at,
-              customer_number:
-                parsedDetails.customer_number || order.phone_number,
-              timestamp: order.timestamp.replace("Z", ""),
-            });
+            // Only show pending FAQs in cards
+            if (order.order_status === "pending") {
+              faqOrders.push({
+                ...normalizedOrder,
+                customer_name:
+                  parsedDetails.customer_name ||
+                  order.customer_name ||
+                  order.phone_number ||
+                  "Unknown",
+                customer_number:
+                  parsedDetails.customer_number || order.phone_number,
+                question:
+                  parsedDetails.question ||
+                  parsedDetails.query ||
+                  parsedDetails.user_query ||
+                  "",
+                answer:
+                  parsedDetails.answer ||
+                  parsedDetails.response ||
+                  parsedDetails.answer_text ||
+                  "",
+              });
+            }
             break;
-
           case "callback":
-            callbackOrders.push({
-              id: order.id,
-              customer_name:
-                parsedDetails.customer_name || order.customer_name || "Unknown",
-              callback_number:
-                parsedDetails.callback_number || order.phone_number,
-              requested_at: parsedDetails.requested_at,
-              date: parsedDetails.date,
-              time: parsedDetails.time,
-              asap: parsedDetails.asap,
-              timestamp: order.timestamp.replace("Z", ""),
-            });
+            // Only show pending callbacks in cards
+            if (order.order_status === "pending") {
+              callbackOrders.push({
+                ...normalizedOrder,
+                customer_name:
+                  parsedDetails.customer_name ||
+                  order.customer_name ||
+                  "Unknown",
+                callback_number:
+                  parsedDetails.number ||
+                  parsedDetails.callback_number ||
+                  order.phone_number,
+                requested_at: parsedDetails.requested_at || null,
+                asap: parsedDetails.asap || false,
+                date: parsedDetails.date || null,
+                time: parsedDetails.time || null,
+              });
+            }
             break;
-
           default:
-            foodOrders.push(normalizedOrder);
+            // Only show pending food orders in cards (exclude completed and cancelled)
+            if (order.order_status === "pending") {
+              foodOrders.push(normalizedOrder);
+            }
             break;
         }
       });
@@ -223,7 +219,6 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
       setCallbackOrders(callbackOrders);
     } catch (err) {
       console.error("Error fetching orders:", err);
-      showError("Error fetching orders");
     } finally {
       setIsLoading(false);
     }
@@ -231,162 +226,149 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(fetchOrders, 3000);
+    const interval = setInterval(fetchOrders, 10000); // 10s is sufficient given manual refresh or status updates
     return () => clearInterval(interval);
   }, [restaurant]);
-
-
-
-
 
   // Filter data based on search query
   const filterBySearch = (items, searchFields) => {
     if (!searchQuery.trim()) return items;
-
     const query = searchQuery.toLowerCase().trim();
-    return items.filter((item) => {
-      return searchFields.some((field) => {
-        const value = item[field];
-        if (value === null || value === undefined) return false;
-        return String(value).toLowerCase().includes(query);
-      });
-    });
+    return items.filter((item) =>
+      searchFields.some((field) =>
+        String(item[field] || "")
+          .toLowerCase()
+          .includes(query)
+      )
+    );
   };
 
-  const filteredOrders = filterBySearch(orderData?.data || [], [
+  const filteredOrders = filterBySearch(orderData.data, [
     "id",
     "phone_number",
     "customer_name",
-    "order_number",
   ]);
-
-  const filteredReservations = filterBySearch(reservations || [], [
+  const filteredReservations = filterBySearch(reservations, [
     "id",
     "customer_name",
-    "contact_info",
     "phone_number",
   ]);
-
-  const filteredFaqOrders = filterBySearch(faqOrders || [], [
+  const filteredFaqOrders = filterBySearch(faqOrders, [
     "id",
     "customer_name",
     "customer_number",
-    "question",
   ]);
-
-  const filteredCallbackOrders = filterBySearch(callbackOrders || [], [
+  const filteredCallbackOrders = filterBySearch(callbackOrders, [
     "id",
     "customer_name",
     "callback_number",
   ]);
 
-  // Handle item click to open sidebar
-  const handleItemClick = (phoneNumber) => {
-    setSelectedPhoneNumber(phoneNumber);
+  const getPagedData = (data, type) => {
+    const page = pages[type];
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return data.slice(start, start + ITEMS_PER_PAGE);
+  };
+
+  const handlePageChange = (type, direction) => {
+    setPages((prev) => ({
+      ...prev,
+      [type]: Math.max(1, prev[type] + direction),
+    }));
+  };
+
+  const handleItemClick = (order) => {
+    setSelectedPhoneNumber(
+      order.phone_number || order.callback_number || order.customer_number
+    );
     setSidebarOpen(true);
   };
 
-  // Filter data for sidebar by selected phone number
   const getSidebarData = () => {
     if (!selectedPhoneNumber)
       return { orders: [], reservations: [], faqs: [], callbacks: [] };
-
+    const filterByNum = (arr) =>
+      arr.filter(
+        (i) =>
+          i.phone_number === selectedPhoneNumber ||
+          i.customer_number === selectedPhoneNumber ||
+          i.callback_number === selectedPhoneNumber ||
+          i.contact_info === selectedPhoneNumber
+      );
     return {
-      orders: (orderData?.data || []).filter(
-        (order) => order.phone_number === selectedPhoneNumber
-      ),
-      reservations: (reservations || []).filter(
-        (res) =>
-          res.contact_info === selectedPhoneNumber ||
-          res.phone_number === selectedPhoneNumber
-      ),
-      faqs: (faqOrders || []).filter(
-        (faq) =>
-          faq.customer_number === selectedPhoneNumber ||
-          faq.phone_number === selectedPhoneNumber
-      ),
-      callbacks: (callbackOrders || []).filter(
-        (cb) =>
-          cb.callback_number === selectedPhoneNumber ||
-          cb.phone_number === selectedPhoneNumber
-      ),
+      orders: filterByNum(orderData.data),
+      reservations: filterByNum(reservations),
+      faqs: filterByNum(faqOrders),
+      callbacks: filterByNum(callbackOrders),
     };
   };
 
   return (
     <div className="dashboard-container">
-      {/* Search Field */}
-
-      {/* Dashboard Cards Grid */}
       <div className="dashboard-grid" style={{ position: "relative" }}>
-        {/* Loading Overlay - Only covers the cards */}
         {isLoading && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(255, 255, 255, 0.9)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 999,
-              borderRadius: "12px",
-            }}
-          >
-            <div
-              style={{
-                width: "60px",
-                height: "60px",
-                border: "4px solid #f3f3f3",
-                borderTop: "4px solid #3498db",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-              }}
-            />
+          <div className="loading-overlay">
+            <div className="spinner" />
           </div>
         )}
+
         <div className="dashboard-card-wrapper">
           <RecentOrdersCard
             onOpen={() => setActiveModal("orders")}
-            orders={filteredOrders}
+            orders={getPagedData(filteredOrders, "food")}
+            totalCount={filteredOrders.length}
+            currentPage={pages.food}
+            onPageChange={(dir) => handlePageChange("food", dir)}
             onItemClick={handleItemClick}
             onStatusUpdate={fetchOrders}
+            readOrders={readOrders}
+            onMarkAsRead={(ids) => handleMarkAsRead(ids)}
           />
         </div>
 
         <div className="dashboard-card-wrapper">
           <ReservationsCard
             onOpen={() => setActiveModal("reservations")}
-            reservations={filteredReservations}
+            reservations={getPagedData(filteredReservations, "reservation")}
+            totalCount={filteredReservations.length}
+            currentPage={pages.reservation}
+            onPageChange={(dir) => handlePageChange("reservation", dir)}
             onItemClick={handleItemClick}
             onStatusUpdate={fetchOrders}
+            readOrders={readOrders}
+            onMarkAsRead={(ids) => handleMarkAsRead(ids)}
           />
         </div>
 
         <div className="dashboard-card-wrapper">
           <CallbackCard
             onOpen={() => setActiveModal("callbacks")}
-            orders={filteredCallbackOrders}
+            orders={getPagedData(filteredCallbackOrders, "callback")}
+            totalCount={filteredCallbackOrders.length}
+            currentPage={pages.callback}
+            onPageChange={(dir) => handlePageChange("callback", dir)}
             onItemClick={handleItemClick}
             onStatusUpdate={fetchOrders}
+            readOrders={readOrders}
+            onMarkAsRead={(ids) => handleMarkAsRead(ids)}
           />
         </div>
 
         <div className="dashboard-card-wrapper">
           <FAQsCard
             onOpen={() => setActiveModal("faqs")}
-            orders={filteredFaqOrders}
+            orders={getPagedData(filteredFaqOrders, "faq")}
+            totalCount={filteredFaqOrders.length}
+            currentPage={pages.faq}
+            onPageChange={(dir) => handlePageChange("faq", dir)}
             onItemClick={handleItemClick}
             onStatusUpdate={fetchOrders}
+            readOrders={readOrders}
+            onMarkAsRead={(ids) => handleMarkAsRead(ids)}
           />
         </div>
       </div>
 
-      {/* Modals */}
-      {/* Modals */}
       {activeModal === "orders" && (
         <RecentOrdersModal
           onClose={() => setActiveModal(null)}
@@ -397,14 +379,14 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
       {activeModal === "reservations" && (
         <ReservationsModal
           onClose={() => setActiveModal(null)}
-          reservations={reservations}
+          reservations={filteredReservations}
           onStatusUpdate={fetchOrders}
         />
       )}
       {activeModal === "callbacks" && (
         <CallbackModal
           onClose={() => setActiveModal(null)}
-          orders={callbackOrders}
+          orders={filteredCallbackOrders}
           onStatusUpdate={fetchOrders}
         />
       )}
@@ -416,7 +398,6 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
         />
       )}
 
-      {/* Customer Details Sidebar */}
       <CustomerDetailsSidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}

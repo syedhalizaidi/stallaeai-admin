@@ -1,7 +1,7 @@
 "use client";
 
 import "./recent-orders-card.css"
-import { getOrderTotal } from "../../../utils/orderUtils";
+import { getOrderTotal, formatRelativeTime } from "../../../utils/orderUtils";
 
 export default function RecentOrdersCard({
   onOpen,
@@ -10,14 +10,14 @@ export default function RecentOrdersCard({
   onStatusUpdate,
   readOrders,
   onMarkAsRead,
+  totalCount = 0,
 }) {
-  // Helper function to get order items summary
+  // ... (getOrderItemsSummary remains the same)
   const getOrderItemsSummary = (orderDetails) => {
     if (!orderDetails || typeof orderDetails !== "object") {
       return { count: 0, text: "No items" };
     }
 
-    // Check if it's a food order with items array
     if (orderDetails.items && Array.isArray(orderDetails.items)) {
       const totalItems = orderDetails.items.reduce(
         (sum, item) => sum + (item.qty || 1),
@@ -29,7 +29,6 @@ export default function RecentOrdersCard({
       return { count: totalItems, text: itemNames };
     }
 
-    // Fallback: count object keys (excluding metadata fields)
     const excludeKeys = [
       "type",
       "subtotal",
@@ -47,7 +46,7 @@ export default function RecentOrdersCard({
     order.order_status !== 'completed' && order.order_status !== 'cancelled'
   );
 
-  const groupedOrders = activeOrders.reduce((acc, item) => {
+  const groupedOrders = orders.reduce((acc, item) => {
     const phone = `${item.customer_name} - ${item.customer_number || item.phone_number}` || "Unknown";
     if (!acc[phone]) acc[phone] = [];
     acc[phone].push(item);
@@ -70,8 +69,6 @@ export default function RecentOrdersCard({
     return latestB - latestA;
   });
 
-  const topGroups = groupedArray.slice(0, 3);
-
   return (
     <div className="card-container">
       <div className="card">
@@ -83,21 +80,38 @@ export default function RecentOrdersCard({
             <h3 className="card-title">Recent Orders</h3>
           </div>
           <div className="orders-list">
-            {topGroups.map(([phone, list]) => {
-              const phoneNumber = list[0].phone_number || list[0].customer_number;
-              const isRead = readOrders?.has(phoneNumber);
+            {groupedArray.map(([phone, list]) => {
+              const isRead = list.every(o => o.is_read || readOrders?.has(o.id));
               
               return (
               <div
                 key={phone}
-                className="order-item clickable-item"
+                className={`order-item clickable-item ${!isRead ? 'unread-item' : ''}`}
                 onClick={() => {
-                  if (onMarkAsRead) onMarkAsRead(phoneNumber);
-                  if (onItemClick) onItemClick(phoneNumber);
+                  if (onMarkAsRead) {
+                    const idsToMark = list.filter(o => !o.is_read && !readOrders?.has(o.id)).map(o => o.id);
+                    if (idsToMark.length > 0) onMarkAsRead(idsToMark);
+                  }
+                  if (onItemClick) onItemClick(list[0]);
                 }}
-                style={{ cursor: onItemClick ? "pointer" : "default" }}
+                style={{ 
+                  cursor: onItemClick ? "pointer" : "default",
+                  background: isRead ? 'linear-gradient(135deg, #dbe7fa 0%, #c6dbf8 100%)' : '#ffffff',
+                  position: 'relative'
+                }}
               >
-                <p className="order-customer" style={{ fontWeight: isRead ? 'normal' : 'bold' }}>{phone}</p>
+                {!isRead && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    backgroundColor: '#3b82f6'
+                  }} />
+                )}
+                <p className="order-customer" style={{ fontWeight: !isRead ? 'bold' : 'normal' }}>{phone}</p>
 
                 <div className="order-scroll-container">
                   {list.map((order) => {
@@ -110,7 +124,7 @@ export default function RecentOrdersCard({
                           <p
                             className="order-details flex-1 mr-2"
                             title={itemsSummary.text}
-                            style={{ fontWeight: isRead ? 'normal' : 'bold' }}
+                            style={{ fontWeight: !isRead ? 'bold' : 'normal' }}
                           >
                             {itemsSummary.count} item
                             {itemsSummary.count !== 1 ? "s" : ""} · $
@@ -130,17 +144,21 @@ export default function RecentOrdersCard({
                               : "Pending")}
                           </span>
                         </div>
-                        <p className="order-time">{order.relativeTime}</p>
+                        <p className="order-time">{formatRelativeTime(order.timestamp)}</p>
                       </div>
                     );
                   })}
                 </div>
               </div>
             )})}
+
+            {groupedArray.length === 0 && (
+              <div className="text-center py-4 text-gray-400">No active orders</div>
+            )}
           </div>
 
           <button className="card-button" onClick={onOpen}>
-            View All Orders
+            View All ({totalCount})
           </button>
         </div>
       </div>

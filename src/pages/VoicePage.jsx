@@ -27,7 +27,9 @@ const VoiceControl = ({
   const [playingVoiceId, setPlayingVoiceId] = useState(null);
   const [isEditing, setIsEditing] = useState(!initialVoice);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [dropdownDirection, setDropdownDirection] = useState("down");
   const dropdownRef = useRef(null);
+  const buttonRef = useRef(null);
 
   useEffect(() => {
     if (parentVoices?.length) setVoices(parentVoices);
@@ -42,6 +44,20 @@ const VoiceControl = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (dropdownOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const dropdownHeight = 240; // max-h-60 is approximately 240px
+      
+      if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
+        setDropdownDirection("up");
+      } else {
+        setDropdownDirection("down");
+      }
+    }
+  }, [dropdownOpen]);
 
   const handleVoiceChange = (id) => {
     const match = voices.find((v) => (v.id || v.voice_id) === id);
@@ -110,30 +126,35 @@ const VoiceControl = ({
   };
 
   const VoiceDropdown = () => (
-    <div ref={dropdownRef} className="relative w-60">
+    <div ref={dropdownRef} className="relative w-full max-w-[240px]">
       <button
+        ref={buttonRef}
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="w-full flex justify-between items-center px-3 py-2 border rounded-lg bg-white hover:bg-gray-50"
+        className="w-full flex justify-between items-center px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 min-w-0 overflow-hidden"
       >
-        <span>{selectedVoiceName || "Select voice"}</span>
-        <ChevronDown className="h-4 w-4 text-gray-500" />
+        <span className="truncate mr-2">{selectedVoiceName || "Select voice"}</span>
+        <ChevronDown className={`h-4 w-4 text-gray-500 flex-shrink-0 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
       </button>
       {dropdownOpen && (
-        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
+        <div 
+          className={`absolute z-50 w-full bg-white border border-gray-300 rounded shadow-xl max-h-60 overflow-y-auto ${
+            dropdownDirection === "up" ? "bottom-full mb-1" : "top-full mt-1"
+          }`}
+        >
           {voices.map((voice) => (
             <div
               key={voice.id || voice.voice_id}
               className="flex justify-between items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => handleVoiceChange(voice.id || voice.voice_id)}
             >
-              <span>{voice.name}</span>
+              <span className="truncate">{voice.name}</span>
               {voice.preview_url && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePlayPause(voice);
                   }}
-                  className="ml-2 p-1 rounded-full"
+                  className="ml-2 p-1 rounded-full flex-shrink-0"
                 >
                   <Volume2
                     className={`h-5 w-5 ${
@@ -156,7 +177,7 @@ const VoiceControl = ({
   }
 
   return (
-    <div className="flex items-center space-x-6">
+    <div className="flex items-center space-x-2 min-w-0 w-full">
       {!isEditing && hasExistingVoice ? (
         <>
           {selectedVoicePreviewUrl && (
@@ -178,11 +199,11 @@ const VoiceControl = ({
               />
             </button>
           )}
-          <span>{selectedVoiceName}</span>
+          <span className="truncate">{selectedVoiceName}</span>
 
           <button
             onClick={() => setIsEditing(true)}
-            className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+            className="p-1 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
           >
             <SquarePen className="h-4 w-4 text-purple-600" />
           </button>
@@ -194,7 +215,7 @@ const VoiceControl = ({
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className={`p-1 rounded-full bg-purple-600 text-white ${
+              className={`p-1 rounded-full bg-purple-600 text-white flex-shrink-0 ${
                 isSubmitting
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:bg-purple-700"

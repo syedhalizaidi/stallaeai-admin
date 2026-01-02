@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "./CustomerDetailsSidebar.css";
 import StatusDropdown from "./common/StatusDropdown.jsx";
-import { getOrderTotal, getOrderBreakdown } from "../../utils/orderUtils";
+import { getOrderTotal, getOrderBreakdown, formatRelativeTime } from "../../utils/orderUtils";
+import { updateCustomerName } from "../../services/restaurantDashboardService";
+import { useToast } from "../../contexts/ToastContext";
+import { Edit } from "lucide-react";
 
 export default function CustomerDetailsSidebar({
   isOpen,
@@ -15,7 +18,7 @@ export default function CustomerDetailsSidebar({
   callbacks = [],
   onStatusUpdate,
 }) {
-  // Close on ESC key
+
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();
@@ -30,28 +33,30 @@ export default function CustomerDetailsSidebar({
     };
   }, [isOpen, onClose]);
 
+  const { showSuccess, showError } = useToast();
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
+
+  const firstOrder = orders[0] || reservations[0] || faqs[0] || callbacks[0];
+  const initialName = firstOrder?.customer_name || "Unknown";
+
+  useEffect(() => {
+    setEditedName(initialName);
+  }, [initialName, isOpen]);
+
+  const handleUpdateName = async () => {
+    if (!editedName.trim()) return;
+    const res = await updateCustomerName(phoneNumber, editedName, orders[0].restaurant_number);
+    if (res.success) {
+      showSuccess("Name updated successfully");
+      setIsEditingName(false);
+    } else {
+      showError(res.message);
+    }
+  };
+
   if (!isOpen) return null;
 
-  const getRelativeTime = (timestamp) => {
-    if (!timestamp) return "Unknown time";
-    const cleanTimestamp = timestamp.replace("+00:00Z", "Z");
-    const nowUtc = new Date().getTime();
-    const orderUtc = new Date(cleanTimestamp).getTime();
-
-    if (isNaN(orderUtc)) return "Invalid timestamp";
-
-    const diffMs = nowUtc - orderUtc;
-    if (diffMs < 0) return "Just now";
-
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMinutes / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMinutes < 1) return "Just now";
-    if (diffMinutes < 60) return `${diffMinutes} minute(s) ago`;
-    if (diffHours < 24) return `${diffHours} hour(s) ago`;
-    return `${diffDays} day(s) ago`;
-  };
 
   // Helper function to get order items details
   const getOrderItemsDetails = (orderDetails) => {
@@ -94,8 +99,34 @@ export default function CustomerDetailsSidebar({
       <div className="sidebar-overlay" onClick={onClose} />
       <div className="customer-sidebar">
         <div className="sidebar-header">
-          <div>
-            <h2 className="sidebar-title">Customer Details</h2>
+          <div className="flex-1">
+            {isEditingName ? (
+              <div className="flex items-center gap-2 mb-1">
+                <input
+                  type="text"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  className="bg-white text-black border border-gray-300 rounded px-2 py-1 text-lg font-bold w-full"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleUpdateName();
+                    if (e.key === "Escape") setIsEditingName(false);
+                  }}
+                />
+                <button onClick={handleUpdateName} className="text-green-600 hover:text-green-700">✓</button>
+                <button onClick={() => setIsEditingName(false)} className="text-red-600 hover:text-red-700">✕</button>
+              </div>
+            ) : (
+              <h2 className="sidebar-title flex items-center gap-2">
+                {editedName}
+                <button 
+                  onClick={() => setIsEditingName(true)}
+                  className="text-md text-black hover:text-gray-700 font-normal"
+                >
+                  <Edit size={16} />
+                </button>
+              </h2>
+            )}
             <p className="sidebar-phone">Phone Number: {phoneNumber}</p>
           </div>
           <button className="sidebar-close" onClick={onClose}>
@@ -122,7 +153,7 @@ export default function CustomerDetailsSidebar({
                         <span className="item-id">{order.customer_name}</span>
                         <span className="item-time">
                           {order.relativeTime ||
-                            getRelativeTime(order.timestamp)}
+                            formatRelativeTime(order.timestamp)}
                         </span>
                       </div>
                       <div className="item-details">
@@ -219,7 +250,7 @@ export default function CustomerDetailsSidebar({
                           reservation.customer_name?.slice(1)}
                       </span>
                       <span className="item-time">
-                        {getRelativeTime(reservation.timestamp)}
+                        {formatRelativeTime(reservation.timestamp)}
                       </span>
                     </div>
                     <div className="item-details">
@@ -266,7 +297,7 @@ export default function CustomerDetailsSidebar({
                         {callback.customer_name}
                       </span>
                       <span className="item-time">
-                        {getRelativeTime(callback.timestamp)}
+                        {formatRelativeTime(callback.timestamp)}
                       </span>
                     </div>
                     <div className="item-details">
@@ -349,7 +380,7 @@ export default function CustomerDetailsSidebar({
                   <div key={faq.id} className="sidebar-item">
                     <div className="item-header">
                       <span className="item-time">
-                        {getRelativeTime(faq.timestamp)}
+                        {formatRelativeTime(faq.timestamp)}
                       </span>
                     </div>
                     <div className="item-details">

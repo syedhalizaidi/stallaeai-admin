@@ -1,15 +1,17 @@
 "use client"
 
 import "./faqs-card.css"
-import StatusDropdown from "../common/StatusDropdown.jsx";
+import { formatRelativeTime } from "../../../utils/orderUtils.js";
 
 export default function FAQsCard({
   onOpen,
   orders = [],
   onItemClick,
-  onStatusUpdate
+  onStatusUpdate,
+  readOrders,
+  onMarkAsRead,
+  totalCount = 0,
 }) {
-
   const groupedFAQs = Object.entries(
     orders.reduce((acc, item) => {
       // Use customer_name if available, otherwise fallback to customer_number or phone_number
@@ -26,8 +28,6 @@ export default function FAQsCard({
     return latestB - latestA
   })
 
-  const topGroups = sortedGroups.slice(0, 3)
-
   return (
     <div className="card-container">
       <div className="card">
@@ -40,37 +40,41 @@ export default function FAQsCard({
           </div>
 
           <div className="orders-list">
-            {topGroups.map(([identifier, faqs]) => (
+            {sortedGroups.map(([identifier, faqs]) => {
+              return (
               <div 
                 key={identifier} 
                 className="order-item clickable-item"
-                onClick={() => onItemClick && onItemClick(faqs[0]?.customer_number || faqs[0]?.phone_number)}
-                style={{ cursor: onItemClick ? 'pointer' : 'default' }}
+                onClick={() => {
+                  if (onItemClick) onItemClick(faqs[0]);
+                }}
+                style={{ 
+                  cursor: onItemClick ? 'pointer' : 'default'
+                }}
               >
-
                 <p className="order-customer">{identifier}</p>
                 <div className="faq-scroll-container">
                   {faqs.map((faq) => (
                     <div key={faq.id} className="faq-block">
                       <p className="order-details"><strong>Q:</strong> {faq.question}</p>
                       <p className="order-details"><strong>A:</strong> {faq.answer}</p>
-                      <p className="order-time">
-                        {new Date(faq.timestamp).toLocaleString()}
+                      <p className="order-time text-xs text-gray-400">
+                        {faq.timestamp ? formatRelativeTime(faq.timestamp) : "No date"}
                       </p>
                     </div>
                   ))}
                 </div>
 
               </div>
-            ))}
+            )})}
 
-            {topGroups.length === 0 && (
-              <p className="no-orders">No FAQs available</p>
+            {sortedGroups.length === 0 && (
+              <p className="text-center py-4 text-gray-400">No FAQs available</p>
             )}
           </div>
 
           <button className="card-button" onClick={onOpen}>
-            View FAQs
+            View All ({totalCount})
           </button>
         </div>
       </div>

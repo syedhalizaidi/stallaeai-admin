@@ -16,6 +16,10 @@ import Users from "./Users";
 import DeleteBusinessModal from "./DeleteBusinessModal";
 import VoiceControl from "../pages/VoicePage";
 import GenericStep from "./RestaurantSetup/GenericStep";
+import BusinessSelector from "./BusinessSelector";
+import { useBusinessContext } from "../contexts/BusinessContext";
+import { updateAiAnsweringMode } from "../services/restaurantDashboardService";
+import { useToast } from "../contexts/ToastContext";
 
 export const BUSINESS_TYPES = {
   restaurant: "Restaurant",
@@ -39,6 +43,28 @@ const RestaurantsModule = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const userRole = localStorage.getItem("userRole")?.replace(/"/g, "");
+  const { selectedBusiness, refreshBusinesses: refreshContextBusinesses } = useBusinessContext();
+  const { showSuccess, showError } = useToast();
+  const [isUpdatingMode, setIsUpdatingMode] = useState(false);
+
+  const handleToggleAiMode = async (business, currentMode) => {
+    setIsUpdatingMode(true);
+    const newMode = currentMode === "only_ai" ? "redirect" : "only_ai";
+    const res = await updateAiAnsweringMode(business.id, newMode);
+    if (res.success) {
+      showSuccess(`AI Mode updated to ${newMode === "only_ai" ? "Only AI" : "Redirect to AI"}`);
+      fetchBusinesses();
+      if (selectedBusiness?.id === business.id) {
+        refreshContextBusinesses();
+      }
+      if (selectedRestaurant?.id === business.id) {
+        setSelectedRestaurant(prev => prev ? { ...prev, ai_answering_mode: newMode } : null);
+      }
+    } else {
+      showError(res.message);
+    }
+    setIsUpdatingMode(false);
+  };
 
   const fetchBusinesses = async () => {
     const result = await restaurantService.getRestaurants();
@@ -164,14 +190,35 @@ const RestaurantsModule = () => {
           </nav>
         </div>
 
-        {!selectedRestaurant && (
-          <button
-            onClick={handleAddRestaurant}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer mt-2 sm:mt-0"
-          >
-            <Plus className="h-5 w-5 mr-2" /> Add Business
-          </button>
-        )}
+        <div className="flex flex-wrap items-center gap-4 mt-2 sm:mt-0">
+          {selectedRestaurant && (
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">AI Mode</span>
+              <button
+                onClick={() => handleToggleAiMode(selectedRestaurant, selectedRestaurant.ai_answering_mode)}
+                disabled={isUpdatingMode}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                   selectedRestaurant.ai_answering_mode === 'only_ai' ? 'bg-purple-600' : 'bg-gray-200'
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  selectedRestaurant.ai_answering_mode === 'only_ai' ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
+              <span className="text-sm font-medium text-gray-700 w-24 text-center">
+                {selectedRestaurant.ai_answering_mode === 'only_ai' ? 'Only AI' : 'Redirect'}
+              </span>
+            </div>
+          )}
+          {!selectedRestaurant && (
+            <button
+              onClick={handleAddRestaurant}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
+            >
+              <Plus className="h-5 w-5 mr-2" /> Add Business
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Conditional rendering */}
@@ -277,7 +324,7 @@ const RestaurantsModule = () => {
                   </div>
 
                   <div className="flex flex-col items-end gap-1 min-w-0">
-                    <td className="px-3 sm:px-6 py-2 whitespace-nowrap">
+                    <div className="px-3 py-1">
                       <div className="flex items-center">
                         <BriefcaseBusiness className="h-5 w-5 text-gray-400 mr-2 sm:mr-3" />
                         <div className="text-sm text-gray-900">
@@ -292,7 +339,7 @@ const RestaurantsModule = () => {
                               : "N/A")}
                         </div>
                       </div>
-                    </td>
+                    </div>
 
                     {/* three-dots menu */}
                     <div className="flex items-center">
