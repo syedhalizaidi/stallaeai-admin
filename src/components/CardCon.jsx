@@ -101,22 +101,16 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
             parsedDetails = order.order_details || {};
           }
 
-          if (
-            parsedDetails?.type === "reservation" ||
-            parsedDetails?.date ||
-            parsedDetails?.party_size
-          ) {
-            orderType = "reservation";
-          } else if (
-            parsedDetails?.type === "faq" ||
-            parsedDetails?.type === "faq_request"
-          ) {
+          if (parsedDetails?.type === "callback" || parsedDetails?.type === "callback_request") {
+            orderType = "callback";
+          } else if (parsedDetails?.type === "faq" || parsedDetails?.type === "faq_request") {
             orderType = "faq";
           } else if (
-            parsedDetails?.type === "callback" ||
-            parsedDetails?.type === "callback_request"
+            parsedDetails?.type === "reservation" ||
+            parsedDetails?.party_size ||
+            (parsedDetails?.date && !parsedDetails?.type) // Only fallback to date if no type is present
           ) {
-            orderType = "callback";
+            orderType = "reservation";
           }
         } catch (e) {
           console.error("Failed to parse order_details for:", order.id, e);

@@ -126,11 +126,11 @@ const VoiceControl = ({
   };
 
   const VoiceDropdown = () => (
-    <div ref={dropdownRef} className="relative w-full max-w-[240px]">
+    <div ref={dropdownRef} className="relative cursor-pointer w-full max-w-[240px]">
       <button
         ref={buttonRef}
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="w-full flex justify-between items-center px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 min-w-0 overflow-hidden"
+        className="w-full cursor-pointer flex justify-between items-center px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 min-w-0 overflow-hidden"
       >
         <span className="truncate mr-2">{selectedVoiceName || "Select voice"}</span>
         <ChevronDown className={`h-4 w-4 text-gray-500 flex-shrink-0 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
@@ -191,7 +191,7 @@ const VoiceControl = ({
               className="p-1 rounded-full hover:bg-gray-100 transition-colors"
             >
               <Volume2
-                className={`h-5 w-5 ${
+                className={`h-5 w-5 cursor-pointer ${
                   playingVoiceId === selectedVoiceId
                     ? "text-purple-600"
                     : "text-gray-400"
@@ -205,7 +205,7 @@ const VoiceControl = ({
             onClick={() => setIsEditing(true)}
             className="p-1 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
           >
-            <SquarePen className="h-4 w-4 text-purple-600" />
+            <SquarePen className="h-4 w-4 text-purple-600 cursor-pointer" />
           </button>
         </>
       ) : (
@@ -215,7 +215,7 @@ const VoiceControl = ({
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className={`p-1 rounded-full bg-purple-600 text-white flex-shrink-0 ${
+              className={`p-1 rounded-full bg-purple-600 text-white cursor-pointer flex-shrink-0 ${
                 isSubmitting
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:bg-purple-700"

@@ -47,18 +47,18 @@ const RestaurantsModule = () => {
   const { showSuccess, showError } = useToast();
   const [isUpdatingMode, setIsUpdatingMode] = useState(false);
 
-  const handleToggleAiMode = async (business, currentMode) => {
+  const handleToggleAiMode = async (business, currentRedirectCall) => {
     setIsUpdatingMode(true);
-    const newMode = currentMode === "only_ai" ? "redirect" : "only_ai";
-    const res = await updateAiAnsweringMode(business.id, newMode);
+    const newStatus = !currentRedirectCall;
+    const res = await updateAiAnsweringMode(business.id, newStatus);
     if (res.success) {
-      showSuccess(`AI Mode updated to ${newMode === "only_ai" ? "Only AI" : "Redirect to AI"}`);
+      showSuccess(`Mode updated to ${newStatus ? "Redirect" : "Only"}`);
       fetchBusinesses();
       if (selectedBusiness?.id === business.id) {
         refreshContextBusinesses();
       }
       if (selectedRestaurant?.id === business.id) {
-        setSelectedRestaurant(prev => prev ? { ...prev, ai_answering_mode: newMode } : null);
+        setSelectedRestaurant(prev => prev ? { ...prev, redirect_call: newStatus } : null);
       }
     } else {
       showError(res.message);
@@ -193,20 +193,20 @@ const RestaurantsModule = () => {
         <div className="flex flex-wrap items-center gap-4 mt-2 sm:mt-0">
           {selectedRestaurant && (
             <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">AI Mode</span>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Only AI</span>
               <button
-                onClick={() => handleToggleAiMode(selectedRestaurant, selectedRestaurant.ai_answering_mode)}
+                onClick={() => handleToggleAiMode(selectedRestaurant, !!selectedRestaurant.redirect_call)}
                 disabled={isUpdatingMode}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                   selectedRestaurant.ai_answering_mode === 'only_ai' ? 'bg-purple-600' : 'bg-gray-200'
+                className={`relative cursor-pointer inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                   selectedRestaurant.redirect_call ? 'bg-purple-600' : 'bg-gray-200'
                 }`}
               >
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  selectedRestaurant.ai_answering_mode === 'only_ai' ? 'translate-x-6' : 'translate-x-1'
+                  selectedRestaurant.redirect_call ? 'translate-x-6' : 'translate-x-1'
                 }`} />
               </button>
               <span className="text-sm font-medium text-gray-700 w-24 text-center">
-                {selectedRestaurant.ai_answering_mode === 'only_ai' ? 'Only AI' : 'Redirect'}
+                Redirect
               </span>
             </div>
           )}

@@ -910,11 +910,21 @@ export const updateCustomerName = async (
   }
 };
 
-export const updateAiAnsweringMode = async (businessId, mode) => {
+export const updateAiAnsweringMode = async (businessId, redirectStatus) => {
+  const token = localStorage.getItem("authToken");
+
   try {
-    const response = await apiClient.put(`/business/${businessId}/ai-mode`, {
-      ai_answering_mode: mode,
-    });
+    const response = await apiClient.patch(
+      `/business/${businessId}/redirect-call`,
+      {
+        redirect_call: Boolean(redirectStatus),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+      }
+    );
     return {
       success: true,
       data: response.data,

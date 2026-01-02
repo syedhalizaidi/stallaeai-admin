@@ -13,7 +13,7 @@ export default function PageModal({ isOpen, onClose, title, children }) {
       
       {/* Modal */}
       <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="relative w-full max-w-6xl bg-white rounded-2xl shadow-lg transform transition-all">
+        <div className="relative w-full max-w-7xl bg-white rounded-2xl shadow-lg transform transition-all">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
