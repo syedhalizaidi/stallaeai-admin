@@ -11,6 +11,8 @@ const KnowledgePage = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [faqFiles, setFaqFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fileType, setFileType] = useState("faq");
+  const [selectedFileType, setSelectedFileType] = useState("all");
 
 
 
@@ -54,7 +56,7 @@ const KnowledgePage = () => {
       for (const file of selectedFiles) {
         const formData = new FormData();
         formData.append("file", file);
-        const result = await knowledgeBaseService.uploadFAQ(selectedBusiness.id, formData);
+        const result = await knowledgeBaseService.uploadFAQ(selectedBusiness.id, formData, fileType);
         if (!result.success) showError(result.error || `Failed to upload ${file.name}`);
       }
       showSuccess("Files uploaded successfully!");
@@ -83,6 +85,10 @@ const KnowledgePage = () => {
     }
   };
 
+  const filteredFiles = selectedFileType === "all" 
+    ? faqFiles 
+    : faqFiles.filter(file => file.file_type === selectedFileType);
+
   useEffect(() => {
     fetchFAQFiles();
   }, [selectedBusiness]);
@@ -100,6 +106,19 @@ const KnowledgePage = () => {
               <Upload className="w-5 h-5 text-purple-600" />
               Upload Files
             </h2>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                File Type *
+              </label>
+              <select
+                value={fileType}
+                onChange={(e) => setFileType(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              >
+                <option value="faq">FAQ</option>
+                <option value="knowledge_base">Knowledge Base</option>
+              </select>
+            </div>
             <input
               type="file"
               accept=".pdf,.doc,.docx"
@@ -133,24 +152,71 @@ const KnowledgePage = () => {
             </button>
           </div>
           <div className="bg-white rounded-xl shadow-sm border p-5">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Uploaded Files</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">Uploaded Files</h2>
+              <div className="flex gap-2 flex-wrap md:flex-nowrap">
+                <button
+                  onClick={() => setSelectedFileType("all")}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                    selectedFileType === "all"
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setSelectedFileType("faq")}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                    selectedFileType === "faq"
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  FAQ
+                </button>
+                <button
+                  onClick={() => setSelectedFileType("knowledge_base")}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                    selectedFileType === "knowledge_base"
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  Knowledge Base
+                </button>
+              </div>
+            </div>
             {loading ? (
               <p className="text-gray-600 flex items-center gap-2">
                 <Loader2 className="animate-spin w-5 h-5" /> Loading files...
               </p>
-            ) : faqFiles.length === 0 ? (
-              <p className="text-gray-600">No files uploaded yet.</p>
+            ) : filteredFiles.length === 0 ? (
+              <p className="text-gray-600">
+                {selectedFileType === "all" 
+                  ? "No files uploaded yet." 
+                  : `No ${selectedFileType === "faq" ? "FAQ" : "Knowledge Base"} files uploaded yet.`}
+              </p>
             ) : (
               <ul className="divide-y divide-gray-200">
-                {faqFiles.map((file) => (
+                {filteredFiles.map((file) => (
                   <li
                     key={file.id}
-                    className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                    className="flex justify-between items-center flex-col md:flex-row p-3 hover:bg-gray-50 rounded-lg transition-all duration-200"
                   >
                     <div className="flex items-start gap-3">
                       <FileText className="w-5 h-5 text-purple-600 mt-0.5" />
                       <div>
-                        <p className="text-gray-800 font-medium">{file.filename}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-gray-800 font-medium md:w-[410px] w-[100%]">{file.filename}</p>
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium text-center ${
+                            file.file_type === "faq" 
+                              ? "bg-blue-100 text-blue-700" 
+                              : "bg-green-100 text-green-700"
+                          }`}>
+                            {file.file_type === "faq" ? "FAQ" : "Knowledge Base"}
+                          </span>
+                        </div>
                         <p className="text-xs text-gray-500">{new Date(file.uploaded_at).toLocaleString()}</p>
                       </div>
                     </div>

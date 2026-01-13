@@ -2,10 +2,10 @@ import api from './api';
 
 export const knowledgeBaseService = {
   // Upload FAQ file
-  uploadFAQ: async (businessId, formData) => {
+  uploadFAQ: async (businessId, formData, fileType = 'faq') => {
     try {
       const response = await api.post(
-        `/upload/business/${businessId}/faq/upload`,
+        `/upload/business/${businessId}/faq/upload?file_type=${fileType}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -15,12 +15,12 @@ export const knowledgeBaseService = {
       return {
         success: true,
         data: response.data,
-        message: "FAQ file uploaded successfully!",
+        message: "File uploaded successfully!",
       };
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.message || "Failed to upload FAQ file.",
+        error: error.response?.data?.message || "Failed to upload file.",
         details: error.response?.data,
       };
     }

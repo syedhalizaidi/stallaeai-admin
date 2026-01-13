@@ -87,6 +87,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       staffEmail: "",
       staffPassword: "",
       staffPhoneNumber: "",
+      openingMessage: "",
     },
   });
 
@@ -148,6 +149,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               "tableRequired",
               data.table_required ?? config.tableRequired
             );
+            setValue("openingMessage", data.opening_message || "");
 
             if (data.slots && data.slots.length) {
               setValue(
@@ -247,6 +249,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               : false,
           },
         ],
+        opening_message: data.openingMessage || undefined,
       };
       let result;
       if (isEditMode && editId) {
@@ -352,6 +355,14 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             {...register("description", {
               required: "Description is required",
             })}
+          />
+          <TextAreaField
+            label="Greeting Message"
+            name="openingMessage"
+            placeholder="Enter a greeting message"
+            rows={3}
+            error={errors.openingMessage?.message}
+            {...register("openingMessage")}
           />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {config.showCuisine && (
