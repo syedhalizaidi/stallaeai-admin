@@ -126,4 +126,21 @@ export const userService = {
             };
         }
     },
+
+    deleteStaffUser: async (userId) => {
+        try {
+            const response = await api.delete(`/admin/delete/staff/${userId}`);
+            return {
+                success: true,
+                data: response.data,
+                message: 'Staff member deleted successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || 'Failed to delete staff member.',
+                details: error.response?.data
+            };
+        }
+    },
 }

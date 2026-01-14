@@ -89,6 +89,13 @@ export const businessService = {
 
     getBusinesses: async () => {
         try {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                return {
+                    success: false,
+                    error: 'Authentication token missing',
+                };
+            }
             const response = await api.get('/business/my');
             return {
                 success: true,

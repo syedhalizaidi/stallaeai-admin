@@ -46,7 +46,7 @@ const AddStaffPage = () => {
 
     try {
       setIsDeleting(true);
-      const result = await userService.deleteUser(userToDelete.id);
+      const result = await userService.deleteStaffUser(userToDelete.id);
       if (result.success) {
         fetchUsers();
         setIsDeleteModalOpen(false);
@@ -231,13 +231,13 @@ const AddStaffPage = () => {
                             className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
                             onClick={() => handleEditUser(user)}
                           />
-                          {/* <Trash2
+                          <Trash2
                             className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteUser(user);
                             }}
-                          /> */}
+                          />
                         </td>
                       )}
                   </tr>
@@ -257,14 +257,14 @@ const AddStaffPage = () => {
         IsStaffMember={true}
       />
 
-      {/* Delete User Modal
+      {/* Delete User Modal */}
       <DeleteUserModal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}
         onConfirm={confirmDeleteUser}
         userName={userToDelete?.full_name || userToDelete?.email || "this user"}
         isLoading={isDeleting}
-      /> */}
+      />
     </div>
   );
 };

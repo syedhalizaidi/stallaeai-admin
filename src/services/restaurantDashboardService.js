@@ -35,6 +35,12 @@ export const registerRestaurant = async (restaurantData) => {
 export const getRestaurants = async () => {
   try {
     const token = localStorage.getItem("authToken");
+    if (!token) {
+        return {
+          success: false,
+          error: "Authentication token missing",
+        };
+    }
 
     const response = await apiClient.get("/business/my", {
       headers: {

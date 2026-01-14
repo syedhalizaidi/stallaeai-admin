@@ -8,36 +8,49 @@ import RestaurantSetupPage from './pages/RestaurantSetupPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotificationPage from './pages/NotificationsPage';
 import Layout from './components/Layout';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 function App() {
   return (
     <ToastProvider>
-      <BusinessProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<LoginPage />} />
-            <Route element={<Layout />}> 
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route
-                path="/setup"
-                element={
-                  <ProtectedRoute allowedRoles={['Admin']}>
-                    <RestaurantSetupPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/notifications"
-                element={
-                  <ProtectedRoute allowedRoles={['Admin']}>
-                    <NotificationPage />
-                  </ProtectedRoute>
-                }
-              />
-            </Route>
-          </Routes>
-        </Router>
-      </BusinessProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route element={
+            <BusinessProvider>
+              <Layout />
+            </BusinessProvider>
+          }>
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/setup"
+              element={
+                <ProtectedRoute allowedRoles={['Admin']}>
+                  <RestaurantSetupPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute allowedRoles={['Admin']}>
+                  <NotificationPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+        </Routes>
+      </Router>
     </ToastProvider>
   )
 }

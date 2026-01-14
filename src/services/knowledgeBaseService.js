@@ -2,10 +2,10 @@ import api from './api';
 
 export const knowledgeBaseService = {
   // Upload FAQ file
-  uploadFAQ: async (businessId, formData, fileType = 'faq') => {
+  uploadFAQ: async (businessId, formData) => {
     try {
       const response = await api.post(
-        `/upload/business/${businessId}/faq/upload?file_type=${fileType}`,
+        `/upload/business/${businessId}/faq/upload`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
