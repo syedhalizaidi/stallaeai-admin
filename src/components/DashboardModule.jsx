@@ -353,7 +353,7 @@ const DashboardModule = () => {
         onClose={() => setActivePageModal(null)}
         title="Business Details"
       >
-        <Restaurants />
+        <Restaurants initialBusiness={selectedBusiness} />
       </PageModal>
 
       <PageModal

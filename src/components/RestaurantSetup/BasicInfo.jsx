@@ -11,6 +11,7 @@ import { restaurantService } from "../../services/restaurantService";
 import { userService } from "../../services/userService";
 import { ROUTES } from "../../constants/routes";
 import { User, Lock, Phone } from "lucide-react";
+import { businessService } from "../../services/businessService";
 
 const BUSINESS_CONFIG = {
   restaurant: {
@@ -50,6 +51,10 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [availableCountries, setAvailableCountries] = useState([]);
+  const [voices, setVoices] = useState([]);
+  const [redirectCall, setRedirectCall] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState(null);
+
   const {
     register,
     handleSubmit,
@@ -88,11 +93,14 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       staffPassword: "",
       staffPhoneNumber: "",
       openingMessage: "",
+      redirect_call: false,
+      voice_id: "",
     },
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: "slots" });
   const selectedCountry = watch("country");
+  const watchVoiceId = watch("voice_id");
 
   const selectCountry = (val) => {
     setValue("country", val);
@@ -101,16 +109,26 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const selectRegion = (val) => setValue("state", val);
 
   useEffect(() => {
-    const fetchAvailableCountries = async () => {
+    const fetchData = async () => {
       setIsLoadingData(true);
       try {
-        const result = await restaurantService.getTwilioAvailableCountries();
-        if (result.success) setAvailableCountries(result.data.countries || []);
+        const [countriesRes, voicesRes] = await Promise.all([
+          restaurantService.getTwilioAvailableCountries(),
+          businessService.getVoices()
+        ]);
+
+        if (countriesRes.success) setAvailableCountries(countriesRes.data.countries || []);
+
+        if (voicesRes.success) {
+          setVoices(voicesRes.data?.voices || []);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
       } finally {
         setIsLoadingData(false);
       }
     };
-    fetchAvailableCountries();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -150,6 +168,9 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               data.table_required ?? config.tableRequired
             );
             setValue("openingMessage", data.opening_message || "");
+            setValue("redirect_call", data.redirect_call || false);
+            setValue("voice_id", data.voice?.id || "");
+            setRedirectCall(data.redirect_call || false);
 
             if (data.slots && data.slots.length) {
               setValue(
@@ -250,11 +271,26 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
           },
         ],
         opening_message: data.openingMessage || undefined,
+        redirect_call: data.redirect_call,
       };
       let result;
       if (isEditMode && editId) {
         result = await restaurantService.updateRestaurant(editId, payload);
         if (result.success) {
+          // If voice changed, update it separately
+          if (data.voice_id) {
+            const selectedVoiceData = voices.find(v => (v.id || v.voice_id) === data.voice_id);
+            if (selectedVoiceData) {
+              await businessService.updateVoice(editId, {
+                name: selectedVoiceData.name,
+                category: selectedVoiceData.category,
+                gender: selectedVoiceData.gender,
+                preview_url: selectedVoiceData.preview_url,
+                business_id: editId,
+                id: data.voice_id,
+              });
+            }
+          }
           localStorage.setItem("restaurant_id", result.restaurantId);
           onNext();
         }
@@ -264,6 +300,21 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
           const businessId = result.restaurantId;
           localStorage.setItem("restaurant_id", businessId);
           localStorage.setItem("business_id", businessId);
+
+          // If voice selected, create it
+          if (data.voice_id) {
+             const selectedVoiceData = voices.find(v => (v.id || v.voice_id) === data.voice_id);
+             if (selectedVoiceData) {
+               await businessService.createVoice({
+                 name: selectedVoiceData.name,
+                 category: selectedVoiceData.category,
+                 gender: selectedVoiceData.gender,
+                 preview_url: selectedVoiceData.preview_url,
+                 business_id: businessId,
+                 id: data.voice_id,
+               });
+             }
+          }
 
           const staffPayload = {
             full_name: data.staffFullName,
@@ -345,6 +396,54 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               error={errors.phoneNumber?.message}
               {...register("phoneNumber", { required: "Contact number is required" })}
             />
+          </div>
+
+          <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100 space-y-6">
+             <h3 className="text-lg font-bold text-gray-900">AI & Voice Settings</h3>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="p-4 bg-white rounded-xl border border-gray-200">
+                   <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-bold text-gray-700">AI Answering Mode</label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-gray-500">Only AI</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const current = !watch("redirect_call");
+                            setValue("redirect_call", current);
+                            setRedirectCall(current);
+                          }}
+                          className={`relative cursor-pointer inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                             watch("redirect_call") ? 'bg-blue-600' : 'bg-gray-200'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            watch("redirect_call") ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
+                        <span className="text-xs font-medium text-gray-500">Redirect</span>
+                      </div>
+                   </div>
+                   <p className="text-xs text-gray-500">Choose if calls should be handled solely by AI or redirected if needed.</p>
+                   <input type="hidden" {...register("redirect_call")} />
+                </div>
+
+                <div className="p-4 bg-white rounded-xl border border-gray-200">
+                   <label className="text-sm font-bold text-gray-700 block mb-2">AI Voice</label>
+                   <select
+                      {...register("voice_id")}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                   >
+                      <option value="">Select AI Voice</option>
+                      {voices.map(voice => (
+                        <option key={voice.id || voice.voice_id} value={voice.id || voice.voice_id}>
+                          {voice.name} ({voice.gender})
+                        </option>
+                      ))}
+                   </select>
+                   <p className="text-xs text-gray-500 mt-2">Select the voice your AI agent will use during calls.</p>
+                </div>
+             </div>
           </div>
           <TextAreaField
             label="Description *"

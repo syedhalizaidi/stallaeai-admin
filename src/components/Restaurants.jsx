@@ -27,13 +27,13 @@ export const BUSINESS_TYPES = {
   barber: "Barber",
 };
 
-const RestaurantsModule = () => {
+const RestaurantsModule = ({ initialBusiness }) => {
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState([]);
   const [voices, setVoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(initialBusiness || null);
   const [isAddBusinessModalOpen, setIsAddBusinessModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [businessType, setBusinessType] = useState(null);
@@ -42,10 +42,17 @@ const RestaurantsModule = () => {
   const [businessToDelete, setBusinessToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [activeTab, setActiveTab] = useState("details");
   const userRole = localStorage.getItem("userRole")?.replace(/"/g, "");
   const { selectedBusiness, refreshBusinesses: refreshContextBusinesses } = useBusinessContext();
   const { showSuccess, showError } = useToast();
   const [isUpdatingMode, setIsUpdatingMode] = useState(false);
+
+  useEffect(() => {
+    if (initialBusiness && !selectedRestaurant) {
+      setSelectedRestaurant(initialBusiness);
+    }
+  }, [initialBusiness]);
 
   const handleToggleAiMode = async (business, currentRedirectCall) => {
     setIsUpdatingMode(true);
@@ -72,6 +79,11 @@ const RestaurantsModule = () => {
       setRestaurants(result.data);
       setLoading(false);
       setError(null);
+      // Update selected restaurant if it's in the list to get fresh data
+      if (selectedRestaurant) {
+        const updated = result.data.find(r => r.id === selectedRestaurant.id);
+        if (updated) setSelectedRestaurant(updated);
+      }
     } else {
       setError(result.error);
       setLoading(false);
@@ -87,6 +99,7 @@ const RestaurantsModule = () => {
 
   const handleRestaurantClick = (restaurant) => {
     setSelectedRestaurant(restaurant);
+    setActiveTab("details");
   };
 
   const handleBackToRestaurants = () => {
@@ -113,6 +126,9 @@ const RestaurantsModule = () => {
         fetchBusinesses();
         setIsDeleteModalOpen(false);
         setBusinessToDelete(null);
+        if (selectedRestaurant?.id === businessToDelete.id) {
+            setSelectedRestaurant(null);
+        }
       } else {
         setError(result.error);
       }
@@ -182,7 +198,7 @@ const RestaurantsModule = () => {
                   {selectedRestaurant.name}
                 </span>
                 <ChevronRight className="h-4 w-4 text-gray-400" />
-                <span className="text-purple-600 font-medium">Users</span>
+                <span className="text-purple-600 font-medium capitalize">{activeTab}</span>
               </>
             ) : (
               <span className="text-purple-600 font-medium">Business</span>
@@ -191,25 +207,6 @@ const RestaurantsModule = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-4 mt-2 sm:mt-0">
-          {selectedRestaurant && (
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Only AI</span>
-              <button
-                onClick={() => handleToggleAiMode(selectedRestaurant, !!selectedRestaurant.redirect_call)}
-                disabled={isUpdatingMode}
-                className={`relative cursor-pointer inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                   selectedRestaurant.redirect_call ? 'bg-purple-600' : 'bg-gray-200'
-                }`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  selectedRestaurant.redirect_call ? 'translate-x-6' : 'translate-x-1'
-                }`} />
-              </button>
-              <span className="text-sm font-medium text-gray-700 w-24 text-center">
-                Redirect
-              </span>
-            </div>
-          )}
           {!selectedRestaurant && (
             <button
               onClick={handleAddRestaurant}
@@ -221,12 +218,169 @@ const RestaurantsModule = () => {
         </div>
       </div>
 
+      {/* Tabs for selected restaurant */}
+      {selectedRestaurant && (
+        <div className="flex border-b border-gray-200 mb-6">
+          <button
+            onClick={() => setActiveTab("details")}
+            className={`px-6 py-3 text-sm font-medium transition-colors relative ${
+              activeTab === "details"
+                ? "text-purple-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Details
+            {activeTab === "details" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("users")}
+            className={`px-6 py-3 text-sm font-medium transition-colors relative ${
+              activeTab === "users"
+                ? "text-purple-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Users
+            {activeTab === "users" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600" />
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Conditional rendering */}
       {selectedRestaurant ? (
-        <Users
-          restaurantId={selectedRestaurant.id}
-          restaurantName={selectedRestaurant.name}
-        />
+        activeTab === "users" ? (
+          <Users
+            restaurantId={selectedRestaurant.id}
+            restaurantName={selectedRestaurant.name}
+          />
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <div className="h-16 w-16 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100">
+                  {selectedRestaurant.logo ? (
+                    <img src={selectedRestaurant.logo} alt={selectedRestaurant.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <Store className="h-8 w-8 text-purple-600" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">{selectedRestaurant.name}</h3>
+                  <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">
+                    {BUSINESS_TYPES[selectedRestaurant.business_type?.toLowerCase()] || selectedRestaurant.business_type}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => handleEditBusiness(selectedRestaurant.business_type, selectedRestaurant.id)}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors font-medium border border-purple-100"
+              >
+                <SquarePen className="h-4 w-4" />
+                Edit Business
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
+              <div className="space-y-6">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">Contact Information</label>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-gray-700">
+                      <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                        <Phone className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Twilio Number</p>
+                        <p className="font-medium">{selectedRestaurant.twilio_number?.phone_number || 'Not Assigned'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-gray-700">
+                        <div className="h-8 w-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600">
+                          <Phone className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Business Phone</p>
+                          <p className="font-medium">{selectedRestaurant.phone_number || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-gray-700">
+                        <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+                          <Plus className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Email Address</p>
+                          <p className="font-medium">{selectedRestaurant.email || 'N/A'}</p>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">Location</label>
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <p className="text-gray-700 leading-relaxed">
+                      {selectedRestaurant.locations?.[0]?.street_address}<br />
+                      {selectedRestaurant.locations?.[0]?.city}, {selectedRestaurant.locations?.[0]?.state} {selectedRestaurant.locations?.[0]?.zip_code}<br />
+                      {selectedRestaurant.locations?.[0]?.country}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">Settings</label>
+                  <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">AI Answering Mode</p>
+                        <p className="text-xs text-gray-500">Toggle between AI-only and redirect mode</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-gray-500">Only AI</span>
+                        <button
+                          onClick={() => handleToggleAiMode(selectedRestaurant, !!selectedRestaurant.redirect_call)}
+                          disabled={isUpdatingMode}
+                          className={`relative cursor-pointer inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+                             selectedRestaurant.redirect_call ? 'bg-purple-600' : 'bg-gray-200'
+                          }`}
+                        >
+                          <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                            selectedRestaurant.redirect_call ? 'translate-x-5' : 'translate-x-1'
+                          }`} />
+                        </button>
+                        <span className="text-xs font-medium text-gray-500">Redirect</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm font-bold text-gray-900 mb-2">Voice Configuration</p>
+                      <VoiceControl
+                        voice={selectedRestaurant.voice}
+                        businessId={selectedRestaurant.id}
+                        voices={voices}
+                        onVoiceUpdated={fetchBusinesses}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {selectedRestaurant.description && (
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">Description</label>
+                    <p className="text-sm text-gray-600 leading-relaxed italic border-l-2 border-purple-200 pl-4">
+                      "{selectedRestaurant.description}"
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )
       ) : loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
