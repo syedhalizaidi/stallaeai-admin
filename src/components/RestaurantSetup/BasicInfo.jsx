@@ -173,6 +173,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             setRedirectCall(data.redirect_call || false);
 
             if (data.slots && data.slots.length) {
+              setValue("enableReservations", true);
               setValue(
                 "slots",
                 data.slots.map((s) =>
@@ -185,6 +186,8 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                     : { slotName: "chair", capacity: 1, quantity: s.quantity }
                 )
               );
+            } else {
+              setValue("enableReservations", false);
             }
           }
         } finally {
@@ -208,26 +211,28 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
     setIsLoading(true);
     try {
       let slots = [];
-      if (businessType === "restaurant") {
-        slots = data.slots.map((s, index) => ({
-          slot_name: `table${index + 1}`,
-          slot_type: `table${index + 1}`,
-          capacity:
-            s.tableSize === "custom"
-              ? Number(s.customCapacity)
-              : Number(s.tableSize),
-          quantity: Number(s.quantity),
-        }));
-      }
-      if (businessType === "barber") {
-        slots = [
-          {
-            slot_name: "chair",
-            slot_type: "chair",
-            capacity: 1,
-            quantity: Number(data.slots[0].quantity),
-          },
-        ];
+      if (data.enableReservations) {
+        if (businessType === "restaurant") {
+          slots = data.slots.map((s, index) => ({
+            slot_name: `table${index + 1}`,
+            slot_type: `table${index + 1}`,
+            capacity:
+              s.tableSize === "custom"
+                ? Number(s.customCapacity)
+                : Number(s.tableSize),
+            quantity: Number(s.quantity),
+          }));
+        }
+        if (businessType === "barber") {
+          slots = [
+            {
+              slot_name: "chair",
+              slot_type: "chair",
+              capacity: 1,
+              quantity: Number(data.slots[0].quantity),
+            },
+          ];
+        }
       }
       const payload = {
         name: data.businessName,
@@ -245,7 +250,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
         country_code: data.countryCode,
         slots,
         chair_count:
-          businessType === "barber" ? Number(data.slots[0].quantity) : 0,
+          (businessType === "barber" && data.enableReservations) ? Number(data.slots[0]?.quantity || 0) : 0,
         location: [
           {
             street_address: data.streetAddress,
@@ -644,7 +649,17 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             label="Enable Reservations"
             name="enableReservations"
             checked={watch("enableReservations")}
-            onChange={(e) => setValue("enableReservations", e.target.checked)}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setValue("enableReservations", checked);
+              if (!checked) {
+                // Reset slots to initial state when disabled
+                const initialSlots = businessType === "restaurant"
+                  ? [{ tableSize: "", customCapacity: "", quantity: "" }]
+                  : [{ slotName: "chair", capacity: 1, quantity: "" }];
+                setValue("slots", initialSlots);
+              }
+            }}
             {...register("enableReservations")}
           />
 
@@ -658,29 +673,47 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                   key={item.id}
                   className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 items-end"
                 >
-                  <NumberField
-                    label={!watch("tableRequired") ? "Reservation Slots":"Reservation Size"}
-                    placeholder={!watch("tableRequired") ? "No. of Reservations":"Person Count"}
-                    name={`slots[${index}].tableSize`}
-                    {...register(`slots.${index}.tableSize`)}
-                  />
-                  {watch("tableRequired") && (
+                  <div className="flex-1">
                     <NumberField
-                      label="Quantity"
-                      placeholder="Number of such reservations"
-                      name={`slots[${index}].quantity`}
-                      {...register(`slots.${index}.quantity`)}
+                      label={!watch("tableRequired") ? "Reservation Slots":"Reservation Size"}
+                      placeholder={!watch("tableRequired") ? "No. of Reservations":"Person Count"}
+                      name={`slots[${index}].tableSize`}
+                      error={errors.slots?.[index]?.tableSize?.message}
+                      {...register(`slots.${index}.tableSize`, {
+                        required: watch("enableReservations") ? "Size is required" : false
+                      })}
                     />
+                  </div>
+                  {watch("tableRequired") && (
+                    <div className="flex-1">
+                      <NumberField
+                        label="Quantity"
+                        placeholder="Number of such reservations"
+                        name={`slots[${index}].quantity`}
+                        error={errors.slots?.[index]?.quantity?.message}
+                        {...register(`slots.${index}.quantity`, {
+                          required: watch("enableReservations") ? "Quantity is required" : false
+                        })}
+                      />
+                    </div>
                   )}
                   <button
                     type="button"
                     onClick={() => remove(index)}
-                    className="text-red-500 font-medium ml-2 border-border-red-500 border px-3 py-3 rounded-lg"
+                    disabled={fields.length === 1 && watch("enableReservations")}
+                    className={`font-medium ml-2 border px-3 py-3 rounded-lg transition-colors ${
+                      fields.length === 1 && watch("enableReservations")
+                        ? "text-gray-300 border-gray-200 cursor-not-allowed"
+                        : "text-red-500 border-red-500 hover:bg-red-50"
+                    }`}
                   >
                     Remove
                   </button>
                 </div>
               ))}
+              {errors.slots?.root && (
+                <p className="text-red-500 text-sm mt-2">{errors.slots.root.message}</p>
+              )}
 
               <button
                 type="button"

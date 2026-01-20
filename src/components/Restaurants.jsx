@@ -9,6 +9,16 @@ import {
   SquarePen,
   Trash2,
   BriefcaseBusiness,
+  Globe,
+  MessageSquare,
+  Star,
+  MapPin,
+  Info,
+  CheckCircle2,
+  XCircle,
+  Table2,
+  HelpCircle,
+  BookOpen,
 } from "lucide-react";
 import { restaurantService } from "../services/restaurantService";
 import { businessService } from "../services/businessService";
@@ -33,7 +43,9 @@ const RestaurantsModule = ({ initialBusiness }) => {
   const [voices, setVoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedRestaurant, setSelectedRestaurant] = useState(initialBusiness || null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(
+    initialBusiness || null,
+  );
   const [isAddBusinessModalOpen, setIsAddBusinessModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [businessType, setBusinessType] = useState(null);
@@ -44,7 +56,8 @@ const RestaurantsModule = ({ initialBusiness }) => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [activeTab, setActiveTab] = useState("details");
   const userRole = localStorage.getItem("userRole")?.replace(/"/g, "");
-  const { selectedBusiness, refreshBusinesses: refreshContextBusinesses } = useBusinessContext();
+  const { selectedBusiness, refreshBusinesses: refreshContextBusinesses } =
+    useBusinessContext();
   const { showSuccess, showError } = useToast();
   const [isUpdatingMode, setIsUpdatingMode] = useState(false);
 
@@ -65,7 +78,9 @@ const RestaurantsModule = ({ initialBusiness }) => {
         refreshContextBusinesses();
       }
       if (selectedRestaurant?.id === business.id) {
-        setSelectedRestaurant(prev => prev ? { ...prev, redirect_call: newStatus } : null);
+        setSelectedRestaurant((prev) =>
+          prev ? { ...prev, redirect_call: newStatus } : null,
+        );
       }
     } else {
       showError(res.message);
@@ -81,7 +96,7 @@ const RestaurantsModule = ({ initialBusiness }) => {
       setError(null);
       // Update selected restaurant if it's in the list to get fresh data
       if (selectedRestaurant) {
-        const updated = result.data.find(r => r.id === selectedRestaurant.id);
+        const updated = result.data.find((r) => r.id === selectedRestaurant.id);
         if (updated) setSelectedRestaurant(updated);
       }
     } else {
@@ -120,14 +135,14 @@ const RestaurantsModule = ({ initialBusiness }) => {
     setIsDeleting(true);
     try {
       const result = await restaurantService.deleteRestaurant(
-        businessToDelete.id
+        businessToDelete.id,
       );
       if (result.success) {
         fetchBusinesses();
         setIsDeleteModalOpen(false);
         setBusinessToDelete(null);
         if (selectedRestaurant?.id === businessToDelete.id) {
-            setSelectedRestaurant(null);
+          setSelectedRestaurant(null);
         }
       } else {
         setError(result.error);
@@ -170,7 +185,7 @@ const RestaurantsModule = ({ initialBusiness }) => {
     };
 
     navigate(
-      `/setup?step=basic-info&editId=${editBusinessId}&businessType=${businessType}`
+      `/setup?step=basic-info&editId=${editBusinessId}&businessType=${businessType}`,
     );
   };
 
@@ -198,7 +213,9 @@ const RestaurantsModule = ({ initialBusiness }) => {
                   {selectedRestaurant.name}
                 </span>
                 <ChevronRight className="h-4 w-4 text-gray-400" />
-                <span className="text-purple-600 font-medium capitalize">{activeTab}</span>
+                <span className="text-purple-600 font-medium capitalize">
+                  {activeTab}
+                </span>
               </>
             ) : (
               <span className="text-purple-600 font-medium">Business</span>
@@ -263,31 +280,55 @@ const RestaurantsModule = ({ initialBusiness }) => {
               <div className="flex items-center gap-4">
                 <div className="h-16 w-16 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100">
                   {selectedRestaurant.logo ? (
-                    <img src={selectedRestaurant.logo} alt={selectedRestaurant.name} className="h-full w-full object-cover" />
+                    <img
+                      src={selectedRestaurant.logo}
+                      alt={selectedRestaurant.name}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <Store className="h-8 w-8 text-purple-600" />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">{selectedRestaurant.name}</h3>
-                  <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">
-                    {BUSINESS_TYPES[selectedRestaurant.business_type?.toLowerCase()] || selectedRestaurant.business_type}
-                  </p>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {selectedRestaurant.name}
+                  </h3>
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">
+                      {BUSINESS_TYPES[
+                        selectedRestaurant.business_type?.toLowerCase()
+                      ] || selectedRestaurant.business_type}
+                    </p>
+                    {selectedRestaurant.rating !== null && (
+                      <div className="flex items-center gap-1 bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded text-xs font-bold">
+                        <Star className="h-3 w-3 fill-yellow-700" />
+                        {selectedRestaurant.rating} (
+                        {selectedRestaurant.review_count} reviews)
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <button
-                onClick={() => handleEditBusiness(selectedRestaurant.business_type, selectedRestaurant.id)}
+                onClick={() =>
+                  handleEditBusiness(
+                    selectedRestaurant.business_type,
+                    selectedRestaurant.id,
+                  )
+                }
                 className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors font-medium border border-purple-100"
               >
                 <SquarePen className="h-4 w-4" />
                 Edit Business
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
               <div className="space-y-6">
                 <div>
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">Contact Information</label>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">
+                    Contact Information
+                  </label>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3 text-gray-700">
                       <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
@@ -295,70 +336,150 @@ const RestaurantsModule = ({ initialBusiness }) => {
                       </div>
                       <div>
                         <p className="text-xs text-gray-500">Twilio Number</p>
-                        <p className="font-medium">{selectedRestaurant.twilio_number?.phone_number || 'Not Assigned'}</p>
+                        <p className="font-medium">
+                          {selectedRestaurant.twilio_number?.phone_number ||
+                            "Not Assigned"}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-gray-700">
-                        <div className="h-8 w-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600">
-                          <Phone className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500">Business Phone</p>
-                          <p className="font-medium">{selectedRestaurant.phone_number || 'N/A'}</p>
-                        </div>
+                      <div className="h-8 w-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600">
+                        <Phone className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Business Phone</p>
+                        <p className="font-medium">
+                          {selectedRestaurant.phone_number || "N/A"}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex items-center gap-3 text-gray-700">
-                        <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
-                          <Plus className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500">Email Address</p>
-                          <p className="font-medium">{selectedRestaurant.email || 'N/A'}</p>
-                        </div>
+                      <div className="h-8 w-8 rounded-lg bg-red-50 flex items-center justify-center text-red-600">
+                        <Plus className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-gray-500">Email Address</p>
+                        <p className="font-medium truncate">
+                          {selectedRestaurant.email || "N/A"}
+                        </p>
+                      </div>
                     </div>
+                    {selectedRestaurant.website && (
+                      <div className="flex items-center gap-3 text-gray-700">
+                        <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                          <Globe className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-gray-500">Website</p>
+                          <a
+                            href={
+                              selectedRestaurant.website.startsWith("http")
+                                ? selectedRestaurant.website
+                                : `https://${selectedRestaurant.website}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium text-purple-600 hover:text-purple-700 truncate block"
+                          >
+                            {selectedRestaurant.website}
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">Location</label>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <p className="text-gray-700 leading-relaxed">
-                      {selectedRestaurant.locations?.[0]?.street_address}<br />
-                      {selectedRestaurant.locations?.[0]?.city}, {selectedRestaurant.locations?.[0]?.state} {selectedRestaurant.locations?.[0]?.zip_code}<br />
-                      {selectedRestaurant.locations?.[0]?.country}
-                    </p>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">
+                    Locations
+                  </label>
+                  <div className="space-y-4">
+                    {selectedRestaurant.locations?.map((loc, idx) => (
+                      <div
+                        key={loc.id || idx}
+                        className="bg-gray-50 rounded-xl p-4 border border-gray-100"
+                      >
+                        <div className="flex items-start gap-3 mb-3">
+                          <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
+                          <p className="text-gray-700 leading-relaxed text-sm">
+                            {loc.street_address}
+                            <br />
+                            {loc.city}, {loc.state} {loc.zip_code}
+                            <br />
+                            {loc.country}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-200">
+                          {[
+                            { label: 'Dine-in', val: loc.is_dine_in_available },
+                            { label: 'Delivery', val: loc.is_delivery_available },
+                            { label: 'Pickup', val: loc.is_pickup_available },
+                            { label: 'Wheelchair', val: loc.is_wheelchair_accessible },
+                            { label: 'Parking', val: loc.is_parking_available }
+                          ].filter(feat => feat.val).map((feat, fidx) => (
+                            <div key={fidx} className="flex items-center gap-1.5 bg-green-50 px-2 py-0.5 rounded-md">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                              <span className="text-[10px] font-medium text-green-700">{feat.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <div>
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">Settings</label>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">
+                    Settings
+                  </label>
                   <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-4">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
-                        <p className="text-sm font-bold text-gray-900">AI Answering Mode</p>
-                        <p className="text-xs text-gray-500">Toggle between AI-only and redirect mode</p>
+                        <p className="text-sm font-bold text-gray-900">
+                          AI Answering Mode
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Toggle between AI-only and redirect mode
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-gray-500">Only AI</span>
+                        <span className="text-xs font-medium text-gray-500">
+                          Only AI
+                        </span>
                         <button
-                          onClick={() => handleToggleAiMode(selectedRestaurant, !!selectedRestaurant.redirect_call)}
+                          onClick={() =>
+                            handleToggleAiMode(
+                              selectedRestaurant,
+                              !!selectedRestaurant.redirect_call,
+                            )
+                          }
                           disabled={isUpdatingMode}
                           className={`relative cursor-pointer inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
-                             selectedRestaurant.redirect_call ? 'bg-purple-600' : 'bg-gray-200'
+                            selectedRestaurant.redirect_call
+                              ? "bg-purple-600"
+                              : "bg-gray-200"
                           }`}
                         >
-                          <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                            selectedRestaurant.redirect_call ? 'translate-x-5' : 'translate-x-1'
-                          }`} />
+                          <span
+                            className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                              selectedRestaurant.redirect_call
+                                ? "translate-x-5"
+                                : "translate-x-1"
+                            }`}
+                          />
                         </button>
-                        <span className="text-xs font-medium text-gray-500">Redirect</span>
+                        <span className="text-xs font-medium text-gray-500">
+                          Redirect
+                        </span>
                       </div>
                     </div>
 
                     <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm font-bold text-gray-900 mb-2">Voice Configuration</p>
+                      <p className="text-sm font-bold text-gray-900 mb-2">
+                        Voice Configuration
+                      </p>
                       <VoiceControl
                         voice={selectedRestaurant.voice}
                         businessId={selectedRestaurant.id}
@@ -366,15 +487,134 @@ const RestaurantsModule = ({ initialBusiness }) => {
                         onVoiceUpdated={fetchBusinesses}
                       />
                     </div>
+
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">
+                          Table Required
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Booking requires table selection
+                        </p>
+                      </div>
+                      <div
+                        className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${selectedRestaurant.table_required ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}
+                      >
+                        {selectedRestaurant.table_required ? "Yes" : "No"}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
+                {selectedRestaurant.opening_message && (
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">
+                      Opening Message
+                    </label>
+                    <div className="bg-purple-50 rounded-xl p-4 border border-purple-100 relative">
+                      <MessageSquare className="h-4 w-4 text-purple-300 absolute top-3 right-3" />
+                      <p className="text-sm text-purple-900 leading-relaxed">
+                        {selectedRestaurant.opening_message}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {selectedRestaurant.description && (
                   <div>
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">Description</label>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">
+                      Description
+                    </label>
                     <p className="text-sm text-gray-600 leading-relaxed italic border-l-2 border-purple-200 pl-4">
                       "{selectedRestaurant.description}"
                     </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Extra Sections */}
+            <div className="px-8 pb-8 space-y-8">
+              {selectedRestaurant.slots?.length > 0 && (
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 block">
+                    Service Slots / Tables
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {selectedRestaurant.slots.map((slot, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-xl shadow-sm"
+                      >
+                        <div className="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+                          <Table2 className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900 leading-none mb-1">
+                            {slot.slot_name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Capacity: {slot.capacity} | Qty: {slot.quantity}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {selectedRestaurant.faq_data && (
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 block">
+                      FAQ Data
+                    </label>
+                    <div className="bg-gray-50 rounded-xl border border-gray-100 overflow-hidden">
+                      <div className="p-4 bg-white border-b border-gray-100 flex items-center gap-2">
+                        <HelpCircle className="h-4 w-4 text-purple-600" />
+                        <span className="text-sm font-bold text-gray-900">
+                          Recent FAQs
+                        </span>
+                      </div>
+                      <div className="p-4">
+                        <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans">
+                          {typeof selectedRestaurant.faq_data === "string"
+                            ? selectedRestaurant.faq_data
+                            : JSON.stringify(
+                                selectedRestaurant.faq_data,
+                                null,
+                                2,
+                              )}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {selectedRestaurant.knowledge_base && (
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 block">
+                      Knowledge Base
+                    </label>
+                    <div className="bg-gray-50 rounded-xl border border-gray-100 overflow-hidden">
+                      <div className="p-4 bg-white border-b border-gray-100 flex items-center gap-2">
+                        <BookOpen className="h-4 w-4 text-purple-600" />
+                        <span className="text-sm font-bold text-gray-900">
+                          Source Content
+                        </span>
+                      </div>
+                      <div className="p-4">
+                        <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans">
+                          {typeof selectedRestaurant.knowledge_base === "string"
+                            ? selectedRestaurant.knowledge_base
+                            : JSON.stringify(
+                                selectedRestaurant.knowledge_base,
+                                null,
+                                2,
+                              )}
+                        </pre>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -487,9 +727,13 @@ const RestaurantsModule = ({ initialBusiness }) => {
                           ] ||
                             (restaurant?.business_type
                               ? restaurant.business_type
-                                  .split('_')
-                                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                                  .join(' ')
+                                  .split("_")
+                                  .map(
+                                    (word) =>
+                                      word.charAt(0).toUpperCase() +
+                                      word.slice(1),
+                                  )
+                                  .join(" ")
                               : "N/A")}
                         </div>
                       </div>
@@ -501,7 +745,7 @@ const RestaurantsModule = ({ initialBusiness }) => {
                         onClick={(e) => {
                           e.stopPropagation();
                           setOpenMenuId(
-                            openMenuId === restaurant.id ? null : restaurant.id
+                            openMenuId === restaurant.id ? null : restaurant.id,
                           );
                         }}
                         aria-haspopup="true"
@@ -551,27 +795,27 @@ const RestaurantsModule = ({ initialBusiness }) => {
 
                           {(userRole === "Admin" ||
                             userRole === "Proprietor") && (
-                              <div className="border-t border-gray-100 p-2 flex items-center justify-between">
-                                Action:
-                                <SquarePen
-                                  className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditBusiness(
-                                      restaurant?.business_type,
-                                      restaurant.id
-                                    );
-                                  }}
-                                />
-                                <Trash2
-                                  className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteClick(restaurant);
-                                  }}
-                                />
-                              </div>
-                            )}
+                            <div className="border-t border-gray-100 p-2 flex items-center justify-between">
+                              Action:
+                              <SquarePen
+                                className="h-5 w-5 text-purple-600 mr-3 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditBusiness(
+                                    restaurant?.business_type,
+                                    restaurant.id,
+                                  );
+                                }}
+                              />
+                              <Trash2
+                                className="h-5 w-5 text-red-500 mr-3 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteClick(restaurant);
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -662,9 +906,13 @@ const RestaurantsModule = ({ initialBusiness }) => {
                           ] ||
                             (restaurant?.business_type
                               ? restaurant.business_type
-                                  .split('_')
-                                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                                  .join(' ')
+                                  .split("_")
+                                  .map(
+                                    (word) =>
+                                      word.charAt(0).toUpperCase() +
+                                      word.slice(1),
+                                  )
+                                  .join(" ")
                               : "N/A")}
                         </div>
                       </div>
@@ -678,7 +926,7 @@ const RestaurantsModule = ({ initialBusiness }) => {
                             e.stopPropagation();
                             handleEditBusiness(
                               restaurant?.business_type,
-                              restaurant.id
+                              restaurant.id,
                             );
                           }}
                         />
