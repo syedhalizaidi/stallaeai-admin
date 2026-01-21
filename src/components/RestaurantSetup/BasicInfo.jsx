@@ -173,18 +173,25 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             setRedirectCall(data.redirect_call || false);
 
             if (data.slots && data.slots.length) {
+              const isTableRequired = data.table_required ?? config.tableRequired;
               setValue("enableReservations", true);
               setValue(
                 "slots",
-                data.slots.map((s) =>
-                  businessType === "restaurant"
-                    ? {
-                        tableSize: s.capacity,
-                        quantity: s.quantity,
-                        customCapacity: s.capacity,
-                      }
-                    : { slotName: "chair", capacity: 1, quantity: s.quantity }
-                )
+                data.slots.map((s) => {
+                  if (isTableRequired) {
+                    return {
+                      tableSize: s.capacity,
+                      quantity: s.quantity,
+                      customCapacity: s.capacity,
+                    };
+                  } else {
+                    return {
+                      tableSize: s.quantity, // Mapped to "No. of Reservations" field
+                      quantity: "",
+                      customCapacity: "",
+                    };
+                  }
+                })
               );
             } else {
               setValue("enableReservations", false);
@@ -212,27 +219,25 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
     try {
       let slots = [];
       if (data.enableReservations) {
-        if (businessType === "restaurant") {
-          slots = data.slots.map((s, index) => ({
-            slot_name: `table${index + 1}`,
-            slot_type: `table${index + 1}`,
-            capacity:
-              s.tableSize === "custom"
+        slots = data.slots.map((s, index) => {
+          if (data.tableRequired) {
+            return {
+              slot_name: s.slotName || (businessType === "restaurant" ? `table${index + 1}` : `slot${index + 1}`),
+              slot_type: s.slotName || (businessType === "restaurant" ? `table${index + 1}` : `slot${index + 1}`),
+              capacity: s.tableSize === "custom"
                 ? Number(s.customCapacity)
                 : Number(s.tableSize),
-            quantity: Number(s.quantity),
-          }));
-        }
-        if (businessType === "barber") {
-          slots = [
-            {
-              slot_name: "chair",
-              slot_type: "chair",
+              quantity: Number(s.quantity),
+            };
+          } else {
+            return {
+              slot_name: s.slotName || `slot${index + 1}`,
+              slot_type: s.slotName || `slot${index + 1}`,
               capacity: 1,
-              quantity: Number(data.slots[0].quantity),
-            },
-          ];
-        }
+              quantity: Number(s.tableSize), // Labeled "No. of Reservations" in UI when tableRequired is false
+            };
+          }
+        });
       }
       const payload = {
         name: data.businessName,
@@ -699,13 +704,13 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                   )}
                   <button
                     type="button"
-                    onClick={() => remove(index)}
-                    disabled={fields.length === 1 && watch("enableReservations")}
-                    className={`font-medium ml-2 border px-3 py-3 rounded-lg transition-colors ${
-                      fields.length === 1 && watch("enableReservations")
-                        ? "text-gray-300 border-gray-200 cursor-not-allowed"
-                        : "text-red-500 border-red-500 hover:bg-red-50"
-                    }`}
+                    onClick={() => {
+                      if (fields.length === 1) {
+                        setValue("enableReservations", false);
+                      }
+                      remove(index);
+                    }}
+                    className="font-medium ml-2 border px-3 py-3 rounded-lg transition-colors text-red-500 border-red-500 hover:bg-red-50"
                   >
                     Remove
                   </button>

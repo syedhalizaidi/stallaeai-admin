@@ -224,14 +224,21 @@ const RestaurantsModule = ({ initialBusiness }) => {
         </div>
 
         <div className="flex flex-wrap items-center gap-4 mt-2 sm:mt-0">
-          {!selectedRestaurant && (
+          {selectedRestaurant && (
             <button
-              onClick={handleAddRestaurant}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
+              onClick={handleBackToRestaurants}
+              className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
             >
-              <Plus className="h-5 w-5 mr-2" /> Add Business
+              <BriefcaseBusiness className="h-5 w-5 mr-2 text-purple-600" />{" "}
+              Business Listing
             </button>
           )}
+          <button
+            onClick={handleAddRestaurant}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium flex items-center transition-colors cursor-pointer"
+          >
+            <Plus className="h-5 w-5 mr-2" /> Add Business
+          </button>
         </div>
       </div>
 
@@ -411,17 +418,30 @@ const RestaurantsModule = ({ initialBusiness }) => {
                         </div>
                         <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-200">
                           {[
-                            { label: 'Dine-in', val: loc.is_dine_in_available },
-                            { label: 'Delivery', val: loc.is_delivery_available },
-                            { label: 'Pickup', val: loc.is_pickup_available },
-                            { label: 'Wheelchair', val: loc.is_wheelchair_accessible },
-                            { label: 'Parking', val: loc.is_parking_available }
-                          ].filter(feat => feat.val).map((feat, fidx) => (
-                            <div key={fidx} className="flex items-center gap-1.5 bg-green-50 px-2 py-0.5 rounded-md">
-                              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                              <span className="text-[10px] font-medium text-green-700">{feat.label}</span>
-                            </div>
-                          ))}
+                            { label: "Dine-in", val: loc.is_dine_in_available },
+                            {
+                              label: "Delivery",
+                              val: loc.is_delivery_available,
+                            },
+                            { label: "Pickup", val: loc.is_pickup_available },
+                            {
+                              label: "Wheelchair",
+                              val: loc.is_wheelchair_accessible,
+                            },
+                            { label: "Parking", val: loc.is_parking_available },
+                          ]
+                            .filter((feat) => feat.val)
+                            .map((feat, fidx) => (
+                              <div
+                                key={fidx}
+                                className="flex items-center gap-1.5 bg-green-50 px-2 py-0.5 rounded-md"
+                              >
+                                <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                                <span className="text-[10px] font-medium text-green-700">
+                                  {feat.label}
+                                </span>
+                              </div>
+                            ))}
                         </div>
                       </div>
                     ))}
@@ -487,22 +507,6 @@ const RestaurantsModule = ({ initialBusiness }) => {
                         onVoiceUpdated={fetchBusinesses}
                       />
                     </div>
-
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="text-sm font-bold text-gray-900">
-                          Table Required
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Booking requires table selection
-                        </p>
-                      </div>
-                      <div
-                        className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${selectedRestaurant.table_required ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}
-                      >
-                        {selectedRestaurant.table_required ? "Yes" : "No"}
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -541,24 +545,38 @@ const RestaurantsModule = ({ initialBusiness }) => {
                     Service Slots / Tables
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {selectedRestaurant.slots.map((slot, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-xl shadow-sm"
-                      >
-                        <div className="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
-                          <Table2 className="h-5 w-5" />
+                    {selectedRestaurant.slots.map((slot, idx) => {
+                      const lowerName = slot.slot_name?.toLowerCase() || "";
+                      let displayName = slot.slot_name;
+                      let showCapacity = true;
+
+                      if (lowerName.startsWith("slot")) {
+                        displayName = "Chair";
+                        showCapacity = false;
+                      } else if (lowerName.startsWith("table")) {
+                        displayName = "Table";
+                      }
+
+                      return (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-xl shadow-sm"
+                        >
+                          <div className="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+                            <Table2 className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900 leading-none mb-1">
+                              {displayName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {showCapacity && `Capacity: ${slot.capacity} | `}
+                              Qty: {slot.quantity}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-gray-900 leading-none mb-1">
-                            {slot.slot_name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Capacity: {slot.capacity} | Qty: {slot.quantity}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
