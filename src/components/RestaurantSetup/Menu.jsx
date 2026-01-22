@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Plus, Clock, DollarSign, ArrowLeft, ChevronRight, X, Utensils, Upload } from 'lucide-react';
-import { getMenuCategories } from '../../services/restaurantDashboardService';
+import { getMenuCategories, bulkDeleteMenuItems } from '../../services/restaurantDashboardService';
 import { restaurantService } from '../../services/restaurantService';
 import TextField from '../TextField';
 import TextAreaField from '../TextAreaField';
@@ -176,6 +176,19 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
         }
     };
 
+    const handleBulkDelete = async (ids) => {
+        try {
+            const result = await bulkDeleteMenuItems(ids);
+            if (result.success) {
+                getMenuItems();
+            } else {
+                console.error('Failed to bulk delete menu items:', result.error);
+            }
+        } catch (error) {
+            console.error('Error bulk deleting menu items:', error);
+        }
+    };
+
     useEffect(() => {
         getMenuItems();
     }, []);
@@ -194,6 +207,7 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
                         menuItems={menuItems}
                         onEdit={handleEditItem}
                         onDelete={handleDeleteItem}
+                        onBulkDelete={handleBulkDelete}
                         businessType={businessType}
                     />
                 )}

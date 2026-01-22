@@ -23,6 +23,7 @@ import {
   getMenuItems,
   deleteMenuItemImage,
   getMenuCategories,
+  bulkDeleteMenuItems,
 } from "../../services/restaurantDashboardService";
 import { useToast } from "../../contexts/ToastContext";
 
@@ -233,6 +234,21 @@ const MenuForm = ({
     }
   };
 
+  const handleBulkDelete = async (ids) => {
+    try {
+      const response = await bulkDeleteMenuItems(ids);
+      if (response.success) {
+        showSuccess(response.message);
+        await handleGetMenuItems();
+      } else {
+        showError(response.message || "Failed to delete menu items");
+      }
+    } catch (error) {
+      console.error("Error bulk deleting menu items:", error);
+      showError("Error deleting menu items");
+    }
+  };
+
   useEffect(() => {
     const storedId = restaurantId;
     if (storedId) {
@@ -258,6 +274,7 @@ const MenuForm = ({
           menuItems={menuItems}
           onUpdateItem={handleMenuItem}
           onDeleteItem={handleDeleteItem}
+          onBulkDelete={handleBulkDelete}
         />
 
         <MenuModal

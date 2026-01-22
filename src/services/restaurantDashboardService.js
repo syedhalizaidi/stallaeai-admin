@@ -332,6 +332,36 @@ export const deleteMenuItem = async (menu_item_id) => {
   }
 };
 
+export const bulkDeleteMenuItems = async (ids) => {
+  try {
+    const token = localStorage.getItem("authToken");
+
+    const response = await apiClient.delete("/upload/menu-items", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: {
+        ids: ids,
+      },
+    });
+
+    return {
+      success: true,
+      data: response.data,
+      message: `${ids.length} menu item(s) deleted successfully!`,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error,
+      message:
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to delete menu items",
+    };
+  }
+};
+
 export const getMenuItems = async (restaurant_id) => {
   try {
     const token = localStorage.getItem("authToken");
