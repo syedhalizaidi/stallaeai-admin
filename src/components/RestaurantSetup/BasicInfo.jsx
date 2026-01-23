@@ -368,13 +368,48 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
 
   return (
     <div className="p-8">
-      <div className="flex items-center mb-6">
-        <Home className="h-6 w-6 text-blue-600 mr-3" />
-        <h2 className="text-2xl font-semibold text-gray-900">
-          {isEditMode ? "Edit Business Info" : "Basic Info"}
-        </h2>
-      </div>
       <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <Home className="h-6 w-6 text-blue-600 mr-3" />
+            <h2 className="text-2xl font-semibold text-gray-900">
+              {isEditMode ? "Edit Business Info" : "Basic Info"}
+            </h2>
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center text-sm ${
+              isLoading
+                ? "bg-gray-400"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditMode ? "Updating…" : "Creating…"}
+              </>
+            ) : (
+              <>
+                {isEditMode ? "Save & Next" : "Next"}
+                <svg
+                  className="ml-2 h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </>
+            )}
+          </button>
+        </div>
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TextField

@@ -41,7 +41,6 @@
   cursor: default;
 }
 
-
 /* .card:hover {
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
   transform: scale(1.05);
@@ -120,7 +119,7 @@
   box-shadow: 0 4px 12px rgba(85, 126, 191, 0.4);
 }
 .callback-scroll-container {
-  max-height: 150px; 
+  max-height: 150px;
   overflow-y: auto;
   margin-top: 0.5rem;
   padding-right: 0.5rem;
@@ -149,4 +148,29 @@
   margin-bottom: 10px;
   padding-bottom: 6px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ASAP Callback Glow Animation */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 10px rgba(59, 130, 246, 0.5),
+      0 0 20px rgba(59, 130, 246, 0.3),
+      0 0 30px rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.6);
+  }
+  50% {
+    box-shadow:
+      0 0 20px rgba(59, 130, 246, 0.8),
+      0 0 30px rgba(59, 130, 246, 0.5),
+      0 0 40px rgba(59, 130, 246, 0.3);
+    border-color: rgba(59, 130, 246, 1);
+  }
+}
+
+.asap-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+  border: 2px solid rgba(59, 130, 246, 0.6);
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
 }

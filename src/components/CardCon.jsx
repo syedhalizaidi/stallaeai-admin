@@ -14,11 +14,13 @@ import CallbackCard from "./RestaurantDashboard/cards/callback-card.jsx";
 import CallbackModal from "./RestaurantDashboard/modals/callback-modal.jsx";
 import CustomerDetailsSidebar from "./RestaurantDashboard/CustomerDetailsSidebar.jsx";
 import "./dashboard.css";
-import { formatRelativeTime } from "../utils/orderUtils";
+import { formatRelativeTime, normalizeTimestamp } from "../utils/orderUtils";
+import { useToast } from "../contexts/ToastContext";
 
 const ITEMS_PER_PAGE = 3;
 
 const RestaurantDashboard = ({ restaurant, searchQuery }) => {
+  const { showInfo } = useToast();
   const [orderData, setOrderData] = useState({ data: [] });
 
   const [reservations, setReservations] = useState([]);
@@ -27,6 +29,10 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
   const [selectedPhoneNumber, setSelectedPhoneNumber] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [readOrders, setReadOrders] = useState(new Set());
+  const [shownAsapNotifications, setShownAsapNotifications] = useState(() => {
+    const stored = sessionStorage.getItem('asap_callback_notifications_shown');
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  });
 
   const [pages, setPages] = useState({
     food: 1,
@@ -200,17 +206,72 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
         }
       });
 
-      const sortByTimestamp = (a, b) =>
-        new Date(b.timestamp) - new Date(a.timestamp);
+      const sortByTimestamp = (a, b) => {
+        const timeA = normalizeTimestamp(a.timestamp);
+        const timeB = normalizeTimestamp(b.timestamp);
+        if (!timeA && !timeB) return 0;
+        if (!timeA) return 1;
+        if (!timeB) return -1;
+        return timeB.getTime() - timeA.getTime();
+      };
+      
       foodOrders.sort(sortByTimestamp);
       reservationOrders.sort(sortByTimestamp);
       faqOrders.sort(sortByTimestamp);
+
+      // Deduplicate callbackOrders before sorting final list
+      const deduplicatedCallbacks = [];
+      const seenCallbacks = new Map();
+      
+      // Sort newest first
       callbackOrders.sort(sortByTimestamp);
+
+      callbackOrders.forEach(item => {
+        const normalizedNum = (item.callback_number || "").toString().replace(/\D/g, "");
+        const key = normalizedNum || item.callback_number || "Unknown";
+        
+        const existing = seenCallbacks.get(key);
+        
+        if (existing) {
+          const itemTime = normalizeTimestamp(item.timestamp);
+          const existingTime = normalizeTimestamp(existing.timestamp);
+          
+          if (itemTime && existingTime) {
+            const timeDiff = Math.abs(itemTime.getTime() - existingTime.getTime());
+            const thirtyMinutes = 30 * 60 * 1000;
+            
+            // If timestamps are close, also check requested_at if available
+            if (timeDiff < thirtyMinutes) {
+              const itemReqAt = item.requested_at;
+              const existingReqAt = existing.requested_at;
+              
+              // If requested_at is specified for both, check if they are same/close
+              if (itemReqAt && existingReqAt && itemReqAt === existingReqAt) {
+                return; // Skip identical requested_at within 30 mins
+              }
+              
+              // If one doesn't have requested_at and they are very close in timestamp, still likely a duplicate
+              return; // Skip duplicate based on timestamp alone
+            }
+          } else {
+            // Fallback: If normalized timestamps failed but they arrived exactly at same time (string comparison)
+            if (item.timestamp === existing.timestamp) {
+              return;
+            }
+          }
+        }
+        seenCallbacks.set(key, item);
+        deduplicatedCallbacks.push(item);
+      });
+
+      // Use the deduplicated list
+      const finalCallbackOrders = deduplicatedCallbacks;
+      finalCallbackOrders.sort(sortByTimestamp);
 
       setOrderData({ ...orderResponse.data, data: foodOrders });
       setReservations(reservationOrders);
       setFaqOrders(faqOrders);
-      setCallbackOrders(callbackOrders);
+      setCallbackOrders(finalCallbackOrders);
     } catch (err) {
       console.error("Error fetching orders:", err);
     } finally {
@@ -263,6 +324,43 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
     const start = (page - 1) * ITEMS_PER_PAGE;
     return data.slice(start, start + ITEMS_PER_PAGE);
   };
+
+  // Detect and notify about new ASAP callbacks (only for visible cards)
+  useEffect(() => {
+    if (isLoading || callbackOrders.length === 0) return;
+
+    // Get only the callbacks visible in the current page
+    const visibleCallbacks = getPagedData(filteredCallbackOrders, "callback");
+
+    const unreadAsapCallbacks = visibleCallbacks.filter(
+      (callback) => callback.asap && !callback.is_read && !readOrders.has(callback.id)
+    );
+
+    if (unreadAsapCallbacks.length === 0) return;
+
+    // Check for new ASAP callbacks that haven't been notified yet
+    const newAsapCallbacks = unreadAsapCallbacks.filter(
+      (callback) => !shownAsapNotifications.has(callback.id)
+    );
+
+    if (newAsapCallbacks.length > 0) {
+      // Show toast notification
+      const count = newAsapCallbacks.length;
+      showInfo(
+        `${count} new ASAP callback request${count > 1 ? 's' : ''} received!`,
+        { duration: 5000 }
+      );
+
+      // Mark these callbacks as notified
+      const updatedNotifications = new Set(shownAsapNotifications);
+      newAsapCallbacks.forEach((callback) => updatedNotifications.add(callback.id));
+      setShownAsapNotifications(updatedNotifications);
+      sessionStorage.setItem(
+        'asap_callback_notifications_shown',
+        JSON.stringify([...updatedNotifications])
+      );
+    }
+  }, [callbackOrders, isLoading, readOrders, shownAsapNotifications, showInfo, filteredCallbackOrders, pages]);
 
   const handlePageChange = (type, direction) => {
     setPages((prev) => ({

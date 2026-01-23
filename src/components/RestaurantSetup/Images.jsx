@@ -182,9 +182,17 @@ const Images = ({ onNext, onPrevious }) => {
     return (
         <div className="p-4 sm:p-6 lg:p-8">
             <div className="max-w-2xl mx-auto">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Images</h2>
-
                 <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Images</h2>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            {isSubmitting ? 'Uploading...' : 'Complete Setup'}
+                        </button>
+                    </div>
                     {/* Restaurant Logo Section */}
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">

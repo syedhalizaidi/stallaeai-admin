@@ -195,13 +195,21 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
 
     return (
         <div className="p-8">
-            <div className="mb-6">
-                <div className="mb-6">
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
                     <h2 className="text-2xl font-bold text-gray-900 flex items-center">
                         <span className="text-3xl mr-2">≡</span>
                         Menu
                     </h2>
                 </div>
+                <button
+                    onClick={onNext}
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                >
+                    <span>Next: Images</span>
+                    <ChevronRight className="h-4 w-4" />
+                </button>
+            </div>
                 {menuItems?.length > 0 && (
                     <MenuItemsList
                         menuItems={menuItems}
@@ -228,8 +236,6 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
                         <span>Upload Menu File</span>
                     </button>
                 </div>
-            </div>
-
             {/* Upload Menu Modal */}
             <UploadMenuModal
                 isOpen={isUploadModalOpen}

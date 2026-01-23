@@ -51,11 +51,12 @@ export default function CallbackCard({
           <div className="orders-list">
             {grouped.map(([phone, items]) => {
               const isRead = items.every(i => i.is_read || readOrders?.has(i.id));
+              const hasAsap = items.some(i => i.asap);
               
               return (
               <div
                 key={phone}
-                className={`order-item clickable-item ${!isRead ? 'unread-item' : ''}`}
+                className={`order-item clickable-item ${!isRead ? 'unread-item' : ''} ${!isRead && hasAsap ? 'asap-glow' : ''}`}
                 onClick={() => {
                   if (onMarkAsRead) {
                     const idsToMark = items.filter(i => !i.is_read && !readOrders?.has(i.id)).map(i => i.id);
