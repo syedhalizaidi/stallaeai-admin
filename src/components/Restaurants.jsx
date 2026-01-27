@@ -551,7 +551,7 @@ const RestaurantsModule = ({ initialBusiness }) => {
                       let showCapacity = true;
 
                       if (lowerName.startsWith("slot")) {
-                        displayName = "Chair";
+                        displayName = "Slot";
                         showCapacity = false;
                       } else if (lowerName.startsWith("table")) {
                         displayName = "Table";

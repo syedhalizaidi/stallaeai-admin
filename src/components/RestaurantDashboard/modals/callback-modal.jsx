@@ -66,8 +66,7 @@ export default function CallbackModal({
                     {req.customer_name.charAt(0)}
                   </div>
                   <div className="req-info">
-                    <h4 className="req-customer">{`${req.customer_name} - ${req.callback_number}` || req.phone_number || "Unknown"}</h4>
-                    <p className="req-phone">{req.callback_number}</p>
+                    <h4 className="req-customer">{`${req.customer_name} - ${req.phone_number}` || req.phone_number || "Unknown"}</h4>
                   </div>
                   <StatusDropdown
                     currentStatus={req.order_status}

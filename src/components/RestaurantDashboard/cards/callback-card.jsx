@@ -52,7 +52,7 @@ export default function CallbackCard({
             {grouped.map(([phone, items]) => {
               const isRead = items.every(i => i.is_read || readOrders?.has(i.id));
               const hasAsap = items.some(i => i.asap);
-              
+              console.log({items});
               return (
               <div
                 key={phone}
@@ -81,12 +81,11 @@ export default function CallbackCard({
                     backgroundColor: '#3b82f6'
                   }} />
                 )}
-                <p className="order-customer" style={{ fontWeight: !isRead ? 'bold' : 'normal' }}>{items[0].customer_name} - {items[0].callback_number}</p>
+                <p className="order-customer" style={{ fontWeight: !isRead ? 'bold' : 'normal' }}>{items[0].customer_name} - {items[0].phone_number}</p>
 
                 <div className="callback-scroll-container">
                   {items.map((item) => (
                     <div key={item.id} className="callback-block">
-                      <p className="order-details" style={{ fontWeight: !isRead ? 'bold' : 'normal' }}>{item.callback_number}</p>
                       <div className="order-time flex flex-col text-xs text-gray-500">
                         {/* Callback Target Time */}
                         <div className="mb-0.5">
