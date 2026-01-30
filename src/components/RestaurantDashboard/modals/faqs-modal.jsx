@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./faqs-modal.css";
 import Pagination from "../common/Pagination";
+import { formatRelativeTime } from "../../../utils/orderUtils";
 
 const ITEMS_PER_PAGE = 5;
 
