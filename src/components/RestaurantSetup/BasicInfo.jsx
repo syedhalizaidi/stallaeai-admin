@@ -12,6 +12,7 @@ import { userService } from "../../services/userService";
 import { ROUTES } from "../../constants/routes";
 import { User, Lock, Phone } from "lucide-react";
 import { businessService } from "../../services/businessService";
+import toast from "react-hot-toast";
 
 const BUSINESS_CONFIG = {
   restaurant: {
@@ -214,8 +215,9 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
     }
   }, [selectedCountry, availableCountries, setValue]);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data, e) => {
     setIsLoading(true);
+    const isNextAction = e?.nativeEvent?.submitter?.innerText.includes("Next");
     try {
       let slots = [];
       if (data.enableReservations) {
@@ -302,7 +304,11 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             }
           }
           localStorage.setItem("restaurant_id", result.restaurantId);
-          onNext();
+          if (isNextAction) {
+            onNext();
+          } else {
+            toast.success("Business Details Saved Successfully!")
+          }
         }
       } else {
         result = await restaurantService.registerRestaurant(payload);
@@ -392,7 +398,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               </>
             ) : (
               <>
-                {isEditMode ? "Save & Next" : "Next"}
+                {isEditMode ? "Save" : "Next"}
                 <svg
                   className="ml-2 h-4 w-4"
                   fill="none"

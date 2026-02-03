@@ -168,11 +168,13 @@ const RestaurantDashboard = ({ restaurant, searchQuery }) => {
                   parsedDetails.question ||
                   parsedDetails.query ||
                   parsedDetails.user_query ||
+                  parsedDetails.question_1 ||
                   "",
                 answer:
                   parsedDetails.answer ||
                   parsedDetails.response ||
                   parsedDetails.answer_text ||
+                  parsedDetails.answer_1 ||
                   "",
               });
             }
