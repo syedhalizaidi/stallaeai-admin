@@ -317,3 +317,20 @@
 .errorSelect {
   border-color: #ef4444; // red border on error
 }
+.stickyActions {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+
+  padding: 16px;
+  // margin-top: 24px;
+
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-primary);
+}

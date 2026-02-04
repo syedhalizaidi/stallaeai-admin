@@ -9,6 +9,7 @@ import BulkDeleteModal from "../RestaurantSetup/BulkDeleteModal";
 const MenuItemList = ({ menuItems, onDeleteItem, onUpdateItem, onBulkDelete }) => {
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [bulkDeleteModal, setBulkDeleteModal] = useState(false);
+  const [expandedItems, setExpandedItems] = useState([]);
 
   if (!menuItems || menuItems.length === 0) {
     return null;
@@ -24,19 +25,79 @@ const MenuItemList = ({ menuItems, onDeleteItem, onUpdateItem, onBulkDelete }) =
     return acc;
   }, {});
 
-  // Sort categories alphabetically, but keep "Uncategorized" at the end
   const sortedCategories = Object.keys(groupedItems).sort((a, b) => {
     if (a === "Uncategorized") return 1;
     if (b === "Uncategorized") return -1;
     return a.localeCompare(b);
   });
 
-  // Sort items within each category by name
   sortedCategories.forEach(category => {
     groupedItems[category].sort((a, b) => a.name.localeCompare(b.name));
   });
 
-  // Selection handlers
+  // --- Helpers ---
+
+  const toggleDescription = (itemId) => {
+    setExpandedItems(prev =>
+      prev.includes(itemId)
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const formatDescription = (description) => {
+    if (!description) return null;
+
+    const lines = description.split('\n');
+    const isStructured = lines.some(line => /^[A-Za-z\s#()]+:/.test(line));
+
+    if (!isStructured) {
+      return <p style={{ margin: 0 }}>{description}</p>;
+    }
+
+    return (
+      <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {lines.map((line, index) => {
+          const parts = line.split(/:(.*)/);
+          if (parts.length >= 2 && parts[0].trim() !== "") {
+            const label = parts[0].trim();
+            const value = parts[1].trim();
+
+            const isHighPriority = ["VIN", "Exterior Color", "Interior Color", "Transmission", "Mileage (km)"].includes(label);
+
+            return (
+              <div key={index} style={{ fontSize: '12px', display: 'flex', flexWrap: 'wrap' }}>
+                <span style={{
+                  fontWeight: 'bold',
+                  marginRight: '8px',
+                  color: isHighPriority ? 'var(--accent-primary, #2563EB)' : 'inherit'
+                }}>
+                  {label}:
+                </span>
+                <span style={{ color: '#6B7280' }}>{value}</span>
+              </div>
+            );
+          }
+
+          return (
+            <p key={index} style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              marginTop: '8px',
+              borderBottom: '1px solid #E5E7EB',
+              paddingBottom: '4px',
+              marginBottom: '4px'
+            }}>
+              {line}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // --- Selection handlers ---
+
   const handleItemSelect = (itemId) => {
     const newSelected = new Set(selectedItems);
     if (newSelected.has(itemId)) {
@@ -51,13 +112,11 @@ const MenuItemList = ({ menuItems, onDeleteItem, onUpdateItem, onBulkDelete }) =
     const categoryItems = groupedItems[category];
     const categoryItemIds = categoryItems.map(item => item.id);
     const allSelected = categoryItemIds.every(id => selectedItems.has(id));
-    
+
     const newSelected = new Set(selectedItems);
     if (allSelected) {
-      // Deselect all in this category
       categoryItemIds.forEach(id => newSelected.delete(id));
     } else {
-      // Select all in this category
       categoryItemIds.forEach(id => newSelected.add(id));
     }
     setSelectedItems(newSelected);
@@ -178,109 +237,137 @@ const MenuItemList = ({ menuItems, onDeleteItem, onUpdateItem, onBulkDelete }) =
               </label>
             </div>
 
-          <div className={styles.menuItemsList}>
-            {items.map((item, index) => (
-              <div key={item.id || index} className={styles.menuItem}>
-                <div 
-                  className={styles.menuItemCard}
-                  style={{
-                    border: selectedItems.has(item.id) ? '2px solid #3B82F6' : undefined,
-                    backgroundColor: selectedItems.has(item.id) ? '#EFF6FF' : undefined,
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', width: '100%' }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.has(item.id)}
-                      onChange={() => handleItemSelect(item.id)}
-                      style={{ 
-                        width: '16px', 
-                        height: '16px', 
-                        marginTop: '4px',
-                        cursor: 'pointer',
-                        flexShrink: 0
+            <div className={styles.menuItemsList}>
+              {items.map((item, index) => {
+                const isExpanded = expandedItems.includes(item.id);
+                return (
+                  <div key={item.id || index} className={styles.menuItem}>
+                    <div
+                      className={styles.menuItemCard}
+                      style={{
+                        border: selectedItems.has(item.id) ? '2px solid #3B82F6' : undefined,
+                        backgroundColor: selectedItems.has(item.id) ? '#EFF6FF' : undefined,
+                        transition: 'all 0.2s'
                       }}
-                    />
-                    
-                    <div style={{ display: 'flex', flex: 1, gap: '12px' }}>
-                      {item.images && item.images.length > 0 ? (
-                        <img
-                          src={
-                            item.images[0] instanceof File
-                              ? URL.createObjectURL(item.images[0])
-                              : item.images[0].image_url
-                          }
-                          alt="item-main-img"
-                          className={styles.menuItemMainImage}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', width: '100%' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedItems.has(item.id)}
+                          onChange={() => handleItemSelect(item.id)}
+                          style={{
+                            width: '16px',
+                            height: '16px',
+                            marginTop: '4px',
+                            cursor: 'pointer',
+                            flexShrink: 0
+                          }}
                         />
-                      ) : (
-                        <div className={styles.menuItemMainImagePlaceholder}>
-                          <img src={fallback} alt="No Image found" />
-                        </div>
-                      )}
-                      <div className={styles.menuItemInfo}>
-                        <div className={styles.menuItemHeaderRow}>
-                          <div className={styles.menuItemName}>{item.name}</div>
-                          <div className={styles.menuItemPrice}>${item.price}</div>
-                        </div>
-                        {item.description && (
-                          <div className={styles.menuItemDescription}>
-                            {item.description}{" "}
-                          </div>
-                        )}
-                        <div className={styles.menuItemDetailsRow}>
-                          {item.prepTime && (
-                            <span className={styles.menuItemPrepTime}>
-                              {item.prepTime} min
-                            </span>
-                          )}
-                          {item.images && item.images.length > 1 && (
-                            <div className={styles.menuItemImagesList}>
-                              {item.images.slice(1).map((img, imgIdx) => (
-                                <img
-                                  key={imgIdx}
-                                  src={
-                                    img instanceof File
-                                      ? URL.createObjectURL(img)
-                                      : img
-                                  }
-                                  alt={`item-img-thumb-${imgIdx}`}
-                                  className={styles.menuItemImageThumb}
-                                />
-                              ))}
+
+                        <div style={{ display: 'flex', flex: 1, gap: '12px' }}>
+                          {item.images && item.images.length > 0 ? (
+                            <img
+                              src={
+                                item.images[0] instanceof File
+                                  ? URL.createObjectURL(item.images[0])
+                                  : item.images[0].image_url
+                              }
+                              alt="item-main-img"
+                              className={styles.menuItemMainImage}
+                            />
+                          ) : (
+                            <div className={styles.menuItemMainImagePlaceholder}>
+                              <img src={fallback} alt="No Image found" />
                             </div>
                           )}
+                          <div className={styles.menuItemInfo}>
+                            <div className={styles.menuItemHeaderRow}>
+                              <div className={styles.menuItemName}>{item.name}</div>
+                              <div className={styles.menuItemPrice}>${item.price}</div>
+                            </div>
+
+                            {/* Updated Description Block */}
+                            {item.description && (
+                              <div className={styles.menuItemDescription}>
+                                <div style={{
+                                  maxHeight: isExpanded ? 'none' : '3.2em',
+                                  overflow: 'hidden',
+                                  position: 'relative'
+                                }}>
+                                  {formatDescription(item.description)}
+                                </div>
+                                {item.description.length > 60 && (
+                                  <button
+                                    onClick={() => toggleDescription(item.id)}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      color: '#2563EB',
+                                      fontSize: '12px',
+                                      fontWeight: '600',
+                                      cursor: 'pointer',
+                                      padding: '4px 0',
+                                      marginTop: '4px'
+                                    }}
+                                  >
+                                    {isExpanded ? "Show Less" : "Show More Details"}
+                                  </button>
+                                )}
+                              </div>
+                            )}
+
+                            <div className={styles.menuItemDetailsRow}>
+                              {item.prepTime && (
+                                <span className={styles.menuItemPrepTime}>
+                                  {item.prepTime} min
+                                </span>
+                              )}
+                              {item.images && item.images.length > 1 && (
+                                <div className={styles.menuItemImagesList}>
+                                  {item.images.slice(1).map((img, imgIdx) => (
+                                    <img
+                                      key={imgIdx}
+                                      src={
+                                        img instanceof File
+                                          ? URL.createObjectURL(img)
+                                          : img.image_url || img
+                                      }
+                                      alt={`item-img-thumb-${imgIdx}`}
+                                      className={styles.menuItemImageThumb}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className={styles.buttonGroup}>
+                            <Button
+                              onClick={() => onUpdateItem(item)}
+                              size="small"
+                              className={buttonStyles.updateButton}
+                              title="Update item"
+                            >
+                              Update
+                            </Button>
+                            <Button
+                              onClick={() => onDeleteItem(item.id)}
+                              size="small"
+                              icon={<Trash2 size={14} color="red" />}
+                              className={buttonStyles.deleteButton}
+                              title="Delete item"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className={styles.buttonGroup}>
-                        <Button
-                          onClick={() => onUpdateItem(item)}
-                          size="small"
-                          className={buttonStyles.updateButton}
-                          title="Update item"
-                        >
-                          Update
-                        </Button>
-                        <Button
-                          onClick={() => onDeleteItem(item.id)}
-                          size="small"
-                          icon={<Trash2 size={14} color="red" />}
-                          className={buttonStyles.deleteButton}
-                          title="Delete item"
-                        />
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
-        </div>
         );
       })}
 
-      {/* Bulk Delete Confirmation Modal */}
       <BulkDeleteModal
         isOpen={bulkDeleteModal}
         onClose={handleBulkDeleteCancel}

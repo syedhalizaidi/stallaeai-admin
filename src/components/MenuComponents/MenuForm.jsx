@@ -404,7 +404,7 @@ const MenuForm = ({
           </div>
         )}
 
-        <div className="flex gap-3 flex-wrap justify-between">
+        <div className={styles.stickyActions}>
           <Button
             variant="primary"
             onClick={handleAddNew}
