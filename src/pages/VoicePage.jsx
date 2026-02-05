@@ -32,8 +32,22 @@ const VoiceControl = ({
   const buttonRef = useRef(null);
 
   useEffect(() => {
-    if (parentVoices?.length) setVoices(parentVoices);
+    if (parentVoices?.length) {
+      const excludedNames = ["Sarah", "Laura", "Alice", "Roger", "Charlie"];
+      const updatedVoices = parentVoices
+        .filter((v) => !excludedNames.some((name) => v.name.includes(name)))
+        .map((v) => {
+          if (v.name === "Chris W") {
+            return { ...v, name: "Chris W – Energetic, Dedicated" }; // long dash
+          }
+          return v;
+        });
+      setVoices(updatedVoices);
+    }
   }, [parentVoices]);
+
+
+
 
   useEffect(() => {
     const handleClickOutside = (e) => {

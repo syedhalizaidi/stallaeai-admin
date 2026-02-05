@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { Home, Mail, Clock, Loader2, MapPin } from "lucide-react";
+import { Home, Mail, Clock, Loader2, MapPin, ArrowLeft } from "lucide-react";
 import { RegionDropdown } from "react-country-region-selector";
 import TextField from "../TextField";
 import TextAreaField from "../TextAreaField";
@@ -13,6 +13,7 @@ import { ROUTES } from "../../constants/routes";
 import { User, Lock, Phone } from "lucide-react";
 import { businessService } from "../../services/businessService";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const BUSINESS_CONFIG = {
   restaurant: {
@@ -55,6 +56,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const [voices, setVoices] = useState([]);
   const [redirectCall, setRedirectCall] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(null);
+  const navigate = useNavigate();
 
   const {
     register,
@@ -319,17 +321,17 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
 
           // If voice selected, create it
           if (data.voice_id) {
-             const selectedVoiceData = voices.find(v => (v.id || v.voice_id) === data.voice_id);
-             if (selectedVoiceData) {
-               await businessService.createVoice({
-                 name: selectedVoiceData.name,
-                 category: selectedVoiceData.category,
-                 gender: selectedVoiceData.gender,
-                 preview_url: selectedVoiceData.preview_url,
-                 business_id: businessId,
-                 id: data.voice_id,
-               });
-             }
+            const selectedVoiceData = voices.find(v => (v.id || v.voice_id) === data.voice_id);
+            if (selectedVoiceData) {
+              await businessService.createVoice({
+                name: selectedVoiceData.name,
+                category: selectedVoiceData.category,
+                gender: selectedVoiceData.gender,
+                preview_url: selectedVoiceData.preview_url,
+                business_id: businessId,
+                id: data.voice_id,
+              });
+            }
           }
 
           const staffPayload = {
@@ -840,7 +842,16 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             </div>
           )}
         </div>
-        <div className="flex justify-end mt-8">
+        <div className="flex flex-col md:flex-row justify-between items-center mt-8">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className=" flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors font-medium"
+          >
+            <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shadow-sm">
+              <ArrowLeft className="w-4 h-4" />
+            </div>
+            <span>Back to Dashboard</span>
+          </button>
           <button
             type="submit"
             disabled={isLoading}

@@ -10,6 +10,7 @@ import NumberField from '../NumberField';
 import MenuItemsList from './MenuItemsList';
 import UploadMenuModal from '../MenuComponents/UploadMenuModal/index';
 import { useToast } from '../../contexts/ToastContext';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 const Menu = ({ onNext, onPrevious, businessType }) => {
     const [fetchedCategories, setFetchedCategories] = useState([]);
@@ -45,6 +46,7 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
     const [menuItems, setMenuItems] = useState([]);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [customCategory, setCustomCategory] = useState('');
+    const navigate = useNavigate();
 
     const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm({
         defaultValues: {
@@ -445,10 +447,19 @@ const Menu = ({ onNext, onPrevious, businessType }) => {
             <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
                 <button
                     onClick={onPrevious}
-                    className="flex items-center space-x-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 invisible"
+                    className="flex items-center space-x-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 "
                 >
                     <ArrowLeft className="h-4 w-4" />
                     <span>Previous</span>
+                </button>
+                <button
+                    onClick={() => navigate("/dashboard")}
+                    className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors font-bold group w-fit"
+                >
+                    <div className="w-10 h-10 rounded-xl bg-[var(--bg-secondary)] flex items-center justify-center shadow-sm group-hover:shadow-md transition-all border border-[var(--border-primary)]">
+                        <ArrowLeft className="w-5 h-5" />
+                    </div>
+                    <span>Back to Dashboard</span>
                 </button>
                 <button
                     onClick={onNext}
