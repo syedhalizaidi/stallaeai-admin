@@ -56,6 +56,9 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const [voices, setVoices] = useState([]);
   const [redirectCall, setRedirectCall] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(null);
+  const [barbers, setBarbers] = useState([]);
+  const [barberName, setBarberName] = useState("");
+  const [barberEmail, setBarberEmail] = useState("");
   const navigate = useNavigate();
 
   const {
@@ -104,6 +107,28 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const { fields, append, remove } = useFieldArray({ control, name: "slots" });
   const selectedCountry = watch("country");
   const watchVoiceId = watch("voice_id");
+  const isBarber = businessType === "barber";
+  const tableRequired = watch("tableRequired");
+  const enableReservations = watch("enableReservations");
+
+  const showAddBarber = isBarber && enableReservations && tableRequired === false;
+  const handleAddBarber = () => {
+    if (!barberName || !barberEmail) {
+      toast.error("Barber name and email are required");
+      return;
+    }
+
+    setBarbers((prev) => [
+      ...prev,
+      {
+        name: barberName,
+        email: barberEmail,
+      },
+    ]);
+
+    setBarberName("");
+    setBarberEmail("");
+  };
 
   const selectCountry = (val) => {
     setValue("country", val);
@@ -711,67 +736,104 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             {...register("enableReservations")}
           />
 
-          {watch("enableReservations") && (
+          {enableReservations && (
             <div className="border-t pt-8 mt-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                Reservation Slots
-              </h3>
-              {fields.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 items-end"
-                >
-                  <div className="flex-1">
-                    <NumberField
-                      label={!watch("tableRequired") ? "Reservation Slots":"Reservation Size"}
-                      placeholder={!watch("tableRequired") ? "No. of Reservations":"Person Count"}
-                      name={`slots[${index}].tableSize`}
-                      error={errors.slots?.[index]?.tableSize?.message}
-                      {...register(`slots.${index}.tableSize`, {
-                        required: watch("enableReservations") ? "Size is required" : false
-                      })}
+              {/* CASE 1: Barber + tableRequired = false → Add Barber */}
+              {showAddBarber ? (
+                <>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    Add Barber
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <TextField
+                      label="Barber Name"
+                      placeholder="Enter barber name"
+                      value={barberName}
+                      onChange={(e) => setBarberName(e.target.value)}
+                    />
+
+                    <TextField
+                      label="Email Address"
+                      type="email"
+                      placeholder="barber@email.com"
+                      value={barberEmail}
+                      onChange={(e) => setBarberEmail(e.target.value)}
                     />
                   </div>
-                  {watch("tableRequired") && (
-                    <div className="flex-1">
-                      <NumberField
-                        label="Quantity"
-                        placeholder="Number of such reservations"
-                        name={`slots[${index}].quantity`}
-                        error={errors.slots?.[index]?.quantity?.message}
-                        {...register(`slots.${index}.quantity`, {
-                          required: watch("enableReservations") ? "Quantity is required" : false
-                        })}
-                      />
-                    </div>
-                  )}
+
                   <button
                     type="button"
-                    onClick={() => {
-                      if (fields.length === 1) {
-                        setValue("enableReservations", false);
-                      }
-                      remove(index);
-                    }}
-                    className="font-medium ml-2 border px-3 py-3 rounded-lg transition-colors text-red-500 border-red-500 hover:bg-red-50"
+                    onClick={handleAddBarber}
+                    className="px-5 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
                   >
-                    Remove
+                    Add Barber
                   </button>
-                </div>
-              ))}
-              {errors.slots?.root && (
-                <p className="text-red-500 text-sm mt-2">{errors.slots.root.message}</p>
-              )}
 
-              <button
-                type="button"
-                onClick={() =>
-                  append({ tableSize: "", customCapacity: "", quantity: "" })
-                }
-                className="text-blue-600 font-medium mt-2 border border-blue-600 px-4 py-2 rounded-lg"
-              >
-                Add new reservation
-              </button>
+                  {barbers.length > 0 && (
+                    <div className="mt-6 space-y-3">
+                      {barbers.map((b, i) => (
+                        <div
+                          key={i}
+                          className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border"
+                        >
+                          <span className="font-medium">{b.name}</span>
+                          <span className="text-sm text-gray-500">{b.email}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* CASE 2: Everything else → existing reservation logic */
+                <>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    Reservation Slots
+                  </h3>
+                  {fields.map((item, index) => (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 items-end"
+                    >
+                      <NumberField
+                        label={!tableRequired ? "Reservation Slots" : "Reservation Size"}
+                        placeholder={!tableRequired ? "No. of Reservations" : "Person Count"}
+                        {...register(`slots.${index}.tableSize`, {
+                          required: "Required",
+                        })}
+                      />
+
+                      {tableRequired && (
+                        <NumberField
+                          label="Quantity"
+                          placeholder="Number of such reservations"
+                          {...register(`slots.${index}.quantity`, {
+                            required: "Required",
+                          })}
+                        />
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => remove(index)}
+                        className="border px-3 py-3 rounded-lg text-red-500 border-red-500 hover:bg-red-50"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      append({ tableSize: "", customCapacity: "", quantity: "" })
+                    }
+                    className="text-blue-600 font-medium mt-2 border border-blue-600 px-4 py-2 rounded-lg"
+                  >
+                    Add new reservation
+                  </button>
+                </>
+              )}
             </div>
           )}
 
