@@ -14,6 +14,7 @@ import { User, Lock, Phone } from "lucide-react";
 import { businessService } from "../../services/businessService";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import TimezoneSelect from "react-timezone-select";
 
 const BUSINESS_CONFIG = {
   restaurant: {
@@ -88,6 +89,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       pickup: false,
       enableReservations: false,
       wheelchairAccessible: false,
+      reservation_enabled: false,
       parkingAvailable: false,
       tableRequired: config.tableRequired,
       slots:
@@ -101,6 +103,18 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       openingMessage: "",
       redirect_call: false,
       voice_id: "",
+      timezone: "",
+      slotSizeMinutes: 30,
+      weeklyScheduleType: "same",
+      weekly_hours: {
+        mon: { open: "09:00", close: "18:00", closed: false },
+        tue: { open: "09:00", close: "18:00", closed: false },
+        wed: { open: "09:00", close: "18:00", closed: false },
+        thu: { open: "09:00", close: "18:00", closed: false },
+        fri: { open: "09:00", close: "18:00", closed: false },
+        sat: { open: "09:00", close: "18:00", closed: false },
+        sun: { open: "09:00", close: "18:00", closed: false },
+      }
     },
   });
 
@@ -110,6 +124,11 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const isBarber = businessType === "barber";
   const tableRequired = watch("tableRequired");
   const enableReservations = watch("enableReservations");
+  const scheduleType = watch("weeklyScheduleType");
+  const [sameWeekHours, setSameWeekHours] = useState({ open: "09:00", close: "18:00", });
+  const reservationEnabled = watch("reservation_enabled"); //for business hours
+
+
 
   const showAddBarber = isBarber && enableReservations && tableRequired === false;
   const handleAddBarber = () => {
@@ -197,6 +216,10 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             );
             setValue("openingMessage", data.opening_message || "");
             setValue("redirect_call", data.redirect_call || false);
+            setValue("timezone", data.timezone || "");
+            setValue("slotSizeMinutes", data.slot_size_minutes || 30);
+            setValue("weekly_hours", data.weekly_hours || {});
+
             setValue("voice_id", data.voice?.id || "");
             setRedirectCall(data.redirect_call || false);
 
@@ -241,6 +264,47 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       setValue("countryCode", selectedCountryData.country_code);
     }
   }, [selectedCountry, availableCountries, setValue]);
+
+  useEffect(() => {
+    if (!isEditMode) return;
+
+    const base = {
+      open: sameWeekHours.open,
+      close: sameWeekHours.close,
+      closed: false,
+    };
+
+    if (scheduleType === "same") {
+      setValue("weekly_hours", {
+        mon: base,
+        tue: base,
+        wed: base,
+        thu: base,
+        fri: base,
+        sat: base,
+        sun: base,
+      });
+    }
+
+    if (scheduleType === "weekends_off") {
+      setValue("weekly_hours", {
+        mon: base,
+        tue: base,
+        wed: base,
+        thu: base,
+        fri: base,
+        sat: { open: "", close: "", closed: true },
+        sun: { open: "", close: "", closed: true },
+      });
+    }
+  }, [scheduleType, sameWeekHours, isEditMode, setValue]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      setValue("timezone", userTz);
+    }
+  }, []);
 
   const onSubmit = async (data, e) => {
     setIsLoading(true);
@@ -311,7 +375,24 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
         ],
         opening_message: data.openingMessage || undefined,
         redirect_call: data.redirect_call,
+        timezone: data.timezone,
+        slot_size_minutes: Number(data.slotSizeMinutes),
+        weekly_hours: data.weekly_hours,
+        reservation_enabled: data.reservation_enabled,
       };
+      if (!data.reservation_enabled) {
+        // Remove business hour fields
+        delete payload.weekly_hours;
+        delete payload.timezone;
+        delete payload.slot_size_minutes;
+      } else {
+        // Validate required fields
+        if (!data.timezone) {
+          toast.error("Timezone is required");
+          setIsLoading(false);
+          return;
+        }
+      }
       let result;
       if (isEditMode && editId) {
         result = await restaurantService.updateRestaurant(editId, payload);
@@ -836,6 +917,138 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               )}
             </div>
           )}
+
+          <div className="flex items-center gap-3 mt-6">
+            <input
+              type="checkbox"
+              {...register("reservation_enabled")}
+              className="h-4 w-4"
+            />
+            <label className="text-sm font-medium">
+              Enable Reservation System
+            </label>
+          </div>
+
+          {isEditMode && enableReservations && reservationEnabled && (
+
+            <div className="border-t pt-8 mt-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">
+                Business Hours & Booking Settings
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* Timezone */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Timezone *
+                  </label>
+
+                  <TimezoneSelect
+                    value={watch("timezone")}
+                    onChange={(tz) => setValue("timezone", tz.value)}
+                  />
+                </div>
+
+
+                {/* Slot Size */}
+                <NumberField
+                  label="Slot Size (Minutes)"
+                  {...register("slotSizeMinutes", { required: true })}
+                />
+
+              </div>
+
+              {/* Schedule Type */}
+              <div className="mt-6">
+                <SelectField
+                  label="Schedule Type"
+                  name="weeklyScheduleType"
+                  value={scheduleType}
+                  options={[
+                    { value: "same", label: "Same throughout week" },
+                    { value: "weekends_off", label: "Off on weekends" },
+                    { value: "custom", label: "Custom" },
+                  ]}
+                  {...register("weeklyScheduleType")}
+                />
+              </div>
+              {/* Same Throughout Week Editor */}
+              {scheduleType === "same" && (
+                <div className="grid grid-cols-3 gap-4 items-end mt-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      From
+                    </label>
+                    <input
+                      type="time"
+                      value={sameWeekHours.open}
+                      onChange={(e) =>
+                        setSameWeekHours((prev) => ({
+                          ...prev,
+                          open: e.target.value,
+                        }))
+                      }
+                      className="border rounded px-3 py-2 w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      To
+                    </label>
+                    <input
+                      type="time"
+                      value={sameWeekHours.close}
+                      onChange={(e) =>
+                        setSameWeekHours((prev) => ({
+                          ...prev,
+                          close: e.target.value,
+                        }))
+                      }
+                      className="border rounded px-3 py-2 w-full"
+                    />
+                  </div>
+                </div>
+              )}
+
+
+              {/* Custom Editor */}
+              {scheduleType === "custom" && (
+                <div className="space-y-4 mt-6">
+                  {["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((day) => (
+                    <div key={day} className="grid grid-cols-4 gap-4 items-center">
+
+                      <span className="capitalize font-medium">{day}</span>
+
+                      <input
+                        type="time"
+                        {...register(`weekly_hours.${day}.open`)}
+                        disabled={watch(`weekly_hours.${day}.closed`)}
+                        className="border rounded px-3 py-2"
+                      />
+
+                      <input
+                        type="time"
+                        {...register(`weekly_hours.${day}.close`)}
+                        disabled={watch(`weekly_hours.${day}.closed`)}
+                        className="border rounded px-3 py-2"
+                      />
+
+                      <CheckboxField
+                        label="Closed"
+                        checked={watch(`weekly_hours.${day}.closed`)}
+                        onChange={(e) =>
+                          setValue(`weekly_hours.${day}.closed`, e.target.checked)
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
 
           {!isEditMode && (
             <div className="border-t pt-8 mt-8">
