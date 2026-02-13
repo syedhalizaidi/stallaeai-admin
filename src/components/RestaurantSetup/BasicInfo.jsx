@@ -57,9 +57,11 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const [voices, setVoices] = useState([]);
   const [redirectCall, setRedirectCall] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(null);
-  const [barbers, setBarbers] = useState([]);
-  const [barberName, setBarberName] = useState("");
-  const [barberEmail, setBarberEmail] = useState("");
+  const [instanceName, setInstanceName] = useState("");
+  const [instanceEmail, setInstanceEmail] = useState("");
+  const [isInstanceLoading, setIsInstanceLoading] = useState(false);
+
+
   const navigate = useNavigate();
 
   const {
@@ -89,7 +91,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       pickup: false,
       enableReservations: false,
       wheelchairAccessible: false,
-      reservation_enabled: false,
+      reservations_enabled: false,
       parkingAvailable: false,
       tableRequired: config.tableRequired,
       slots:
@@ -121,16 +123,18 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const { fields, append, remove } = useFieldArray({ control, name: "slots" });
   const selectedCountry = watch("country");
   const watchVoiceId = watch("voice_id");
-  const isBarber = businessType === "barber";
+  // const isBarber = businessType === "barber";
   const tableRequired = watch("tableRequired");
   const enableReservations = watch("enableReservations");
   const scheduleType = watch("weeklyScheduleType");
   const [sameWeekHours, setSameWeekHours] = useState({ open: "09:00", close: "18:00", });
-  const reservationEnabled = watch("reservation_enabled"); //for business hours
+  const reservationEnabled = watch("reservations_enabled"); //for business hours
+  const [initialReservationEnabled, setInitialReservationEnabled] = useState(false);
+  const showAddInstance = enableReservations && tableRequired === false;
 
 
 
-  const showAddBarber = isBarber && enableReservations && tableRequired === false;
+  // const showAddBarber = isBarber && enableReservations && tableRequired === false;
   const handleAddBarber = () => {
     if (!barberName || !barberEmail) {
       toast.error("Barber name and email are required");
@@ -219,6 +223,9 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             setValue("timezone", data.timezone || "");
             setValue("slotSizeMinutes", data.slot_size_minutes || 30);
             setValue("weekly_hours", data.weekly_hours || {});
+            setValue("reservations_enabled", data.reservations_enabled || false);
+            setInitialReservationEnabled(data.reservations_enabled || false);
+
 
             setValue("voice_id", data.voice?.id || "");
             setRedirectCall(data.redirect_call || false);
@@ -305,6 +312,61 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       setValue("timezone", userTz);
     }
   }, []);
+  const handleCreateInstance = async () => {
+    if (!instanceName.trim() || !instanceEmail.trim()) {
+      toast.error("Name and Email are required");
+      return;
+    }
+
+    try {
+      setIsInstanceLoading(true);
+
+      const businessId =
+        editId ||
+        localStorage.getItem("business_id") ||
+        localStorage.getItem("restaurant_id");
+
+      if (!businessId) {
+        toast.error("Business ID not found");
+        return;
+      }
+
+      const createRes = await businessService.createInstance(
+        businessId,
+        {
+          name: instanceName.trim(),
+          email: instanceEmail.trim().toLowerCase(),
+        }
+      );
+
+      const instanceId = createRes?.data?.id;
+
+      if (!instanceId) {
+        toast.error("Failed to create instance");
+        return;
+      }
+
+      const calendlyRes =
+        await businessService.instanceCalendlyLink(instanceId);
+
+      const redirectUrl = calendlyRes?.data?.data?.url;
+
+      if (!redirectUrl) {
+        toast.error("Failed to get Calendly link");
+        return;
+      }
+
+      window.location.assign(redirectUrl);
+
+    } catch (error) {
+      console.error("Instance creation error:", error);
+      toast.error("Something went wrong");
+    } finally {
+      setIsInstanceLoading(false);
+    }
+  };
+
+
 
   const onSubmit = async (data, e) => {
     setIsLoading(true);
@@ -331,6 +393,12 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             };
           }
         });
+      }
+      if (data.reservations_enabled) {
+        if (!data.timezone) {
+          setIsLoading(false);
+          return;
+        }
       }
       const payload = {
         name: data.businessName,
@@ -378,9 +446,9 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
         timezone: data.timezone,
         slot_size_minutes: Number(data.slotSizeMinutes),
         weekly_hours: data.weekly_hours,
-        reservation_enabled: data.reservation_enabled,
+        reservations_enabled: data.reservations_enabled,
       };
-      if (!data.reservation_enabled) {
+      if (!data.reservations_enabled) {
         // Remove business hour fields
         delete payload.weekly_hours;
         delete payload.timezone;
@@ -412,10 +480,27 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             }
           }
           localStorage.setItem("restaurant_id", result.restaurantId);
+          const shouldConnectCalendly = isEditMode && !initialReservationEnabled && data.reservations_enabled === true;
+
+          if (shouldConnectCalendly) {
+            setIsLoading(true);
+
+            const calendlyResponse =
+              await businessService.businessCalendlyLink(editId);
+
+            if (
+              calendlyResponse.success &&
+              calendlyResponse.data?.data?.url
+            ) {
+              window.location.assign(calendlyResponse.data.data.url);
+              return;
+            }
+          }
+
           if (isNextAction) {
             onNext();
           } else {
-            toast.success("Business Details Saved Successfully!")
+            toast.success("Business Details Saved Successfully!");
           }
         }
       } else {
@@ -820,50 +905,47 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
           {enableReservations && (
             <div className="border-t pt-8 mt-8">
               {/* CASE 1: Barber + tableRequired = false → Add Barber */}
-              {showAddBarber ? (
+              {showAddInstance ? (
                 <>
                   <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                    Add Barber
+                    Add {businessType}
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <TextField
-                      label="Barber Name"
-                      placeholder="Enter barber name"
-                      value={barberName}
-                      onChange={(e) => setBarberName(e.target.value)}
+                      label={`${businessType} Name`}
+                      placeholder={`Enter ${businessType} name`}
+                      value={instanceName}
+                      onChange={(e) => setInstanceName(e.target.value)}
                     />
 
                     <TextField
                       label="Email Address"
                       type="email"
-                      placeholder="barber@email.com"
-                      value={barberEmail}
-                      onChange={(e) => setBarberEmail(e.target.value)}
+                      placeholder="user@email.com"
+                      value={instanceEmail}
+                      onChange={(e) => setInstanceEmail(e.target.value)}
                     />
                   </div>
 
                   <button
                     type="button"
-                    onClick={handleAddBarber}
-                    className="px-5 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+                    onClick={handleCreateInstance}
+                    disabled={isInstanceLoading}
+                    className={`px-5 py-2 rounded-lg font-medium flex items-center ${isInstanceLoading
+                        ? "bg-gray-400"
+                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                      }`}
                   >
-                    Add Barber
+                    {isInstanceLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Redirecting...
+                      </>
+                    ) : (
+                      `Add ${businessType}`
+                    )}
                   </button>
-
-                  {barbers.length > 0 && (
-                    <div className="mt-6 space-y-3">
-                      {barbers.map((b, i) => (
-                        <div
-                          key={i}
-                          className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border"
-                        >
-                          <span className="font-medium">{b.name}</span>
-                          <span className="text-sm text-gray-500">{b.email}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </>
               ) : (
                 /* CASE 2: Everything else → existing reservation logic */
@@ -921,7 +1003,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
           <div className="flex items-center gap-3 mt-6">
             <input
               type="checkbox"
-              {...register("reservation_enabled")}
+              {...register("reservations_enabled")}
               className="h-4 w-4"
             />
             <label className="text-sm font-medium">
@@ -929,7 +1011,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             </label>
           </div>
 
-          {isEditMode && enableReservations && reservationEnabled && (
+          {isEditMode && reservationEnabled && (
 
             <div className="border-t pt-8 mt-8">
               <h3 className="text-xl font-semibold text-gray-900 mb-6">
@@ -1130,11 +1212,10 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center ${
-              isLoading
-                ? "bg-gray-400"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            }`}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center ${isLoading
+              ? "bg-gray-400"
+              : "bg-blue-600 hover:bg-blue-700 text-white"
+              }`}
           >
             {isLoading ? (
               <>

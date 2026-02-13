@@ -158,5 +158,53 @@ export const businessService = {
                 error: error.response?.data?.message || error.response?.data?.detail || 'Failed to update voice.',
             };
         }
-    }
+    },
+    businessCalendlyLink: async (businessId) => {
+        try {
+            const response = await api.get(`/v1/business/${businessId}/calendly/connect`);
+            return {
+                success: true,
+                data: response.data,
+                message: 'Calendly link updated successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to update calendly link.',
+                details: error.response?.data
+            };
+        }
+    },
+    createInstance: async (businessId, formData) => {
+        try {
+            const response = await api.post(`/business/${businessId}/instances`, formData);
+            return {
+                success: true,
+                data: response.data,
+                message: 'Instance created successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to create instance.',
+                details: error.response?.data
+            };
+        }
+    },
+    instanceCalendlyLink: async (businessId) => {
+        try {
+            const response = await api.get(`/v1/instance/${businessId}/calendly/connect`);
+            return {
+                success: true,
+                data: response.data,
+                message: 'Calendly link fetched successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to fetch calendly link.',
+                details: error.response?.data
+            };
+        }
+    },
 }
