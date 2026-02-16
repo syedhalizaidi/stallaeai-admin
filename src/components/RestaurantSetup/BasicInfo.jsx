@@ -883,24 +883,26 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               </div>
             )}
           </div>
+          {!tableRequired && (
 
-          <CheckboxField
-            label="Enable Reservations"
-            name="enableReservations"
-            checked={watch("enableReservations")}
-            onChange={(e) => {
-              const checked = e.target.checked;
-              setValue("enableReservations", checked);
-              if (!checked) {
-                // Reset slots to initial state when disabled
-                const initialSlots = businessType === "restaurant"
-                  ? [{ tableSize: "", customCapacity: "", quantity: "" }]
-                  : [{ slotName: "chair", capacity: 1, quantity: "" }];
-                setValue("slots", initialSlots);
-              }
-            }}
-            {...register("enableReservations")}
-          />
+            <CheckboxField
+              label="Enable Reservations"
+              name="enableReservations"
+              checked={watch("enableReservations")}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setValue("enableReservations", checked);
+                if (!checked) {
+                  // Reset slots to initial state when disabled
+                  const initialSlots = businessType === "restaurant"
+                    ? [{ tableSize: "", customCapacity: "", quantity: "" }]
+                    : [{ slotName: "chair", capacity: 1, quantity: "" }];
+                  setValue("slots", initialSlots);
+                }
+              }}
+              {...register("enableReservations")}
+            />
+          )}
 
           {enableReservations && (
             <div className="border-t pt-8 mt-8">
@@ -999,19 +1001,20 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               )}
             </div>
           )}
+          {tableRequired && (
 
-          <div className="flex items-center gap-3 mt-6">
-            <input
-              type="checkbox"
-              {...register("reservations_enabled")}
-              className="h-4 w-4"
-            />
-            <label className="text-sm font-medium">
-              Enable Reservation System
-            </label>
-          </div>
-
-          {isEditMode && reservationEnabled && (
+            <div className="flex items-center gap-3 mt-6">
+              <input
+                type="checkbox"
+                {...register("reservations_enabled")}
+                className="h-4 w-4"
+              />
+              <label className="text-sm font-medium">
+                Enable Reservation System
+              </label>
+            </div>
+          )}
+          {tableRequired && reservationEnabled && (
 
             <div className="border-t pt-8 mt-8">
               <h3 className="text-xl font-semibold text-gray-900 mb-6">

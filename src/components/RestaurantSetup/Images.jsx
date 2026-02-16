@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Camera, Upload, X, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import { restaurantService } from '../../services/restaurantService';
 import { useToast } from '../../contexts/ToastContext';
+import { useNavigate } from 'react-router-dom';
 
 const Images = ({ onNext, onPrevious }) => {
     const { showError } = useToast();
@@ -11,6 +12,7 @@ const Images = ({ onNext, onPrevious }) => {
     const [exteriorPreviews, setExteriorPreviews] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUpdate, setIsUpdate] = useState(false);
+    const navigate = useNavigate();
 
     const handleLogoUpload = (event) => {
         const file = event.target.files[0];
