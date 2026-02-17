@@ -159,18 +159,18 @@ export const businessService = {
             };
         }
     },
-    businessCalendlyLink: async (businessId) => {
+    businessLink: async (businessId) => {
         try {
-            const response = await api.get(`/v1/business/${businessId}/calendly/connect`);
+            const response = await api.post(`/v1/business/${businessId}/calendly/send-connect-email`);
             return {
                 success: true,
                 data: response.data,
-                message: 'Calendly link updated successfully!'
+                message: 'Authentication Email sent successfully!'
             };
         } catch (error) {
             return {
                 success: false,
-                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to update calendly link.',
+                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to send authentication email.',
                 details: error.response?.data
             };
         }
@@ -191,18 +191,18 @@ export const businessService = {
             };
         }
     },
-    instanceCalendlyLink: async (businessId) => {
+    instanceLink: async (instanceId) => {
         try {
-            const response = await api.get(`/v1/instance/${businessId}/calendly/connect`);
+            const response = await api.post(`/v1/instance/${instanceId}/calendly/send-connect-email`);
             return {
                 success: true,
                 data: response.data,
-                message: 'Calendly link fetched successfully!'
+                message: 'Authentication Email sent successfully!'
             };
         } catch (error) {
             return {
                 success: false,
-                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to fetch calendly link.',
+                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to send authentication email.',
                 details: error.response?.data
             };
         }

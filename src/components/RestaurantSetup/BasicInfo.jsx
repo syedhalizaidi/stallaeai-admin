@@ -347,7 +347,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
       }
 
       const calendlyRes =
-        await businessService.instanceCalendlyLink(instanceId);
+        await businessService.instanceLink(instanceId);
 
       const redirectUrl = calendlyRes?.data?.data?.url;
 
@@ -486,7 +486,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
             setIsLoading(true);
 
             const calendlyResponse =
-              await businessService.businessCalendlyLink(editId);
+              await businessService.businessLink(editId);
 
             if (
               calendlyResponse.success &&
