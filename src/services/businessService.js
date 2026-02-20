@@ -207,4 +207,21 @@ export const businessService = {
             };
         }
     },
+        listInstances: async (businessId) => {
+        try {
+            const response = await api.get(`/business/${businessId}/instances`);
+            return {
+                success: true,
+                data: response.data,
+                message: 'Instances fetched successfully!'
+            }
+
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.response?.data?.detail || 'Failed to fetch instances.',
+                details: error.response?.data
+            };
+        }
+    }
 }

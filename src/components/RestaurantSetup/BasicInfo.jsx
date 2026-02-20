@@ -60,6 +60,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const [instanceName, setInstanceName] = useState("");
   const [instanceEmail, setInstanceEmail] = useState("");
   const [isInstanceLoading, setIsInstanceLoading] = useState(false);
+  const [instances, setInstances] = useState([]);
 
 
   const navigate = useNavigate();
@@ -130,7 +131,7 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
   const [sameWeekHours, setSameWeekHours] = useState({ open: "09:00", close: "18:00", });
   const reservationEnabled = watch("reservations_enabled"); //for business hours
   const [initialReservationEnabled, setInitialReservationEnabled] = useState(false);
-  const showAddInstance = enableReservations && tableRequired === false;
+  const showAddInstance = reservationEnabled && tableRequired === false;
 
 
 
@@ -158,6 +159,24 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
     setValue("state", "");
   };
   const selectRegion = (val) => setValue("state", val);
+
+  const fetchInstances = async () => {
+    try {
+      const response = await businessService.listInstances(editId); // Assuming editId is the business ID
+      if (response.success) {
+        setInstances(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching instances:", error);
+    }
+  };
+
+  // Fetch when reservations are enabled or on mount/editMode
+  useEffect(() => {
+    if (enableReservations && editId) {
+      fetchInstances();
+    }
+  }, [enableReservations, editId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -214,17 +233,20 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               "parkingAvailable",
               location.is_parking_available || false
             );
-            setValue(
-              "tableRequired",
-              data.table_required ?? config.tableRequired
-            );
+            const isTableReq = data.table_required ?? config.tableRequired;
+            setValue("tableRequired", isTableReq);
+            const isResEnabled = data.reservations_enabled || false;
+            setValue("reservations_enabled", isResEnabled);
+            setInitialReservationEnabled(data.reservations_enabled || false);
+
+            if (isResEnabled && editId) {
+              fetchInstances();
+            }
             setValue("openingMessage", data.opening_message || "");
             setValue("redirect_call", data.redirect_call || false);
             setValue("timezone", data.timezone || "");
             setValue("slotSizeMinutes", data.slot_size_minutes || 30);
             setValue("weekly_hours", data.weekly_hours || {});
-            setValue("reservations_enabled", data.reservations_enabled || false);
-            setInitialReservationEnabled(data.reservations_enabled || false);
 
 
             setValue("voice_id", data.voice?.id || "");
@@ -883,139 +905,28 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
               </div>
             )}
           </div>
-          {!tableRequired && (
 
+          <div className="mt-8">
             <CheckboxField
               label="Enable Reservations"
-              name="enableReservations"
-              checked={watch("enableReservations")}
+              name="reservations_enabled"
+              checked={reservationEnabled}
               onChange={(e) => {
                 const checked = e.target.checked;
-                setValue("enableReservations", checked);
+                setValue("reservations_enabled", checked);
+                if (checked && editId) fetchInstances();
                 if (!checked) {
-                  // Reset slots to initial state when disabled
-                  const initialSlots = businessType === "restaurant"
-                    ? [{ tableSize: "", customCapacity: "", quantity: "" }]
-                    : [{ slotName: "chair", capacity: 1, quantity: "" }];
-                  setValue("slots", initialSlots);
+                  const defaultHours = { open: "09:00", close: "18:00", closed: false };
+                  setValue("weekly_hours", {
+                    mon: defaultHours, tue: defaultHours, wed: defaultHours,
+                    thu: defaultHours, fri: defaultHours, sat: defaultHours, sun: defaultHours
+                  });
                 }
               }}
-              {...register("enableReservations")}
+              {...register("reservations_enabled")}
             />
-          )}
-
-          {enableReservations && (
-            <div className="border-t pt-8 mt-8">
-              {/* CASE 1: Barber + tableRequired = false → Add Barber */}
-              {showAddInstance ? (
-                <>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                    Add {businessType}
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <TextField
-                      label={`${businessType} Name`}
-                      placeholder={`Enter ${businessType} name`}
-                      value={instanceName}
-                      onChange={(e) => setInstanceName(e.target.value)}
-                    />
-
-                    <TextField
-                      label="Email Address"
-                      type="email"
-                      placeholder="user@email.com"
-                      value={instanceEmail}
-                      onChange={(e) => setInstanceEmail(e.target.value)}
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleCreateInstance}
-                    disabled={isInstanceLoading}
-                    className={`px-5 py-2 rounded-lg font-medium flex items-center ${isInstanceLoading
-                        ? "bg-gray-400"
-                        : "bg-blue-600 hover:bg-blue-700 text-white"
-                      }`}
-                  >
-                    {isInstanceLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Redirecting...
-                      </>
-                    ) : (
-                      `Add ${businessType}`
-                    )}
-                  </button>
-                </>
-              ) : (
-                /* CASE 2: Everything else → existing reservation logic */
-                <>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                    Reservation Slots
-                  </h3>
-                  {fields.map((item, index) => (
-                    <div
-                      key={item.id}
-                      className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 items-end"
-                    >
-                      <NumberField
-                        label={!tableRequired ? "Reservation Slots" : "Reservation Size"}
-                        placeholder={!tableRequired ? "No. of Reservations" : "Person Count"}
-                        {...register(`slots.${index}.tableSize`, {
-                          required: "Required",
-                        })}
-                      />
-
-                      {tableRequired && (
-                        <NumberField
-                          label="Quantity"
-                          placeholder="Number of such reservations"
-                          {...register(`slots.${index}.quantity`, {
-                            required: "Required",
-                          })}
-                        />
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => remove(index)}
-                        className="border px-3 py-3 rounded-lg text-red-500 border-red-500 hover:bg-red-50"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      append({ tableSize: "", customCapacity: "", quantity: "" })
-                    }
-                    className="text-blue-600 font-medium mt-2 border border-blue-600 px-4 py-2 rounded-lg"
-                  >
-                    Add new reservation
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-          {tableRequired && (
-
-            <div className="flex items-center gap-3 mt-6">
-              <input
-                type="checkbox"
-                {...register("reservations_enabled")}
-                className="h-4 w-4"
-              />
-              <label className="text-sm font-medium">
-                Enable Reservation System
-              </label>
-            </div>
-          )}
-          {tableRequired && reservationEnabled && (
-
+          </div>
+          {reservationEnabled && (
             <div className="border-t pt-8 mt-8">
               <h3 className="text-xl font-semibold text-gray-900 mb-6">
                 Business Hours & Booking Settings
@@ -1130,6 +1041,131 @@ const BasicInfo = ({ onNext, editId, isEditMode, businessType }) => {
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+          )}
+          {!tableRequired && (
+            <div className="border-t pt-8 mt-8">
+              <div className="mb-10">
+                <h3 className="text-xl font-display font-bold text-[var(--text-primary)] mb-6">
+                  Existing {businessType}s
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {instances.length > 0 ? (
+                    instances.map((instance) => (
+                      <div
+                        key={instance.id}
+                        className="flex items-center justify-between p-4 bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border-primary)]"
+                      >
+                        <div>
+                          <p className="font-bold text-[var(--text-primary)]">{instance.name}</p>
+                          <p className="text-sm text-[var(--text-muted)]">{instance.email}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          {/* Optional: Add Edit/Delete buttons here */}
+                          <span className="px-3 py-1 bg-[var(--bg-primary)] text-[var(--accent-primary)] text-xs rounded-full border border-[var(--accent-primary-alpha)]">
+                            Active
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-[var(--text-muted)] italic">No {businessType}s added yet.</p>
+                  )}
+                </div>
+              </div>
+              {/* CASE 1: Barber + tableRequired = false → Add Barber */}
+              {showAddInstance ? (
+                <>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    Add {businessType}
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <TextField
+                      label={`${businessType} Name`}
+                      placeholder={`Enter ${businessType} name`}
+                      value={instanceName}
+                      onChange={(e) => setInstanceName(e.target.value)}
+                    />
+
+                    <TextField
+                      label="Email Address"
+                      type="email"
+                      placeholder="user@email.com"
+                      value={instanceEmail}
+                      onChange={(e) => setInstanceEmail(e.target.value)}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCreateInstance}
+                    disabled={isInstanceLoading}
+                    className={`px-5 py-2 rounded-lg font-medium flex items-center ${isInstanceLoading
+                      ? "bg-gray-400"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                      }`}
+                  >
+                    {isInstanceLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Redirecting...
+                      </>
+                    ) : (
+                      `Add ${businessType}`
+                    )}
+                  </button>
+                </>
+              ) : (
+                /* CASE 2: Everything else → existing reservation logic */
+                <>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    Reservation Slots
+                  </h3>
+                  {fields.map((item, index) => (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 items-end"
+                    >
+                      <NumberField
+                        label={!tableRequired ? "Reservation Slots" : "Reservation Size"}
+                        placeholder={!tableRequired ? "No. of Reservations" : "Person Count"}
+                        {...register(`slots.${index}.tableSize`, {
+                          required: "Required",
+                        })}
+                      />
+
+                      {tableRequired && (
+                        <NumberField
+                          label="Quantity"
+                          placeholder="Number of such reservations"
+                          {...register(`slots.${index}.quantity`, {
+                            required: "Required",
+                          })}
+                        />
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => remove(index)}
+                        className="border px-3 py-3 rounded-lg text-red-500 border-red-500 hover:bg-red-50"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      append({ tableSize: "", customCapacity: "", quantity: "" })
+                    }
+                    className="text-blue-600 font-medium mt-2 border border-blue-600 px-4 py-2 rounded-lg"
+                  >
+                    Add new reservation
+                  </button>
+                </>
               )}
             </div>
           )}
