@@ -34,6 +34,7 @@ const MenuForm = ({
   onNext,
   onPrevious,
   bussinessType,
+  onMenuModalActionsChange,
 }) => {
   const [restaurant_id, setRestaurantId] = useState(null);
   const [currentItem, setCurrentItem] = React.useState({
@@ -57,6 +58,15 @@ const MenuForm = ({
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [fetchedCategories, setFetchedCategories] = useState([]);
+
+  // decide whether the floating action bar should render
+  // Don't show actions when in modal context (onMenuModalActionsChange provided)
+  const showActions =
+    !showForm &&
+    !isModalOpen &&
+    !showDeleteModal &&
+    !isUploadModalOpen &&
+    !onMenuModalActionsChange;
 
   // Check if business type has predefined categories
   const hasPredefinedCategories = fetchedCategories.length > 0;
@@ -206,6 +216,7 @@ const MenuForm = ({
     await handleGetMenuItems();
     setDeleteTarget(null);
   };
+  const formRef = React.useRef(null);
 
   const handleAddNew = () => {
     setImageId(null);
@@ -220,6 +231,12 @@ const MenuForm = ({
     setCustomCategory("");
     setEditingItemId(null);
     setShowForm(true);
+    // scroll to the menu form section once it is rendered
+    setTimeout(() => {
+      if (formRef.current) {
+        formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 0);
   };
 
   const handleGetMenuItems = async () => {
@@ -261,6 +278,15 @@ const MenuForm = ({
     setMenu(menu);
     setIsModalOpen(true);
   };
+  // Set up menu modal actions when in modal context
+  useEffect(() => {
+    if (onMenuModalActionsChange) {
+      onMenuModalActionsChange({
+        onAddNewItem: handleAddNew,
+        onUploadMenu: () => setIsUploadModalOpen(true),
+      });
+    }
+  }, [onMenuModalActionsChange]);
 
   if (menuItems && onMenuItemsChange) {
     return (
@@ -287,7 +313,7 @@ const MenuForm = ({
         />
 
         {showForm && (
-          <div className={styles.menuFormSection}>
+          <div ref={formRef} className={styles.menuFormSection}>
             <h2 className={styles.formTitle}>
               {editingItemId ? "Edit Menu Item" : "Add New Menu Item"}
             </h2>
@@ -388,8 +414,8 @@ const MenuForm = ({
                     ? "Updating..."
                     : "Adding..."
                   : editingItemId
-                  ? "Update Menu Item"
-                  : "Add to Menu"}
+                    ? "Update Menu Item"
+                    : "Add to Menu"}
               </Button>
               <Button
                 variant="secondary"
@@ -404,29 +430,29 @@ const MenuForm = ({
           </div>
         )}
 
-        <div className={styles.stickyActions}>
-          <Button
-            variant="primary"
-            onClick={handleAddNew}
-            disabled={showForm}
-            icon={<Plus size={16} />}
-            iconPosition="start"
-            className={styles.addButton}
-          >
-            Add New Menu Item
-          </Button>
+        {showActions && (
+          <div className={styles.stickyActions}>
+            <Button
+              variant="primary"
+              onClick={handleAddNew}
+              icon={<Plus size={16} />}
+              iconPosition="start"
+              className={styles.addButton}
+            >
+              Add New Menu Item
+            </Button>
 
-          <Button
-            variant="secondary"
-            onClick={() => setIsUploadModalOpen(true)}
-            disabled={showForm}
-            icon={<Upload size={16} />}
-            iconPosition="start"
-            className={styles.addButton}
-          >
-            Upload Menu File
-          </Button>
-        </div>
+            <Button
+              variant="secondary"
+              onClick={() => setIsUploadModalOpen(true)}
+              icon={<Upload size={16} />}
+              iconPosition="start"
+              className={styles.addButton}
+            >
+              Upload Menu File
+            </Button>
+          </div>
+        )}
 
         <div className={styles.buttonContainer}>
           {onPrevious && (

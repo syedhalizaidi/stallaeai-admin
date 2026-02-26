@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 
-export default function PageModal({ isOpen, onClose, title, children }) {
+export default function PageModal({ isOpen, onClose, title, children, actions }) {
   if (!isOpen) return null;
 
   return (
@@ -15,11 +15,16 @@ export default function PageModal({ isOpen, onClose, title, children }) {
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="relative w-full max-w-7xl bg-white rounded-2xl shadow-lg transform transition-all">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 gap-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex-shrink-0">{title}</h2>
+            {actions && (
+              <div className="flex gap-3 items-center flex-shrink-0 ml-auto">
+                {actions}
+              </div>
+            )}
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
             >
               <X className="h-6 w-6 text-gray-500" />
             </button>

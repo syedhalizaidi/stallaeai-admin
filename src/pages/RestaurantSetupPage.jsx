@@ -38,7 +38,14 @@ const RestaurantSetupPage = () => {
 
   const handleStepChange = (stepId) => {
     setCurrentStep(stepId);
-    setSearchParams({ step: stepId });
+    const newParams = { step: stepId };
+    if (editId) {
+      newParams.editId = editId;
+    }
+    if (selectedCategory) {
+      newParams.category = selectedCategory;
+    }
+    setSearchParams(newParams);
   };
 
   const getCurrentStepIndex = () => {

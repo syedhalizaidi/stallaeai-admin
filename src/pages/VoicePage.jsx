@@ -33,7 +33,7 @@ const VoiceControl = ({
 
   useEffect(() => {
     if (parentVoices?.length) {
-      const excludedNames = ["Sarah", "Laura", "Alice", "Roger", "Charlie"];
+      const excludedNames = [];
       const updatedVoices = parentVoices
         .filter((v) => !excludedNames.some((name) => v.name.includes(name)))
         .map((v) => {

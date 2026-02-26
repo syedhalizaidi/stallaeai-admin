@@ -9,6 +9,8 @@ import {
   Menu as MenuIcon,
   UserPlus,
   Grid,
+  Plus,
+  Upload,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { dashboardService } from "../services/dashboard";
@@ -38,6 +40,11 @@ const DashboardModule = () => {
 
   // Modal states
   const [activePageModal, setActivePageModal] = useState(null);
+  // Menu modal button handlers
+  const [menuModalActions, setMenuModalActions] = useState({
+    onAddNewItem: null,
+    onUploadMenu: null,
+  });
 
   // Notes state
   const [businessNote, setBusinessNote] = useState("");
@@ -368,8 +375,27 @@ const DashboardModule = () => {
         isOpen={activePageModal === "menu"}
         onClose={() => setActivePageModal(null)}
         title="Manage Menu"
+        actions={
+          <>
+            <button
+              onClick={() => menuModalActions.onAddNewItem?.()}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-#b151e2-700 flex items-center space-x-2 cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add New Menu Item</span>
+            </button>
+
+            <button
+              onClick={() => menuModalActions.onUploadMenu?.()}
+              className="bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center space-x-2 cursor-pointer"
+            >
+              <Upload className="h-4 w-4" />
+              <span>Upload Menu File</span>
+            </button>
+          </>
+        }
       >
-        <ManageMenu />
+        <ManageMenu onMenuModalActionsChange={setMenuModalActions} />
       </PageModal>
 
       <PageModal
